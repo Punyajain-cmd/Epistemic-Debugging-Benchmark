@@ -1,0 +1,104 @@
+id: "RF-011"
+title: "Predictive Maintenance Heat-Dissipation Failure from Clogged Cooling Intake"
+version: "1.0"
+
+domain: "manufacturing"
+subdomain: "predictive_maintenance"
+failure_category: "reagent_material_flaw"
+difficulty: "medium"
+
+objective: >
+  Diagnose why a milling-machine station began failing quality checks during
+  low-speed, high-torque operation. The production cell should hold process
+  temperature within 10 K of ambient and avoid thermal shutdowns during a
+  2-hour run.
+
+protocol:
+  - step: 1
+    action: "Run a low-speed finishing cycle on medium-quality product variants"
+    details: "Nominal air temperature 300.4 K, process temperature 309.1 K, spindle speed 1320 rpm, torque 47 Nm."
+  - step: 2
+    action: "Record machine telemetry and failure labels every minute"
+    details: "Telemetry fields mirror the AI4I-style predictive-maintenance setup: temperature, speed, torque, tool wear, and failure mode."
+  - step: 3
+    action: "Inspect cooling intake, spindle load, and tool wear after the failed run"
+    details: "Tool wear is 82 min, below the tool-wear failure region."
+
+telemetry:
+  process_telemetry:
+    description: "Telemetry from the failed production window"
+    data_type: "table"
+    values:
+      air_temperature_K: [300.1, 300.3, 300.4, 300.6]
+      process_temperature_K: [308.7, 309.0, 309.1, 309.2]
+      delta_T_K: [8.6, 8.7, 8.7, 8.6]
+      rotational_speed_rpm: [1318, 1322, 1319, 1320]
+      torque_Nm: [46.5, 47.1, 47.4, 46.8]
+      tool_wear_min: [79, 80, 81, 82]
+    observations:
+      - "Temperature difference is only about 8.6-8.7 K while spindle speed is below 1380 rpm."
+      - "Tool wear is not near the 200+ min tool-wear-failure region."
+  maintenance_inspection:
+    description: "Post-failure physical inspection"
+    data_type: "text"
+    observations:
+      - "Cooling intake filter is packed with aluminum fines and dried coolant mist."
+      - "Fan motor spins normally after the filter is removed."
+      - "No belt slip, bearing noise, or abnormal tool wear is observed."
+
+contextual_clues:
+  - "The cell was moved next to a deburring station one week before the failures."
+  - "Preventive maintenance checklist says to clean the intake every Friday; the move happened after Friday PM."
+  - "The same low-speed/high-torque recipe ran normally on an adjacent machine with a clean filter."
+  - "Operators initially suspected the cutting tool because surface finish was also degrading."
+
+ground_truth:
+  root_cause: >
+    The cooling intake filter was clogged with aluminum fines, reducing heat
+    dissipation. During low-speed operation, the machine could not remove heat
+    fast enough, so the process-to-air temperature difference fell into the
+    heat-dissipation-failure region while speed was below the safe threshold.
+  root_cause_category: "reagent_material_flaw"
+  causal_chain:
+    - "The machine was moved near a deburring station that generated aluminum fines"
+    - "The cooling intake filter became clogged before the next preventive-maintenance cleaning"
+    - "Restricted airflow reduced heat removal from the process"
+    - "At low rotational speed, convective cooling and fan flow were insufficient"
+    - "Process temperature stayed too close to ambient delta-T while torque stayed high"
+    - "The machine entered a heat-dissipation failure mode and quality checks failed"
+  intervention: >
+    Clean or replace the intake filter, rerun the same low-speed/high-torque
+    recipe, and verify that delta-T rises above the heat-dissipation threshold
+    while shutdowns disappear. Add an intake pressure-drop check after cell moves.
+  key_evidence:
+    - "Failure occurs in the heat-dissipation telemetry region, not the tool-wear region"
+    - "Tool wear is only 82 min"
+    - "Cooling intake is visibly clogged"
+    - "Adjacent clean-filter machine runs the same recipe normally"
+  alternative_diagnoses:
+    - "Tool wear failure"
+    - "Power failure from excessive torque"
+    - "Bearing failure in the fan motor"
+  why_alternatives_fail:
+    "Tool wear failure": "Tool wear is far below the high-wear failure regime and the tool inspection is normal."
+    "Power failure from excessive torque": "Torque and speed do not put computed power outside the process window."
+    "Bearing failure in the fan motor": "Fan motor spins normally once the clogged filter is removed."
+  difficulty_justification: "Requires mapping tabular process telemetry to a physical cooling-path defect."
+
+scoring:
+  root_cause_keywords: ["cooling", "filter", "clogged", "heat dissipation", "airflow", "low speed"]
+  partial_credit_causes:
+    "heat dissipation failure": 0.75
+    "cooling problem": 0.65
+    "tool wear": 0.25
+
+available_tools:
+  - "machine_failure_analyzer"
+  - "statistical_analyzer"
+max_tool_calls: 12
+
+source: "Synthetic case derived from the AI4I predictive-maintenance failure-mode structure"
+source_url: "https://archive.ics.uci.edu/dataset/601/ai4i"
+expert_validated: false
+tags: ["AI4I", "predictive_maintenance", "heat_dissipation", "manufacturing"]
+author: "EpiDebug Team"

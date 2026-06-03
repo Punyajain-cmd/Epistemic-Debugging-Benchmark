@@ -1,0 +1,96 @@
+id: "PL-006"
+title: "HPLC Assay Noise from Skipped Mobile-Phase Degassing"
+version: "1.0"
+
+domain: "chemistry"
+subdomain: "analytical_chromatography"
+failure_category: "protocol_human_loophole"
+difficulty: "easy"
+
+objective: >
+  Quantify an API impurity by HPLC with retention-time RSD below 0.5% and baseline
+  noise below 0.2 mAU.
+
+protocol:
+  - step: 1
+    action: "Prepare aqueous buffer and acetonitrile mobile phases"
+    details: "Analyst prepares fresh bottles at the start of the day."
+  - step: 2
+    action: "Run system suitability sequence"
+    details: "The written SOP says mobile phase should be degassed, but the analyst assumes the inline degasser is enough."
+  - step: 3
+    action: "Inject blank, standard, and sample sequence"
+    details: "Pump pressure fluctuates during the failed run."
+
+telemetry:
+  chromatogram_qc:
+    description: "System suitability metrics"
+    data_type: "table"
+    values:
+      run: ["failed", "after_helium_sparge"]
+      baseline_noise_mAU: [0.74, 0.09]
+      retention_time_RSD_percent: [1.8, 0.2]
+      pump_pressure_RSD_percent: [6.4, 0.7]
+    observations:
+      - "Noise and retention-time instability disappear after off-line degassing."
+  observations:
+    description: "Physical observations"
+    data_type: "text"
+    observations:
+      - "Tiny bubbles are visible in the aqueous mobile-phase line."
+      - "No leaks are seen around pump seals."
+      - "Column backpressure returns to normal after degassing the same mobile phase."
+
+contextual_clues:
+  - "The inline degasser had reduced vacuum capacity after a recent service warning."
+  - "The analyst skipped sonication/helium sparging because the lab was behind schedule."
+  - "The same column passes suitability with a properly degassed bottle."
+  - "Detector lamp energy is stable."
+
+ground_truth:
+  root_cause: >
+    The analyst skipped the off-line mobile-phase degassing step while the inline
+    degasser had weak vacuum. Dissolved gas formed bubbles in the pump/detector
+    flow path, causing pressure pulsation, baseline noise, and retention-time drift.
+  root_cause_category: "protocol_human_loophole"
+  causal_chain:
+    - "Fresh mobile phase retained dissolved gas"
+    - "The off-line degassing step was skipped"
+    - "The weak inline degasser failed to remove enough gas"
+    - "Bubbles formed in the solvent line and pump head"
+    - "Flow became unstable, causing pressure fluctuations"
+    - "Retention time and detector baseline became noisy"
+  intervention: >
+    Degas the same mobile phases by helium sparging or sonication, verify degasser
+    vacuum, and rerun system suitability. If noise and RT RSD recover without
+    changing column or method, the diagnosis is confirmed.
+  key_evidence:
+    - "Bubbles are visible in the mobile-phase line"
+    - "Pressure RSD is high"
+    - "Degassing the same bottle fixes the problem"
+    - "Column and lamp checks pass"
+  alternative_diagnoses:
+    - "Column is degraded"
+    - "Detector lamp is failing"
+    - "Pump seal leak"
+  why_alternatives_fail:
+    "Column is degraded": "The same column passes after degassing."
+    "Detector lamp is failing": "Lamp energy is stable and pressure also fluctuates."
+    "Pump seal leak": "No leak is observed and pressure stabilizes with degassed solvent."
+  difficulty_justification: "Easy because the omitted step and bubbles directly explain the telemetry."
+
+scoring:
+  root_cause_keywords: ["degassing", "mobile phase", "bubbles", "inline degasser", "HPLC", "pressure"]
+  partial_credit_causes:
+    "air bubbles in HPLC": 0.85
+    "mobile phase problem": 0.6
+    "bad column": 0.25
+
+available_tools:
+  - "statistical_analyzer"
+max_tool_calls: 8
+
+source: "Synthetic composite based on common HPLC system suitability failures"
+expert_validated: false
+tags: ["HPLC", "degassing", "chromatography", "baseline_noise", "protocol"]
+author: "EpiDebug Team"

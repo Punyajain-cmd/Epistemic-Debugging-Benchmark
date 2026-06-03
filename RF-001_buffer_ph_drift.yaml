@@ -1,0 +1,161 @@
+id: "RF-001"
+title: "Buffer pH Drift in Protein Purification"
+version: "1.0"
+domain: "molecular_biology"
+subdomain: "protein_purification"
+failure_category: "reagent_material_flaw"
+difficulty: "medium"
+
+objective: |
+  Purify recombinant GFP-tagged kinase (55 kDa, C-terminal 6xHis-tag) from E. coli BL21(DE3)
+  lysate using Ni-NTA affinity chromatography. Expected yield: >5 mg/L culture at >90% purity.
+  The purified protein will be used for in-vitro kinase assays.
+
+protocol:
+  - step: 1
+    action: "Grow BL21(DE3)/pET28a-kinase in LB + 50 µg/mL kanamycin at 37°C"
+    details: "250 mL in 1L baffled flask, 180 rpm shaking"
+  - step: 2
+    action: "Monitor OD600 until reaching 0.6"
+    details: "Checked every 30 min, reached OD600=0.62 after 3.5 hours"
+  - step: 3
+    action: "Induce with 1 mM IPTG, shift to 18°C for 16 hours"
+    details: "IPTG from freshly thawed aliquot"
+  - step: 4
+    action: "Harvest cells by centrifugation at 4000×g, 20 min, 4°C"
+    details: "Cell pellet was green (GFP), ~2.5 g wet weight — normal"
+  - step: 5
+    action: "Resuspend pellet in 25 mL lysis buffer"
+    details: "Lysis buffer: 50 mM Tris-HCl pH 8.0, 300 mM NaCl, 10 mM imidazole. Buffer was prepared 3 weeks ago and stored at room temperature on the bench."
+  - step: 6
+    action: "Add lysozyme (1 mg/mL) and incubate 30 min on ice"
+  - step: 7
+    action: "Lyse by sonication on ice"
+    details: "30s on, 30s off, 6 cycles, 40% amplitude. Lysate turned from turbid green to clearer green."
+  - step: 8
+    action: "Clarify lysate by centrifugation at 14,000×g, 30 min, 4°C"
+    details: "Pellet was small and tan — minimal inclusion bodies"
+  - step: 9
+    action: "Load clarified lysate onto 2 mL pre-equilibrated Ni-NTA column (gravity flow)"
+    details: "Column equilibrated with 10 column volumes of lysis buffer"
+  - step: 10
+    action: "Wash with 10 column volumes wash buffer (50 mM Tris-HCl pH 8.0, 300 mM NaCl, 20 mM imidazole)"
+  - step: 11
+    action: "Elute with 5 column volumes elution buffer (50 mM Tris-HCl pH 8.0, 300 mM NaCl, 250 mM imidazole)"
+    details: "Collected in 1 mL fractions"
+  - step: 12
+    action: "Run SDS-PAGE (12% gel) on all fractions"
+    details: "Loaded 15 µL per lane, stained with Coomassie Blue R-250"
+
+telemetry:
+  sds_page:
+    description: "12% SDS-PAGE gel analysis of purification fractions"
+    data_type: "text"
+    observations:
+      - "Lane 1 (Total lysate): Strong band at 55 kDa (target) plus many other bands"
+      - "Lane 2 (Flow-through): Very strong band at 55 kDa — most target protein did NOT bind the column"
+      - "Lane 3 (Wash 1): Medium band at 55 kDa still present"
+      - "Lane 4 (Wash 2): Faint band at 55 kDa"
+      - "Lane 5 (Elution 1): Very faint band at 55 kDa, plus bands at ~70 and ~42 kDa (contaminants)"
+      - "Lane 6 (Elution 2): Almost no protein visible"
+  column_pressure:
+    description: "Column back-pressure during purification run"
+    data_type: "timeseries"
+    values: [0.2, 0.25, 0.28, 0.3, 0.32]
+    units: "MPa"
+    note: "Slightly elevated toward end but within acceptable range (< 0.5 MPa)"
+    expected_range:
+      min: 0.1
+      max: 0.5
+  uv280_elution:
+    description: "UV280 absorbance trace during elution"
+    data_type: "timeseries"
+    values: [0.02, 0.05, 0.15, 0.08, 0.03]
+    units: "AU"
+    note: "Very low UV280 signal across all elution fractions"
+    expected_range:
+      min: 0.5
+      max: 3.0
+  yield_data:
+    description: "Bradford assay quantification of eluted protein"
+    data_type: "numeric"
+    values: [0.3]
+    units: "mg total"
+    note: "Total yield from 250 mL culture = 0.3 mg (expected >5 mg)"
+    expected_range:
+      min: 3.0
+      max: 10.0
+  cell_pellet:
+    description: "Visual inspection of cell pellet"
+    data_type: "text"
+    observations:
+      - "Pellet was green (GFP fluorescence), indicating protein IS expressed"
+      - "Normal pellet size for 250 mL culture"
+
+contextual_clues:
+  - "The lysis buffer was prepared 3 weeks ago and stored at room temperature on the bench"
+  - "A CO2 incubator for mammalian cell culture is running on the same bench, with occasional door openings venting CO2"
+  - "The lab pH meter was last calibrated 6 months ago"
+  - "The Ni-NTA resin was from a freshly opened bottle — new lot number"
+  - "The same purification protocol worked perfectly 2 months ago with the same construct"
+
+ground_truth:
+  root_cause: "Lysis buffer pH drifted from 8.0 to approximately 6.5 due to CO2 absorption from the nearby incubator over 3 weeks of storage at room temperature. At pH 6.5, the histidine residues in the 6xHis-tag become protonated and cannot coordinate Ni2+ ions, causing the protein to flow through the column."
+  root_cause_category: "reagent_material_flaw"
+  causal_chain:
+    - "Tris-HCl lysis buffer was prepared and left at room temperature for 3 weeks"
+    - "The nearby CO2 incubator vented CO2 into the ambient air on the bench"
+    - "Atmospheric CO2 dissolved into the buffer: CO2 + H2O → H2CO3 (carbonic acid)"
+    - "Carbonic acid overwhelmed the Tris buffering capacity, lowering pH from 8.0 to ~6.5"
+    - "At pH 6.5, the imidazole side chains of the 6xHis-tag become protonated (pKa ~6.0)"
+    - "Protonated histidine residues cannot coordinate Ni2+ ions on the NTA resin"
+    - "The His-tagged protein flowed through the column without binding"
+    - "Result: very low yield (0.3 mg vs expected 5+ mg) and poor purity in elution fractions"
+  intervention: "Re-prepare fresh lysis buffer from stock solutions, verify pH = 8.0 with a freshly calibrated pH meter immediately before use. Rerun the entire purification with the fresh buffer. If yield recovers to >5 mg/L at >90% purity, the diagnosis is confirmed."
+  key_evidence:
+    - "Target protein is expressed (green pellet) but flows through the column — binding failure, not expression failure"
+    - "Buffer was stored 3 weeks at room temperature near a CO2 incubator"
+    - "Previous runs with the same protocol worked — reagent degradation, not protocol error"
+    - "Ni-NTA resin is fresh — not a resin problem"
+  alternative_diagnoses:
+    - "IPTG induction failure — protein not expressed"
+    - "Ni-NTA resin degradation or Ni stripping"
+    - "Protein aggregation into inclusion bodies"
+    - "Column overloading beyond binding capacity"
+  why_alternatives_fail:
+    "IPTG induction failure — protein not expressed": "Cell pellet is green (GFP tag), and SDS-PAGE of total lysate shows a strong 55 kDa band. Protein IS expressed."
+    "Ni-NTA resin degradation or Ni stripping": "Resin is from a freshly opened bottle. No chelating agents (EDTA, DTT) are in the buffers."
+    "Protein aggregation into inclusion bodies": "Induction at 18°C minimizes inclusion bodies. Pellet after lysis clarification was small. Target visible in soluble fraction."
+    "Column overloading beyond binding capacity": "2 mL of Ni-NTA binds ~10-20 mg His-tagged protein. Expected load is ~5 mg. Not overloaded."
+  difficulty_justification: "Requires connecting three pieces: (1) buffer age + storage conditions, (2) CO2 source nearby, (3) Tris buffer's known vulnerability to CO2. Also requires understanding His-tag coordination chemistry with Ni2+ and the pH dependence."
+
+scoring:
+  weights:
+    root_cause: 0.30
+    causal_chain: 0.40
+    intervention: 0.30
+  root_cause_keywords:
+    - "pH"
+    - "buffer"
+    - "CO2"
+    - "drift"
+    - "histidine"
+    - "protonated"
+  partial_credit_causes:
+    "buffer pH changed": 0.75
+    "old buffer": 0.5
+    "buffer degradation": 0.5
+
+available_tools:
+  - "ph_calculator"
+  - "protein_pka_lookup"
+  - "buffer_stability_reference"
+  - "ni_nta_binding_conditions"
+  - "gel_imager"
+  - "spectrophotometer"
+max_tool_calls: 15
+
+source: "Composite case based on common Ni-NTA purification failures documented in protein biochemistry literature and manufacturer troubleshooting guides (Qiagen, Thermo Fisher)"
+expert_validated: false
+tags: ["protein_purification", "buffer_chemistry", "pH", "affinity_chromatography", "His-tag", "Ni-NTA", "CO2"]
+author: "EpiDebug Team"

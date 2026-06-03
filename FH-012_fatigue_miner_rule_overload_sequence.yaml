@@ -1,0 +1,106 @@
+id: "FH-012"
+title: "Fatigue Life Overprediction from Linear Damage Assumption Under Overload Sequence"
+version: "1.0"
+
+domain: "engineering"
+subdomain: "fatigue_testing"
+failure_category: "flawed_hypothesis"
+difficulty: "hard"
+
+objective: >
+  Validate an aluminum bracket fatigue design for 100,000 variable-amplitude load
+  cycles using a Miner-rule cumulative damage calculation.
+
+protocol:
+  - step: 1
+    action: "Compute fatigue damage with nominal stress bins"
+    details: "Linear Miner damage sum predicts D = 0.62 after the mission spectrum."
+  - step: 2
+    action: "Run variable-amplitude fatigue test"
+    details: "Spectrum includes occasional overload cycles at 1.6x nominal peak load."
+  - step: 3
+    action: "Inspect fracture surface and strain data after early crack initiation"
+    details: "Crack initiates near a small machined notch after 28,000 cycles."
+
+telemetry:
+  fatigue_result:
+    description: "Predicted and observed fatigue life"
+    data_type: "table"
+    values:
+      predicted_cycles_to_crack: [100000]
+      observed_cycles_to_crack: [28000]
+      miner_damage_at_failure: [0.18]
+    observations:
+      - "Failure occurs far earlier than linear Miner calculation predicts."
+  strain_history:
+    description: "Local notch strain response"
+    data_type: "table"
+    values:
+      event: ["nominal_cycles_before_overload", "overload_cycle", "nominal_cycles_after_overload"]
+      peak_microstrain: [1650, 4200, 1980]
+      residual_microstrain: [5, 210, 190]
+    observations:
+      - "Overload cycles create residual strain and change later nominal-cycle response."
+  fractography:
+    description: "Fracture surface observations"
+    data_type: "text"
+    observations:
+      - "Crack initiates at the machined notch root."
+      - "Beach marks cluster after overload blocks."
+      - "Surface roughness is worse than the polished coupon data used for the S-N curve."
+
+contextual_clues:
+  - "The design calculation used polished-specimen S-N data."
+  - "The notch root has machining marks and a local stress concentration."
+  - "Miner's rule assumes linear damage accumulation and ignores sequence effects."
+  - "The overload cycles occur early in the spectrum."
+
+ground_truth:
+  root_cause: >
+    The fatigue hypothesis was invalid: linear Miner damage using polished-specimen
+    S-N data did not apply to a notched, rough component with overload sequence
+    effects. Early overloads caused local plasticity and residual strain at the
+    notch, accelerating crack initiation during subsequent nominal cycles.
+  root_cause_category: "flawed_hypothesis"
+  causal_chain:
+    - "The bracket contains a machined notch and rougher surface than the S-N coupons"
+    - "The calculation used nominal stress bins and linear Miner accumulation"
+    - "Early overload cycles produced local plastic strain at the notch"
+    - "Residual strain changed subsequent nominal-cycle stress/strain response"
+    - "Damage accumulated nonlinearly and sequence effects accelerated crack initiation"
+    - "The crack initiated at 28,000 cycles despite low Miner damage"
+  intervention: >
+    Reanalyze with notch stress/strain, surface-finish correction, and sequence-aware
+    fatigue modeling, then run a blocked-spectrum test with and without early
+    overloads. Confirm if overload ordering drives early crack initiation.
+  key_evidence:
+    - "Miner damage at failure is only 0.18"
+    - "Overload cycles leave residual strain"
+    - "Crack initiates at machined notch"
+    - "Polished coupon S-N data do not match rough notched component"
+  alternative_diagnoses:
+    - "Load frame applied wrong amplitude"
+    - "Material lot had low strength"
+    - "Crack inspection threshold was too sensitive"
+  why_alternatives_fail:
+    "Load frame applied wrong amplitude": "Strain history matches commanded overload pattern and reveals local plasticity."
+    "Material lot had low strength": "Tensile coupons meet strength spec."
+    "Crack inspection threshold was too sensitive": "Fractography confirms real crack initiation."
+  difficulty_justification: "Hard because the arithmetic model is familiar but its assumptions do not match the physical test."
+
+scoring:
+  root_cause_keywords: ["Miner", "fatigue", "overload", "sequence", "notch", "linear damage"]
+  partial_credit_causes:
+    "invalid fatigue model": 0.8
+    "sequence effects": 0.85
+    "stress concentration": 0.55
+
+available_tools:
+  - "material_properties"
+  - "statistical_analyzer"
+max_tool_calls: 15
+
+source: "Synthetic composite based on fatigue analysis and variable-amplitude testing pitfalls"
+expert_validated: false
+tags: ["fatigue", "Miner_rule", "overload", "notch", "sequence_effects"]
+author: "EpiDebug Team"

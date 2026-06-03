@@ -1,0 +1,175 @@
+id: "IN-009"
+title: "Distributed Trace Clock Skew Creates a False Checkout Latency Regression"
+version: "1.0"
+
+domain: "software_systems"
+subdomain: "cloud_observability"
+failure_category: "instrumentation_artifact"
+difficulty: "medium"
+
+objective: >
+  Validate a canary release of an ecommerce checkout service. The canary should
+  preserve p95 end-to-end checkout latency below 250 ms, error rate below 0.1%,
+  and database query p95 below 50 ms during a 30-minute load test at 600 requests
+  per second.
+
+protocol:
+  - step: 1
+    action: "Deploy checkout-service v2.8.1 canary to 5% of production traffic"
+    details: "Three canary pods are scheduled across checkout-canary-1, checkout-canary-2, and checkout-canary-3."
+    notes: "The canary uses a newly baked Ubuntu base image with OpenTelemetry auto-instrumentation enabled."
+
+  - step: 2
+    action: "Run synthetic checkout traffic for 30 minutes"
+    details: "Load generator sends cart, payment, inventory, and order-confirmation calls through the normal API gateway."
+    notes: "Synthetic probe logs record local monotonic request durations in addition to distributed traces."
+
+  - step: 3
+    action: "Collect service dashboards from the trace backend"
+    details: "Trace collector computes span durations from service-emitted wall-clock timestamps."
+    notes: "Dashboard flags checkout-service p95 latency at 1.84 s, far above the release threshold."
+
+  - step: 4
+    action: "Check direct application logs and dependency metrics"
+    details: "Inspect local handler timers, database metrics, payment service metrics, and queue depths."
+    notes: "Application monotonic timers report 118-156 ms for affected requests. No dependency saturation is observed."
+
+  - step: 5
+    action: "Compare host time synchronization status"
+    details: "Run timedatectl and chrony status checks on canary hosts after the failed release gate."
+    notes: "checkout-canary-3 reports chronyd inactive and wall clock offset of roughly +1.24 s."
+
+telemetry:
+  trace_dashboard:
+    description: "OpenTelemetry dashboard summary for checkout canary"
+    data_type: "table"
+    values:
+      metric: ["trace_p50_ms", "trace_p95_ms", "trace_p99_ms", "error_rate_percent"]
+      baseline: [92, 181, 240, 0.03]
+      canary: [108, 1840, 2320, 0.04]
+    observations:
+      - "Trace backend reports canary p95 latency of 1840 ms."
+      - "Error rate remains essentially unchanged."
+      - "The latency spike appears only in distributed-trace-derived metrics."
+
+  synthetic_probe:
+    description: "Independent synthetic probe timings measured with monotonic clocks"
+    data_type: "numeric"
+    values: [141, 156, 133, 172, 148, 165]
+    units: "ms p95 by 5-minute bucket"
+    expected_range:
+      min: 0
+      max: 250
+    observations:
+      - "Probe p95 remains below the 250 ms release gate throughout the test."
+      - "No user-visible timeout or retry spike is observed."
+
+  span_anomalies:
+    description: "Trace collector span-quality audit"
+    data_type: "table"
+    values:
+      negative_span_fraction: 0.18
+      future_start_timestamp_fraction: 0.31
+      affected_host: "checkout-canary-3"
+      affected_host_clock_offset_ms: 1240
+    observations:
+      - "18% of spans have impossible negative child durations."
+      - "31% of affected spans start in the future relative to upstream gateway spans."
+      - "All impossible spans include checkout-canary-3."
+
+  dependency_metrics:
+    description: "Dependency health during the load test"
+    data_type: "table"
+    values:
+      postgres_p95_ms: 38
+      payment_service_p95_ms: 64
+      inventory_service_p95_ms: 41
+      queue_depth: 0
+      cpu_percent: 42
+    observations:
+      - "Dependencies remain inside expected ranges."
+      - "No queue buildup, CPU saturation, or database lock storm is visible."
+
+contextual_clues:
+  - "The canary AMI was rebuilt the night before the test with a minimal package set."
+  - "checkout-canary-3 shows 'chronyd inactive' in system logs after boot."
+  - "The trace collector computes distributed span durations from wall-clock timestamps, while the application logs local handler duration with monotonic timers."
+  - "Database and payment teams report no incident during the canary window."
+  - "The previous checkout release had a real database regression, so the on-call engineer initially suspects Postgres."
+
+ground_truth:
+  root_cause: >
+    The apparent checkout latency regression is an instrumentation artifact caused
+    by wall-clock skew on checkout-canary-3. Chrony was inactive on that host after
+    the new AMI bake, so its timestamps were about 1.24 seconds ahead of the rest
+    of the fleet. The trace backend computed distributed span durations from these
+    inconsistent wall-clock timestamps, producing impossible negative spans and
+    inflated end-to-end latency. The checkout service itself was not slow.
+  root_cause_category: "instrumentation_artifact"
+  causal_chain:
+    - "The canary base image booted checkout-canary-3 without chrony running"
+    - "checkout-canary-3's wall clock drifted about 1.24 seconds ahead of gateway and dependency hosts"
+    - "OpenTelemetry spans emitted by checkout-canary-3 used the skewed wall-clock timestamps"
+    - "The trace collector combined spans from multiple machines and computed durations from inconsistent clocks"
+    - "Some child spans appeared to start in the future or have negative durations"
+    - "The collector's rollup inflated checkout end-to-end p95 latency to 1.84 seconds"
+    - "Independent monotonic probe timings and dependency metrics stayed normal, showing the service did not actually regress"
+  intervention: >
+    Re-enable chrony or remove checkout-canary-3 from the canary pool, wait for
+    clock offset to return below 10 ms, and rerun the same load test. Confirm the
+    diagnosis by comparing trace-derived latency against monotonic application
+    timers and an independent synthetic probe. If the trace p95 returns to roughly
+    180 ms while probe timings remain unchanged, the failed release gate was caused
+    by clock-skewed telemetry.
+  key_evidence:
+    - "Trace p95 is high while synthetic monotonic probe p95 remains below 250 ms"
+    - "Negative spans and future timestamps are impossible for a real request path"
+    - "All impossible spans include checkout-canary-3"
+    - "checkout-canary-3 has chronyd inactive and a 1.24 s clock offset"
+    - "Database, queue, CPU, and dependency metrics are normal"
+  alternative_diagnoses:
+    - "Checkout v2.8.1 introduced a real slow code path"
+    - "Postgres query latency regressed"
+    - "Payment service latency caused checkout to block"
+    - "The load generator overloaded the canary"
+  why_alternatives_fail:
+    "Checkout v2.8.1 introduced a real slow code path": "Application monotonic handler timers remain 118-156 ms and do not match the 1.84 s trace p95."
+    "Postgres query latency regressed": "Postgres p95 remains 38 ms with no lock storm or queue buildup."
+    "Payment service latency caused checkout to block": "Payment service p95 remains 64 ms and error rate is stable."
+    "The load generator overloaded the canary": "CPU is 42%, queue depth is zero, and independent probe timings are within threshold."
+  difficulty_justification: >
+    Medium difficulty: the evidence is internally inconsistent, and the solver must
+    recognize that impossible spans imply bad measurement rather than bad service
+    behavior. It requires basic distributed-systems observability knowledge.
+
+scoring:
+  weights:
+    root_cause: 0.30
+    causal_chain: 0.40
+    intervention: 0.30
+  root_cause_keywords:
+    - "clock skew"
+    - "chrony"
+    - "NTP"
+    - "timestamp"
+    - "trace"
+    - "instrumentation"
+  partial_credit_causes:
+    "distributed tracing artifact": 0.65
+    "bad telemetry": 0.45
+    "host time synchronization problem": 0.75
+
+available_tools:
+  - "trace_log_analyzer"
+  - "statistical_analyzer"
+max_tool_calls: 12
+
+source: "Synthetic composite inspired by cloud fault-injection and observability postmortem patterns"
+expert_validated: false
+tags:
+  - "distributed_systems"
+  - "observability"
+  - "clock_skew"
+  - "openTelemetry"
+  - "software_reliability"
+author: "EpiDebug Team"

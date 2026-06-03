@@ -1,0 +1,126 @@
+version: "0.1.0"
+last_updated: "2026-06-02"
+description: >
+  Candidate public and synthetic data sources for expanding EpiDebug. Entries
+  track whether the source can be used directly, should be converted into
+  synthetic composites, or needs licensing review before inclusion.
+
+sources:
+  - id: "openstack_fault_injection"
+    name: "OpenStack Fault-Injection Dataset"
+    domain: "software_systems"
+    url: "https://github.com/dessertlab/Fault-Injection-Dataset"
+    license: "AGPL-3.0"
+    source_type: "fault_injection_logs"
+    scale: "911 tests across Nova, Cinder, and Neutron"
+    useful_for:
+      - "software failure propagation"
+      - "distributed traces"
+      - "log-based root cause diagnosis"
+    curation_status: "use_as_source_pattern"
+    notes: >
+      Repository contains injected faults, workloads, user-side effects,
+      correctness checks, raw logs, and Zipkin traces. Use summarized synthetic
+      cases unless redistribution terms are reviewed.
+
+  - id: "uci_ai4i_2020"
+    name: "AI4I 2020 Predictive Maintenance Dataset"
+    domain: "manufacturing"
+    url: "https://archive.ics.uci.edu/dataset/601/ai4i"
+    doi: "10.24432/C5HS5C"
+    license: "CC BY 4.0"
+    source_type: "tabular_predictive_maintenance"
+    scale: "10,000 synthetic data points with five failure-mode targets"
+    useful_for:
+      - "tool wear failure"
+      - "heat dissipation failure"
+      - "power failure"
+      - "overstrain failure"
+      - "random failure"
+    curation_status: "safe_to_reference_with_attribution"
+    notes: >
+      Good source for compact manufacturing cases where telemetry contains
+      air temperature, process temperature, rotational speed, torque, and tool wear.
+
+  - id: "sdnet2018"
+    name: "SDNET2018 Concrete Crack Image Dataset"
+    domain: "civil_engineering"
+    url: "https://www.kaggle.com/datasets/atharv0919/sdnet2018-a-concrete-crack-image-dataset"
+    license: "Apache-2.0 on Kaggle mirror"
+    source_type: "image_dataset"
+    scale: "56,092 labeled images of bridge decks, walls, and pavements"
+    useful_for:
+      - "field generalization"
+      - "dataset leakage"
+      - "shortcut learning"
+      - "structural inspection artifacts"
+    curation_status: "safe_to_reference_with_attribution"
+    notes: >
+      Use for model-validation cases and image telemetry descriptions. Avoid
+      bundling images unless dataset terms and storage constraints are reviewed.
+
+  - id: "nasa_pcoe"
+    name: "NASA Prognostics Center of Excellence Data Set Repository"
+    domain: "aerospace"
+    url: "https://www.nasa.gov/intelligent-systems-division/discovery-and-systems-health/pcoe/pcoe-data-set-repository/"
+    license: "NASA public dataset; verify per dataset"
+    source_type: "run_to_failure_and_degradation"
+    scale: "Multiple datasets: milling, bearings, batteries, turbofan engines, IGBT, and more"
+    useful_for:
+      - "run-to-failure reasoning"
+      - "sensor drift"
+      - "battery impedance"
+      - "engine degradation"
+    curation_status: "safe_to_reference_with_attribution"
+    notes: >
+      Strong source for aerospace, energy, and prognostics cases. Some download
+      links may be temporarily unavailable and should be checked before automated ingestion.
+
+  - id: "nasa_lessons_learned"
+    name: "NASA Lessons Learned Information System"
+    domain: "aerospace"
+    url: "https://www.nasa.gov/nasa-lessons-learned/"
+    license: "Public access; verify case-specific reuse"
+    source_type: "engineering_lessons_learned"
+    scale: "Searchable database of event summaries and recommendations"
+    useful_for:
+      - "protocol loopholes"
+      - "test requirement gaps"
+      - "instrument calibration failures"
+      - "ground operations failures"
+    curation_status: "use_as_source_pattern"
+    notes: >
+      Use summaries as inspiration for synthetic cases. Do not copy long narrative
+      text; preserve source attribution and expert-review status.
+
+  - id: "nasa_mdp_promise"
+    name: "NASA MDP / PROMISE Software Defect Datasets"
+    domain: "software_systems"
+    url: "https://github.com/klainfo/NASADefectDataset"
+    license: "varies; review before redistribution"
+    source_type: "software_metrics"
+    scale: "Classic module-level defect datasets such as CM1, JM1, KC1, PC1"
+    useful_for:
+      - "defect prediction evaluation failures"
+      - "temporal leakage"
+      - "static-metric confounding"
+    curation_status: "use_as_source_pattern"
+    notes: >
+      Better suited for flawed-hypothesis cases about evaluation design than direct
+      experiment telemetry unless paired with code-review context.
+
+  - id: "ntsb_aviation"
+    name: "NTSB Aviation Accident Database"
+    domain: "aerospace"
+    url: "https://www.ntsb.gov/Pages/AviationQueryV2.aspx"
+    license: "US government public record; verify downstream packaging"
+    source_type: "accident_reports"
+    scale: "Civil aviation accidents and selected incidents from 1962 onward"
+    useful_for:
+      - "causal-chain reconstruction"
+      - "maintenance and operations loopholes"
+      - "sensor and instrument misinterpretation"
+    curation_status: "use_as_source_pattern"
+    notes: >
+      Good for eventual human-expert case authoring. Avoid sensitive cockpit audio
+      or personal details; use sanitized composites.

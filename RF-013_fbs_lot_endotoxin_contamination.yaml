@@ -1,0 +1,98 @@
+id: "RF-013"
+title: "Macrophage Assay Fails from Endotoxin-Contaminated FBS Lot"
+version: "1.0"
+
+domain: "biotech"
+subdomain: "cell_culture_assay"
+failure_category: "reagent_material_flaw"
+difficulty: "medium"
+
+objective: >
+  Measure cytokine induction after nanoparticle treatment in RAW264.7 macrophages.
+  Untreated controls should remain low for TNF-alpha and IL-6.
+
+protocol:
+  - step: 1
+    action: "Culture RAW264.7 cells in DMEM plus 10% FBS"
+    details: "A new FBS lot was thawed the morning of the failed assay."
+  - step: 2
+    action: "Treat cells with nanoparticles, vehicle, or LPS positive control"
+    details: "Cells are plated at 80,000 cells per well and incubated 18 hours."
+  - step: 3
+    action: "Measure TNF-alpha and IL-6 by ELISA"
+    details: "The same ELISA kits passed standard-curve QC."
+
+telemetry:
+  cytokines:
+    description: "Cytokine readout across assay conditions"
+    data_type: "table"
+    values:
+      condition: ["untreated", "vehicle", "nanoparticle", "LPS_positive"]
+      tnf_alpha_pg_ml: [940, 880, 1020, 1550]
+      il6_pg_ml: [710, 690, 760, 1280]
+    observations:
+      - "Untreated and vehicle controls are already highly inflammatory."
+      - "LPS positive control still increases signal but the dynamic range is compressed."
+  reagent_qc:
+    description: "Reagent and media checks"
+    data_type: "table"
+    values:
+      reagent: ["new_FBS_lot", "old_FBS_lot", "DMEM", "nanoparticle_stock"]
+      endotoxin_EU_ml: [1.8, 0.04, 0.02, 0.03]
+    observations:
+      - "Only the new FBS lot has elevated endotoxin."
+
+contextual_clues:
+  - "RAW264.7 macrophages are very sensitive to LPS/endotoxin."
+  - "Cells look viable and confluent, so this is not a cell-death phenotype."
+  - "Repeating the assay with the previous FBS lot restores low untreated controls."
+  - "Nanoparticle sterility testing is clean."
+
+ground_truth:
+  root_cause: >
+    The new FBS lot contained endotoxin that activated macrophages before any
+    experimental treatment. This raised baseline cytokine secretion in untreated
+    and vehicle controls and masked the nanoparticle treatment effect.
+  root_cause_category: "reagent_material_flaw"
+  causal_chain:
+    - "A new FBS lot was introduced into the culture medium"
+    - "The FBS lot contained elevated endotoxin"
+    - "RAW264.7 macrophages sensed endotoxin through innate immune pathways"
+    - "Cells secreted TNF-alpha and IL-6 even in untreated wells"
+    - "High baseline compressed assay dynamic range"
+    - "The nanoparticle treatment result became uninterpretable"
+  intervention: >
+    Repeat the assay with certified low-endotoxin FBS and the suspect FBS side by
+    side, keeping cells, ELISA kits, and nanoparticle stocks fixed. Confirm by LAL
+    endotoxin testing and recovery of low untreated cytokines with clean FBS.
+  key_evidence:
+    - "Untreated and vehicle controls are high"
+    - "New FBS lot has elevated endotoxin"
+    - "Old FBS lot restores normal baseline"
+    - "ELISA standards and nanoparticle stock pass QC"
+  alternative_diagnoses:
+    - "Nanoparticles are inflammatory"
+    - "ELISA kit failed"
+    - "Cells are dying from contamination"
+  why_alternatives_fail:
+    "Nanoparticles are inflammatory": "Untreated and vehicle controls are already high."
+    "ELISA kit failed": "Standard curves pass and LPS control behaves directionally as expected."
+    "Cells are dying from contamination": "Cells remain viable and morphology is normal."
+  difficulty_justification: "Requires recognizing a reagent-lot effect hidden inside a biological assay."
+
+scoring:
+  root_cause_keywords: ["FBS", "endotoxin", "LPS", "serum", "contamination", "baseline"]
+  partial_credit_causes:
+    "contaminated serum": 0.85
+    "high baseline cytokines": 0.45
+    "nanoparticle inflammation": 0.25
+
+available_tools:
+  - "statistical_analyzer"
+  - "cell_counter"
+max_tool_calls: 10
+
+source: "Synthetic composite based on common cell-culture reagent lot failures"
+expert_validated: false
+tags: ["cell_culture", "FBS", "endotoxin", "macrophage", "cytokine"]
+author: "EpiDebug Team"

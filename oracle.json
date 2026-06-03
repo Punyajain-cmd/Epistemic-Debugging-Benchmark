@@ -1,0 +1,1917 @@
+{
+  "benchmark": "epidebug",
+  "version": "0.1.0",
+  "model": "oracle",
+  "mode": "text",
+  "timestamp": "2026-06-02T11:11:38.718067+00:00",
+  "total_cases": 30,
+  "reference_model": true,
+  "results": [
+    {
+      "test_case_id": "FH-003",
+      "model": "oracle",
+      "mode": "text",
+      "run_index": 0,
+      "timestamp": "2026-06-02T11:11:38.705638+00:00",
+      "response": {
+        "model_name": "oracle",
+        "test_case_id": "FH-003",
+        "mode": "text",
+        "root_cause": "The researcher's hypothesis that SN2 would dominate was flawed under these specific conditions. While 1-bromobutane is a primary substrate (favoring SN2), the combination of strong base (NaOEt), high temperature (78\u00b0C reflux), and extended reaction time (12h) shifted the competition decisively toward E2 elimination. At elevated temperatures, the entropy-favored elimination pathway (\u0394S > 0, generates two molecules from one) outcompetes substitution.",
+        "causal_chain": [
+          "Researcher assumed SN2 would dominate because 1-bromobutane is a primary substrate",
+          "However, NaOEt is a strong base (pKb very low), which can promote E2 as well as act as nucleophile",
+          "Reaction was run at reflux (78\u00b0C) \u2014 high temperature strongly favors elimination over substitution",
+          "E2 elimination is entropy-driven (one reactant \u2192 two products), so higher T increases E2 rate via T\u0394S",
+          "The beta-hydrogens on 1-bromobutane are sterically accessible for E2 anti-periplanar transition state",
+          "At 78\u00b0C over 12 hours, E2 pathway dominated: 82% 1-butene + 5% 2-butene vs only 13% ether",
+          "Isolated ether yield was only 8.5% instead of expected >70%"
+        ],
+        "intervention": "Rerun the reaction at room temperature (25\u00b0C) or 0\u00b0C, using a weaker/smaller nucleophile (e.g., NaI in acetone for Finkelstein, then NaOEt at 25\u00b0C) or switching to a polar aprotic solvent (DMF) to maximize SN2. If ether yield increases to >60%, the temperature/E2 hypothesis is confirmed.",
+        "raw_response": "### Root Cause\nThe researcher's hypothesis that SN2 would dominate was flawed under these specific conditions. While 1-bromobutane is a primary substrate (favoring SN2), the combination of strong base (NaOEt), high temperature (78\u00b0C reflux), and extended reaction time (12h) shifted the competition decisively toward E2 elimination. At elevated temperatures, the entropy-favored elimination pathway (\u0394S > 0, generates two molecules from one) outcompetes substitution.\n\n### Causal Chain\n1. Researcher assumed SN2 would dominate because 1-bromobutane is a primary substrate\n2. However, NaOEt is a strong base (pKb very low), which can promote E2 as well as act as nucleophile\n3. Reaction was run at reflux (78\u00b0C) \u2014 high temperature strongly favors elimination over substitution\n4. E2 elimination is entropy-driven (one reactant \u2192 two products), so higher T increases E2 rate via T\u0394S\n5. The beta-hydrogens on 1-bromobutane are sterically accessible for E2 anti-periplanar transition state\n6. At 78\u00b0C over 12 hours, E2 pathway dominated: 82% 1-butene + 5% 2-butene vs only 13% ether\n7. Isolated ether yield was only 8.5% instead of expected >70%\n\n### Intervention\nRerun the reaction at room temperature (25\u00b0C) or 0\u00b0C, using a weaker/smaller nucleophile (e.g., NaI in acetone for Finkelstein, then NaOEt at 25\u00b0C) or switching to a polar aprotic solvent (DMF) to maximize SN2. If ether yield increases to >60%, the temperature/E2 hypothesis is confirmed.\n",
+        "tool_calls": [],
+        "total_tokens": null,
+        "latency_seconds": null,
+        "confidence": null
+      },
+      "score": {
+        "test_case_id": "FH-003",
+        "model_name": "oracle",
+        "mode": "text",
+        "root_cause_score": {
+          "score": 1.0,
+          "weight": 0.3,
+          "weighted_score": 0.3,
+          "rationale": "Root cause correctly identified \u2014 key terms match ground truth."
+        },
+        "causal_chain_score": {
+          "score": 1.0,
+          "weight": 0.4,
+          "weighted_score": 0.4,
+          "rationale": "Causal chain covers most key mechanistic steps."
+        },
+        "intervention_score": {
+          "score": 1.0,
+          "weight": 0.3,
+          "weighted_score": 0.3,
+          "rationale": "Intervention targets the correct variable and would test the diagnosis."
+        },
+        "final_score": 1.0,
+        "trajectory": {
+          "tool_calls_made": 0,
+          "tool_calls_budget": 12,
+          "tool_efficiency": null,
+          "budget_compliant": true,
+          "anti_patterns": []
+        }
+      },
+      "metadata": {
+        "reference_model": true,
+        "total_tokens": null,
+        "latency_seconds": 0.0
+      }
+    },
+    {
+      "test_case_id": "FH-005",
+      "model": "oracle",
+      "mode": "text",
+      "run_index": 0,
+      "timestamp": "2026-06-02T11:11:38.707184+00:00",
+      "response": {
+        "model_name": "oracle",
+        "test_case_id": "FH-005",
+        "mode": "text",
+        "root_cause": "The FEA analysis used a coarse mesh (2.0 mm element size) that was too large to resolve the stress concentration at the 2 mm radius notch at the fillet root. The coarse mesh reported a peak stress of 190.3 MPa (safety factor 1.45), but a properly refined mesh reveals the true peak stress at the notch root is 412 MPa (safety factor 0.67), which exceeds the material yield strength of 276 MPa by 49%. The fundamental error was applying a linear elastic assumption without verifying that stresses everywhere in the component remained below yield \u2014 the notch root experienced plastic deformation that the linear elastic model cannot capture.\n",
+        "causal_chain": [
+          "Design included a 2 mm radius notch (step-down feature) at the base of the 15 mm fillet, creating a geometric stress concentration",
+          "FEA mesh used a global 2.0 mm element size with no local refinement, resulting in only 1-2 elements across the 2 mm notch radius",
+          "Coarse mesh could not resolve the steep stress gradient at the notch root, reporting 190.3 MPa peak stress instead of the true 412 MPa",
+          "Engineer concluded safety factor was 1.45 (>1.25 minimum), approving the design for manufacture",
+          "Under 8 kN loading, the actual notch root stress reached ~412 MPa, exceeding the 276 MPa yield strength by 49%",
+          "Localized plastic deformation occurred at the notch root, redistributing load and causing permanent shape change",
+          "After unloading, 0.18 mm permanent set remained \u2014 the bracket failed the zero-permanent-deformation requirement after a single cycle"
+        ],
+        "intervention": "(1) Re-run the FEA with proper mesh refinement at the notch root (element size \u2264 0.2 mm, or \u2264 r/10 where r is the notch radius), confirming the 412 MPa peak stress. (2) Run an elastic-plastic FEA with a bilinear or multilinear hardening material model to predict the actual plastic zone size and residual deformation. (3) Redesign: either increase the notch radius to \u22655 mm (reducing Kt) or increase wall thickness to \u22658 mm to keep peak stress below yield. (4) Validate the redesign with a physical test including strain gauges at the notch root.\n",
+        "raw_response": "### Root Cause\nThe FEA analysis used a coarse mesh (2.0 mm element size) that was too large to resolve the stress concentration at the 2 mm radius notch at the fillet root. The coarse mesh reported a peak stress of 190.3 MPa (safety factor 1.45), but a properly refined mesh reveals the true peak stress at the notch root is 412 MPa (safety factor 0.67), which exceeds the material yield strength of 276 MPa by 49%. The fundamental error was applying a linear elastic assumption without verifying that stresses everywhere in the component remained below yield \u2014 the notch root experienced plastic deformation that the linear elastic model cannot capture.\n\n\n### Causal Chain\n1. Design included a 2 mm radius notch (step-down feature) at the base of the 15 mm fillet, creating a geometric stress concentration\n2. FEA mesh used a global 2.0 mm element size with no local refinement, resulting in only 1-2 elements across the 2 mm notch radius\n3. Coarse mesh could not resolve the steep stress gradient at the notch root, reporting 190.3 MPa peak stress instead of the true 412 MPa\n4. Engineer concluded safety factor was 1.45 (>1.25 minimum), approving the design for manufacture\n5. Under 8 kN loading, the actual notch root stress reached ~412 MPa, exceeding the 276 MPa yield strength by 49%\n6. Localized plastic deformation occurred at the notch root, redistributing load and causing permanent shape change\n7. After unloading, 0.18 mm permanent set remained \u2014 the bracket failed the zero-permanent-deformation requirement after a single cycle\n\n### Intervention\n(1) Re-run the FEA with proper mesh refinement at the notch root (element size \u2264 0.2 mm, or \u2264 r/10 where r is the notch radius), confirming the 412 MPa peak stress. (2) Run an elastic-plastic FEA with a bilinear or multilinear hardening material model to predict the actual plastic zone size and residual deformation. (3) Redesign: either increase the notch radius to \u22655 mm (reducing Kt) or increase wall thickness to \u22658 mm to keep peak stress below yield. (4) Validate the redesign with a physical test including strain gauges at the notch root.\n\n",
+        "tool_calls": [],
+        "total_tokens": null,
+        "latency_seconds": null,
+        "confidence": null
+      },
+      "score": {
+        "test_case_id": "FH-005",
+        "model_name": "oracle",
+        "mode": "text",
+        "root_cause_score": {
+          "score": 1.0,
+          "weight": 0.3,
+          "weighted_score": 0.3,
+          "rationale": "Root cause correctly identified \u2014 key terms match ground truth."
+        },
+        "causal_chain_score": {
+          "score": 1.0,
+          "weight": 0.4,
+          "weighted_score": 0.4,
+          "rationale": "Causal chain covers most key mechanistic steps."
+        },
+        "intervention_score": {
+          "score": 1.0,
+          "weight": 0.3,
+          "weighted_score": 0.3,
+          "rationale": "Intervention targets the correct variable and would test the diagnosis."
+        },
+        "final_score": 1.0,
+        "trajectory": {
+          "tool_calls_made": 0,
+          "tool_calls_budget": 20,
+          "tool_efficiency": null,
+          "budget_compliant": true,
+          "anti_patterns": []
+        }
+      },
+      "metadata": {
+        "reference_model": true,
+        "total_tokens": null,
+        "latency_seconds": 0.0
+      }
+    },
+    {
+      "test_case_id": "FH-009",
+      "model": "oracle",
+      "mode": "text",
+      "run_index": 0,
+      "timestamp": "2026-06-02T11:11:38.707698+00:00",
+      "response": {
+        "model_name": "oracle",
+        "test_case_id": "FH-009",
+        "mode": "text",
+        "root_cause": "The model validation hypothesis was flawed: random patch splitting measured leakage and site-specific shortcut learning, not general crack recognition. Overlapping patches and patches from the same bridge appeared in both train and validation sets, while crack-positive labels were concentrated in sites with painted grid marks and distinctive lighting. The classifier learned background texture, grid marks, and near-duplicate patch identity instead of crack morphology, so it failed on an unseen bridge site.\n",
+        "causal_chain": [
+          "High-resolution bridge images were sliced into overlapping patches",
+          "The random patch split allowed adjacent patches and the same bridge sites to appear in both train and validation sets",
+          "Validation patches often had near-duplicate training neighbors and shared site-specific texture, lighting, and painted grid marks",
+          "The model optimized shortcuts correlated with the label distribution instead of learning robust crack morphology",
+          "Random-patch validation accuracy reached 98.2%, giving a false sense of generalization",
+          "When evaluated by held-out bridge site, the shortcuts no longer matched the target distribution",
+          "The model produced many false positives on rough uncracked concrete and field F1 collapsed to about 0.52"
+        ],
+        "intervention": "Rebuild the evaluation protocol with splits grouped by parent image and bridge site, remove or separately label overlapping near-duplicate patches, and choose thresholds only on site-held-out validation. Confirm the diagnosis by retraining and comparing random-patch versus site-held-out performance, plus saliency review showing attention on crack pixels rather than grid marks or texture.\n",
+        "raw_response": "### Root Cause\nThe model validation hypothesis was flawed: random patch splitting measured leakage and site-specific shortcut learning, not general crack recognition. Overlapping patches and patches from the same bridge appeared in both train and validation sets, while crack-positive labels were concentrated in sites with painted grid marks and distinctive lighting. The classifier learned background texture, grid marks, and near-duplicate patch identity instead of crack morphology, so it failed on an unseen bridge site.\n\n\n### Causal Chain\n1. High-resolution bridge images were sliced into overlapping patches\n2. The random patch split allowed adjacent patches and the same bridge sites to appear in both train and validation sets\n3. Validation patches often had near-duplicate training neighbors and shared site-specific texture, lighting, and painted grid marks\n4. The model optimized shortcuts correlated with the label distribution instead of learning robust crack morphology\n5. Random-patch validation accuracy reached 98.2%, giving a false sense of generalization\n6. When evaluated by held-out bridge site, the shortcuts no longer matched the target distribution\n7. The model produced many false positives on rough uncracked concrete and field F1 collapsed to about 0.52\n\n### Intervention\nRebuild the evaluation protocol with splits grouped by parent image and bridge site, remove or separately label overlapping near-duplicate patches, and choose thresholds only on site-held-out validation. Confirm the diagnosis by retraining and comparing random-patch versus site-held-out performance, plus saliency review showing attention on crack pixels rather than grid marks or texture.\n\n",
+        "tool_calls": [],
+        "total_tokens": null,
+        "latency_seconds": null,
+        "confidence": null
+      },
+      "score": {
+        "test_case_id": "FH-009",
+        "model_name": "oracle",
+        "mode": "text",
+        "root_cause_score": {
+          "score": 1.0,
+          "weight": 0.3,
+          "weighted_score": 0.3,
+          "rationale": "Root cause correctly identified \u2014 key terms match ground truth."
+        },
+        "causal_chain_score": {
+          "score": 1.0,
+          "weight": 0.4,
+          "weighted_score": 0.4,
+          "rationale": "Causal chain covers most key mechanistic steps."
+        },
+        "intervention_score": {
+          "score": 1.0,
+          "weight": 0.3,
+          "weighted_score": 0.3,
+          "rationale": "Intervention targets the correct variable and would test the diagnosis."
+        },
+        "final_score": 1.0,
+        "trajectory": {
+          "tool_calls_made": 0,
+          "tool_calls_budget": 15,
+          "tool_efficiency": null,
+          "budget_compliant": true,
+          "anti_patterns": []
+        }
+      },
+      "metadata": {
+        "reference_model": true,
+        "total_tokens": null,
+        "latency_seconds": 0.0
+      }
+    },
+    {
+      "test_case_id": "FH-010",
+      "model": "oracle",
+      "mode": "text",
+      "run_index": 0,
+      "timestamp": "2026-06-02T11:11:38.708024+00:00",
+      "response": {
+        "model_name": "oracle",
+        "test_case_id": "FH-010",
+        "mode": "text",
+        "root_cause": "The evaluation hypothesis was flawed: a random row split estimated interpolation over leaked module/time information, not prediction of future defects. Temporal leakage and module duplication inflated offline performance, so the model failed on the next release.\n",
+        "causal_chain": [
+          "The actual task is predicting defects in future releases",
+          "Rows were randomly split across releases instead of split chronologically",
+          "The same module appeared in both train and test across nearby releases",
+          "Some features used information from after the label window",
+          "The model learned module identity and future-correlated leakage",
+          "Random-split AUC was inflated",
+          "Release-9 deployment removed the leakage and performance collapsed"
+        ],
+        "intervention": "Recompute features using only information available before each release, evaluate with rolling-origin time splits, and report release-held-out metrics. Use this protocol before comparing models or deploying triage thresholds.\n",
+        "raw_response": "### Root Cause\nThe evaluation hypothesis was flawed: a random row split estimated interpolation over leaked module/time information, not prediction of future defects. Temporal leakage and module duplication inflated offline performance, so the model failed on the next release.\n\n\n### Causal Chain\n1. The actual task is predicting defects in future releases\n2. Rows were randomly split across releases instead of split chronologically\n3. The same module appeared in both train and test across nearby releases\n4. Some features used information from after the label window\n5. The model learned module identity and future-correlated leakage\n6. Random-split AUC was inflated\n7. Release-9 deployment removed the leakage and performance collapsed\n\n### Intervention\nRecompute features using only information available before each release, evaluate with rolling-origin time splits, and report release-held-out metrics. Use this protocol before comparing models or deploying triage thresholds.\n\n",
+        "tool_calls": [],
+        "total_tokens": null,
+        "latency_seconds": null,
+        "confidence": null
+      },
+      "score": {
+        "test_case_id": "FH-010",
+        "model_name": "oracle",
+        "mode": "text",
+        "root_cause_score": {
+          "score": 1.0,
+          "weight": 0.3,
+          "weighted_score": 0.3,
+          "rationale": "Root cause correctly identified \u2014 key terms match ground truth."
+        },
+        "causal_chain_score": {
+          "score": 1.0,
+          "weight": 0.4,
+          "weighted_score": 0.4,
+          "rationale": "Causal chain covers most key mechanistic steps."
+        },
+        "intervention_score": {
+          "score": 1.0,
+          "weight": 0.3,
+          "weighted_score": 0.3,
+          "rationale": "Intervention targets the correct variable and would test the diagnosis."
+        },
+        "final_score": 1.0,
+        "trajectory": {
+          "tool_calls_made": 0,
+          "tool_calls_budget": 12,
+          "tool_efficiency": null,
+          "budget_compliant": true,
+          "anti_patterns": []
+        }
+      },
+      "metadata": {
+        "reference_model": true,
+        "total_tokens": null,
+        "latency_seconds": 0.0
+      }
+    },
+    {
+      "test_case_id": "FH-011",
+      "model": "oracle",
+      "mode": "text",
+      "run_index": 0,
+      "timestamp": "2026-06-02T11:11:38.708308+00:00",
+      "response": {
+        "model_name": "oracle",
+        "test_case_id": "FH-011",
+        "mode": "text",
+        "root_cause": "The grasp model assumed a rigid object with stable contact, but the production pouch is compliant and internally shifting. Force relaxation, wrinkling, and contact migration invalidate the rigid friction calculation, causing drops during acceleration.\n",
+        "causal_chain": [
+          "The engineer modeled the pouch as a rigid flat object",
+          "Production pouches deform and redistribute contents under finger force",
+          "The contact patch and normal force change after closure",
+          "Effective friction drops during acceleration",
+          "Some pouches slip even when initial grip force seems sufficient",
+          "Higher force eventually crushes packages instead of solving the assumption error"
+        ],
+        "intervention": "Test a compliance-aware grasp strategy: wider soft fingers, vacuum support, or a lift-after-settle delay with tactile feedback. Compare drop rate and damage against the rigid-force-only policy.\n",
+        "raw_response": "### Root Cause\nThe grasp model assumed a rigid object with stable contact, but the production pouch is compliant and internally shifting. Force relaxation, wrinkling, and contact migration invalidate the rigid friction calculation, causing drops during acceleration.\n\n\n### Causal Chain\n1. The engineer modeled the pouch as a rigid flat object\n2. Production pouches deform and redistribute contents under finger force\n3. The contact patch and normal force change after closure\n4. Effective friction drops during acceleration\n5. Some pouches slip even when initial grip force seems sufficient\n6. Higher force eventually crushes packages instead of solving the assumption error\n\n### Intervention\nTest a compliance-aware grasp strategy: wider soft fingers, vacuum support, or a lift-after-settle delay with tactile feedback. Compare drop rate and damage against the rigid-force-only policy.\n\n",
+        "tool_calls": [],
+        "total_tokens": null,
+        "latency_seconds": null,
+        "confidence": null
+      },
+      "score": {
+        "test_case_id": "FH-011",
+        "model_name": "oracle",
+        "mode": "text",
+        "root_cause_score": {
+          "score": 1.0,
+          "weight": 0.3,
+          "weighted_score": 0.3,
+          "rationale": "Root cause correctly identified \u2014 key terms match ground truth."
+        },
+        "causal_chain_score": {
+          "score": 1.0,
+          "weight": 0.4,
+          "weighted_score": 0.4,
+          "rationale": "Causal chain covers most key mechanistic steps."
+        },
+        "intervention_score": {
+          "score": 1.0,
+          "weight": 0.3,
+          "weighted_score": 0.3,
+          "rationale": "Intervention targets the correct variable and would test the diagnosis."
+        },
+        "final_score": 1.0,
+        "trajectory": {
+          "tool_calls_made": 0,
+          "tool_calls_budget": 12,
+          "tool_efficiency": null,
+          "budget_compliant": true,
+          "anti_patterns": []
+        }
+      },
+      "metadata": {
+        "reference_model": true,
+        "total_tokens": null,
+        "latency_seconds": 0.0
+      }
+    },
+    {
+      "test_case_id": "FH-012",
+      "model": "oracle",
+      "mode": "text",
+      "run_index": 0,
+      "timestamp": "2026-06-02T11:11:38.708589+00:00",
+      "response": {
+        "model_name": "oracle",
+        "test_case_id": "FH-012",
+        "mode": "text",
+        "root_cause": "The fatigue hypothesis was invalid: linear Miner damage using polished-specimen S-N data did not apply to a notched, rough component with overload sequence effects. Early overloads caused local plasticity and residual strain at the notch, accelerating crack initiation during subsequent nominal cycles.\n",
+        "causal_chain": [
+          "The bracket contains a machined notch and rougher surface than the S-N coupons",
+          "The calculation used nominal stress bins and linear Miner accumulation",
+          "Early overload cycles produced local plastic strain at the notch",
+          "Residual strain changed subsequent nominal-cycle stress/strain response",
+          "Damage accumulated nonlinearly and sequence effects accelerated crack initiation",
+          "The crack initiated at 28,000 cycles despite low Miner damage"
+        ],
+        "intervention": "Reanalyze with notch stress/strain, surface-finish correction, and sequence-aware fatigue modeling, then run a blocked-spectrum test with and without early overloads. Confirm if overload ordering drives early crack initiation.\n",
+        "raw_response": "### Root Cause\nThe fatigue hypothesis was invalid: linear Miner damage using polished-specimen S-N data did not apply to a notched, rough component with overload sequence effects. Early overloads caused local plasticity and residual strain at the notch, accelerating crack initiation during subsequent nominal cycles.\n\n\n### Causal Chain\n1. The bracket contains a machined notch and rougher surface than the S-N coupons\n2. The calculation used nominal stress bins and linear Miner accumulation\n3. Early overload cycles produced local plastic strain at the notch\n4. Residual strain changed subsequent nominal-cycle stress/strain response\n5. Damage accumulated nonlinearly and sequence effects accelerated crack initiation\n6. The crack initiated at 28,000 cycles despite low Miner damage\n\n### Intervention\nReanalyze with notch stress/strain, surface-finish correction, and sequence-aware fatigue modeling, then run a blocked-spectrum test with and without early overloads. Confirm if overload ordering drives early crack initiation.\n\n",
+        "tool_calls": [],
+        "total_tokens": null,
+        "latency_seconds": null,
+        "confidence": null
+      },
+      "score": {
+        "test_case_id": "FH-012",
+        "model_name": "oracle",
+        "mode": "text",
+        "root_cause_score": {
+          "score": 1.0,
+          "weight": 0.3,
+          "weighted_score": 0.3,
+          "rationale": "Root cause correctly identified \u2014 key terms match ground truth."
+        },
+        "causal_chain_score": {
+          "score": 1.0,
+          "weight": 0.4,
+          "weighted_score": 0.4,
+          "rationale": "Causal chain covers most key mechanistic steps."
+        },
+        "intervention_score": {
+          "score": 1.0,
+          "weight": 0.3,
+          "weighted_score": 0.3,
+          "rationale": "Intervention targets the correct variable and would test the diagnosis."
+        },
+        "final_score": 1.0,
+        "trajectory": {
+          "tool_calls_made": 0,
+          "tool_calls_budget": 15,
+          "tool_efficiency": null,
+          "budget_compliant": true,
+          "anti_patterns": []
+        }
+      },
+      "metadata": {
+        "reference_model": true,
+        "total_tokens": null,
+        "latency_seconds": 0.0
+      }
+    },
+    {
+      "test_case_id": "FH-013",
+      "model": "oracle",
+      "mode": "text",
+      "run_index": 0,
+      "timestamp": "2026-06-02T11:11:38.708927+00:00",
+      "response": {
+        "model_name": "oracle",
+        "test_case_id": "FH-013",
+        "mode": "text",
+        "root_cause": "The hypothesis that the phenotype was caused solely by KIN1 knockout was flawed. The sgRNA also edited an expressed paralog, KIN1P, because the design used an outdated annotation that missed the duplicated exon. The severe proliferation defect reflects combined KIN1/KIN1P disruption, so KIN1-only rescue is partial.\n",
+        "causal_chain": [
+          "The sgRNA was designed against an outdated genome annotation",
+          "A newly annotated KIN1P paralog contained a near-match target site",
+          "Cas9 edited both KIN1 and KIN1P in selected clones",
+          "KIN1P is expressed and contributes to proliferation in this cell line",
+          "The observed phenotype reflected combined loss of KIN1 and KIN1P",
+          "KIN1-only cDNA rescue could not fully restore growth",
+          "A redesigned KIN1-specific guide produced a weaker phenotype"
+        ],
+        "intervention": "Redesign multiple sgRNAs unique to KIN1 under the current genome annotation, validate all paralog sites by amplicon sequencing, and rescue with KIN1 and KIN1P separately. A true KIN1-specific phenotype should reproduce without KIN1P edits.\n",
+        "raw_response": "### Root Cause\nThe hypothesis that the phenotype was caused solely by KIN1 knockout was flawed. The sgRNA also edited an expressed paralog, KIN1P, because the design used an outdated annotation that missed the duplicated exon. The severe proliferation defect reflects combined KIN1/KIN1P disruption, so KIN1-only rescue is partial.\n\n\n### Causal Chain\n1. The sgRNA was designed against an outdated genome annotation\n2. A newly annotated KIN1P paralog contained a near-match target site\n3. Cas9 edited both KIN1 and KIN1P in selected clones\n4. KIN1P is expressed and contributes to proliferation in this cell line\n5. The observed phenotype reflected combined loss of KIN1 and KIN1P\n6. KIN1-only cDNA rescue could not fully restore growth\n7. A redesigned KIN1-specific guide produced a weaker phenotype\n\n### Intervention\nRedesign multiple sgRNAs unique to KIN1 under the current genome annotation, validate all paralog sites by amplicon sequencing, and rescue with KIN1 and KIN1P separately. A true KIN1-specific phenotype should reproduce without KIN1P edits.\n\n",
+        "tool_calls": [],
+        "total_tokens": null,
+        "latency_seconds": null,
+        "confidence": null
+      },
+      "score": {
+        "test_case_id": "FH-013",
+        "model_name": "oracle",
+        "mode": "text",
+        "root_cause_score": {
+          "score": 1.0,
+          "weight": 0.3,
+          "weighted_score": 0.3,
+          "rationale": "Root cause correctly identified \u2014 key terms match ground truth."
+        },
+        "causal_chain_score": {
+          "score": 1.0,
+          "weight": 0.4,
+          "weighted_score": 0.4,
+          "rationale": "Causal chain covers most key mechanistic steps."
+        },
+        "intervention_score": {
+          "score": 1.0,
+          "weight": 0.3,
+          "weighted_score": 0.3,
+          "rationale": "Intervention targets the correct variable and would test the diagnosis."
+        },
+        "final_score": 1.0,
+        "trajectory": {
+          "tool_calls_made": 0,
+          "tool_calls_budget": 15,
+          "tool_efficiency": null,
+          "budget_compliant": true,
+          "anti_patterns": []
+        }
+      },
+      "metadata": {
+        "reference_model": true,
+        "total_tokens": null,
+        "latency_seconds": 0.0
+      }
+    },
+    {
+      "test_case_id": "IN-001",
+      "model": "oracle",
+      "mode": "text",
+      "run_index": 0,
+      "timestamp": "2026-06-02T11:11:38.709410+00:00",
+      "response": {
+        "model_name": "oracle",
+        "test_case_id": "IN-001",
+        "mode": "text",
+        "root_cause": "Nanodrop pedestal had residue from a previous user's RNA sample, causing an elevated baseline (0.08 AU vs expected < 0.04 AU). This baseline offset inflated all subsequent absorbance readings, making the DNA appear ~3.6\u00d7 more concentrated than it actually is. The Nanodrop measures total absorbance at 260 nm non-specifically, so any UV-absorbing residue on the pedestal adds to the reading.",
+        "causal_chain": [
+          "Previous user measured RNA samples and did not clean the pedestal thoroughly",
+          "UV-absorbing residue (dried RNA/nucleotide) remained on the Nanodrop pedestal",
+          "Blank with EB read 0.08 AU instead of < 0.04 AU, but researcher proceeded anyway",
+          "The elevated baseline was subtracted from blank but residue remained, adding ~0.04 AU offset to all readings",
+          "DNA readings were inflated by the residue contribution: actual ~80 ng/\u00b5L reported as 285 ng/\u00b5L",
+          "Downstream calculations based on inflated concentration used too little DNA",
+          "Gel shows band intensities consistent with ~80 ng/\u00b5L, not 285 ng/\u00b5L"
+        ],
+        "intervention": "Thoroughly clean both Nanodrop pedestals with 70% ethanol and lint-free wipe, then with nuclease-free water. Verify blank reads < 0.02 AU. Re-measure the DNA sample. If new reading is ~80 ng/\u00b5L (matching Qubit), the diagnosis is confirmed.",
+        "raw_response": "### Root Cause\nNanodrop pedestal had residue from a previous user's RNA sample, causing an elevated baseline (0.08 AU vs expected < 0.04 AU). This baseline offset inflated all subsequent absorbance readings, making the DNA appear ~3.6\u00d7 more concentrated than it actually is. The Nanodrop measures total absorbance at 260 nm non-specifically, so any UV-absorbing residue on the pedestal adds to the reading.\n\n### Causal Chain\n1. Previous user measured RNA samples and did not clean the pedestal thoroughly\n2. UV-absorbing residue (dried RNA/nucleotide) remained on the Nanodrop pedestal\n3. Blank with EB read 0.08 AU instead of < 0.04 AU, but researcher proceeded anyway\n4. The elevated baseline was subtracted from blank but residue remained, adding ~0.04 AU offset to all readings\n5. DNA readings were inflated by the residue contribution: actual ~80 ng/\u00b5L reported as 285 ng/\u00b5L\n6. Downstream calculations based on inflated concentration used too little DNA\n7. Gel shows band intensities consistent with ~80 ng/\u00b5L, not 285 ng/\u00b5L\n\n### Intervention\nThoroughly clean both Nanodrop pedestals with 70% ethanol and lint-free wipe, then with nuclease-free water. Verify blank reads < 0.02 AU. Re-measure the DNA sample. If new reading is ~80 ng/\u00b5L (matching Qubit), the diagnosis is confirmed.\n",
+        "tool_calls": [],
+        "total_tokens": null,
+        "latency_seconds": null,
+        "confidence": null
+      },
+      "score": {
+        "test_case_id": "IN-001",
+        "model_name": "oracle",
+        "mode": "text",
+        "root_cause_score": {
+          "score": 1.0,
+          "weight": 0.3,
+          "weighted_score": 0.3,
+          "rationale": "Root cause correctly identified \u2014 key terms match ground truth."
+        },
+        "causal_chain_score": {
+          "score": 1.0,
+          "weight": 0.4,
+          "weighted_score": 0.4,
+          "rationale": "Causal chain covers most key mechanistic steps."
+        },
+        "intervention_score": {
+          "score": 1.0,
+          "weight": 0.3,
+          "weighted_score": 0.3,
+          "rationale": "Intervention targets the correct variable and would test the diagnosis."
+        },
+        "final_score": 1.0,
+        "trajectory": {
+          "tool_calls_made": 0,
+          "tool_calls_budget": 10,
+          "tool_efficiency": null,
+          "budget_compliant": true,
+          "anti_patterns": []
+        }
+      },
+      "metadata": {
+        "reference_model": true,
+        "total_tokens": null,
+        "latency_seconds": 0.0
+      }
+    },
+    {
+      "test_case_id": "IN-005",
+      "model": "oracle",
+      "mode": "text",
+      "run_index": 0,
+      "timestamp": "2026-06-02T11:11:38.710136+00:00",
+      "response": {
+        "model_name": "oracle",
+        "test_case_id": "IN-005",
+        "mode": "text",
+        "root_cause": "The Tektronix MDO3104 oscilloscope distributes its maximum sample rate across all active channels using interleaved ADCs. With two channels active (Ch1 and Ch2), each channel receives only 50 MS/s (not the advertised 5 GS/s maximum). The Nyquist frequency per channel becomes 25 MHz, which is below the 45 MHz signal frequency. The signal aliases to f_alias = |f_signal - f_s| = |45 - 50| = 5 MHz, where f_s is the effective per-channel sample rate of 50 MS/s. The scope displays what appears to be a clean 5 MHz sinusoid, which is actually a perfectly valid-looking but completely misleading alias of the true 45 MHz signal.\n",
+        "causal_chain": [
+          "Engineer enables both Channel 1 (signal) and Channel 2 (power rail) on the oscilloscope simultaneously",
+          "The MDO3104's ADC architecture uses interleaving \u2014 maximum 5 GS/s sample rate is only available when a single channel is active",
+          "With 2 channels active, the ADC interleaving is split and each channel receives approximately 50 MS/s effective sample rate",
+          "The scope status bar displays '100 MS/s' which is ambiguous \u2014 it may represent the combined interleaved rate or the per-channel rate, and the engineer interprets it as sufficient for a 45 MHz signal",
+          "At 50 MS/s per channel, the Nyquist frequency is only 25 MHz \u2014 the 45 MHz signal exceeds this limit",
+          "The 45 MHz signal is undersampled and aliases to f_alias = |45 - 50| = 5 MHz",
+          "The scope displays, measures, and FFT-analyzes a clean-looking 5 MHz waveform \u2014 the alias is indistinguishable from a real 5 MHz signal using only the scope's own data"
+        ],
+        "intervention": "Disable Channel 2 (or any other active channels) so that Channel 1 receives the full 5 GS/s sample rate. Re-measure the signal \u2014 if the root cause is correct, the scope will now display the true 45 MHz waveform. Alternatively, use the scope's hardware frequency counter (if available) or connect an independent frequency counter/spectrum analyzer to verify the true frequency. To prevent future aliasing, always verify that the per-channel sample rate provides a Nyquist frequency at least 2\u00d7 (preferably 5\u201310\u00d7) above the highest frequency component of interest.\n",
+        "raw_response": "### Root Cause\nThe Tektronix MDO3104 oscilloscope distributes its maximum sample rate across all active channels using interleaved ADCs. With two channels active (Ch1 and Ch2), each channel receives only 50 MS/s (not the advertised 5 GS/s maximum). The Nyquist frequency per channel becomes 25 MHz, which is below the 45 MHz signal frequency. The signal aliases to f_alias = |f_signal - f_s| = |45 - 50| = 5 MHz, where f_s is the effective per-channel sample rate of 50 MS/s. The scope displays what appears to be a clean 5 MHz sinusoid, which is actually a perfectly valid-looking but completely misleading alias of the true 45 MHz signal.\n\n\n### Causal Chain\n1. Engineer enables both Channel 1 (signal) and Channel 2 (power rail) on the oscilloscope simultaneously\n2. The MDO3104's ADC architecture uses interleaving \u2014 maximum 5 GS/s sample rate is only available when a single channel is active\n3. With 2 channels active, the ADC interleaving is split and each channel receives approximately 50 MS/s effective sample rate\n4. The scope status bar displays '100 MS/s' which is ambiguous \u2014 it may represent the combined interleaved rate or the per-channel rate, and the engineer interprets it as sufficient for a 45 MHz signal\n5. At 50 MS/s per channel, the Nyquist frequency is only 25 MHz \u2014 the 45 MHz signal exceeds this limit\n6. The 45 MHz signal is undersampled and aliases to f_alias = |45 - 50| = 5 MHz\n7. The scope displays, measures, and FFT-analyzes a clean-looking 5 MHz waveform \u2014 the alias is indistinguishable from a real 5 MHz signal using only the scope's own data\n\n### Intervention\nDisable Channel 2 (or any other active channels) so that Channel 1 receives the full 5 GS/s sample rate. Re-measure the signal \u2014 if the root cause is correct, the scope will now display the true 45 MHz waveform. Alternatively, use the scope's hardware frequency counter (if available) or connect an independent frequency counter/spectrum analyzer to verify the true frequency. To prevent future aliasing, always verify that the per-channel sample rate provides a Nyquist frequency at least 2\u00d7 (preferably 5\u201310\u00d7) above the highest frequency component of interest.\n\n",
+        "tool_calls": [],
+        "total_tokens": null,
+        "latency_seconds": null,
+        "confidence": null
+      },
+      "score": {
+        "test_case_id": "IN-005",
+        "model_name": "oracle",
+        "mode": "text",
+        "root_cause_score": {
+          "score": 0.75,
+          "weight": 0.3,
+          "weighted_score": 0.225,
+          "rationale": "Root cause partially identified \u2014 correct category but imprecise."
+        },
+        "causal_chain_score": {
+          "score": 1.0,
+          "weight": 0.4,
+          "weighted_score": 0.4,
+          "rationale": "Causal chain covers most key mechanistic steps."
+        },
+        "intervention_score": {
+          "score": 1.0,
+          "weight": 0.3,
+          "weighted_score": 0.3,
+          "rationale": "Intervention targets the correct variable and would test the diagnosis."
+        },
+        "final_score": 0.925,
+        "trajectory": {
+          "tool_calls_made": 0,
+          "tool_calls_budget": 20,
+          "tool_efficiency": null,
+          "budget_compliant": true,
+          "anti_patterns": []
+        }
+      },
+      "metadata": {
+        "reference_model": true,
+        "total_tokens": null,
+        "latency_seconds": 0.0
+      }
+    },
+    {
+      "test_case_id": "IN-007",
+      "model": "oracle",
+      "mode": "text",
+      "run_index": 0,
+      "timestamp": "2026-06-02T11:11:38.711055+00:00",
+      "response": {
+        "model_name": "oracle",
+        "test_case_id": "IN-007",
+        "mode": "text",
+        "root_cause": "The 488 nm laser on the BD FACSCanto II has drifted out of optimal alignment with the flow cell interrogation point. When the laser spot is not precisely centered on the sample stream, cells passing through the flow cell are illuminated unevenly \u2014 some pass through the center of the (defocused) beam and receive full excitation, while others pass through the edge of the beam and receive partial excitation. This creates an artifactual bimodal distribution where a single population is split into two apparent peaks based on their position in the stream relative to the laser spot. The misalignment was not detected because the newly hired technician skipped the mandatory daily CS&T bead quality control check.\n",
+        "causal_chain": [
+          "488 nm laser alignment gradually drifted over months of heavy use (2-3 sessions/day by 8 users), possibly exacerbated by vibrations from the adjacent centrifuge",
+          "Laser spot is no longer centered on the flow cell interrogation point \u2014 cells at different positions in the sample stream receive different excitation intensities",
+          "Newly hired technician (3 weeks experience) was unaware of or skipped the mandatory daily CS&T bead QC check that would have detected the alignment issue",
+          "Without QC verification, the misaligned instrument was used for sample acquisition",
+          "GFP-expressing cells passing through the beam center receive full 488 nm excitation, producing higher FITC signal (Peak B at decade 4.5)",
+          "GFP-expressing cells passing through the beam edge receive partial excitation, producing lower FITC signal (Peak A at decade 3.5)",
+          "The result is an artifactual bimodal distribution in the FITC channel that is misinterpreted as two distinct GFP-expressing subpopulations"
+        ],
+        "intervention": "(1) Immediately run CS&T beads and confirm the FITC CV >3% and asymmetric peak shape, documenting the misalignment. (2) Contact BD service for laser realignment or perform in-house alignment using the instrument's service mode and CS&T beads to optimize FITC signal CV to <3%. (3) After alignment, re-run the same GFP-transfected sample (if still viable) or a fresh transfection to confirm a unimodal GFP-positive peak. (4) Also re-run CS&T beads to verify alignment is restored. (5) Institute a policy requiring the QC bead log to be checked before any user begins sample acquisition.\n",
+        "raw_response": "### Root Cause\nThe 488 nm laser on the BD FACSCanto II has drifted out of optimal alignment with the flow cell interrogation point. When the laser spot is not precisely centered on the sample stream, cells passing through the flow cell are illuminated unevenly \u2014 some pass through the center of the (defocused) beam and receive full excitation, while others pass through the edge of the beam and receive partial excitation. This creates an artifactual bimodal distribution where a single population is split into two apparent peaks based on their position in the stream relative to the laser spot. The misalignment was not detected because the newly hired technician skipped the mandatory daily CS&T bead quality control check.\n\n\n### Causal Chain\n1. 488 nm laser alignment gradually drifted over months of heavy use (2-3 sessions/day by 8 users), possibly exacerbated by vibrations from the adjacent centrifuge\n2. Laser spot is no longer centered on the flow cell interrogation point \u2014 cells at different positions in the sample stream receive different excitation intensities\n3. Newly hired technician (3 weeks experience) was unaware of or skipped the mandatory daily CS&T bead QC check that would have detected the alignment issue\n4. Without QC verification, the misaligned instrument was used for sample acquisition\n5. GFP-expressing cells passing through the beam center receive full 488 nm excitation, producing higher FITC signal (Peak B at decade 4.5)\n6. GFP-expressing cells passing through the beam edge receive partial excitation, producing lower FITC signal (Peak A at decade 3.5)\n7. The result is an artifactual bimodal distribution in the FITC channel that is misinterpreted as two distinct GFP-expressing subpopulations\n\n### Intervention\n(1) Immediately run CS&T beads and confirm the FITC CV >3% and asymmetric peak shape, documenting the misalignment. (2) Contact BD service for laser realignment or perform in-house alignment using the instrument's service mode and CS&T beads to optimize FITC signal CV to <3%. (3) After alignment, re-run the same GFP-transfected sample (if still viable) or a fresh transfection to confirm a unimodal GFP-positive peak. (4) Also re-run CS&T beads to verify alignment is restored. (5) Institute a policy requiring the QC bead log to be checked before any user begins sample acquisition.\n\n",
+        "tool_calls": [],
+        "total_tokens": null,
+        "latency_seconds": null,
+        "confidence": null
+      },
+      "score": {
+        "test_case_id": "IN-007",
+        "model_name": "oracle",
+        "mode": "text",
+        "root_cause_score": {
+          "score": 0.75,
+          "weight": 0.3,
+          "weighted_score": 0.225,
+          "rationale": "Root cause partially identified \u2014 correct category but imprecise."
+        },
+        "causal_chain_score": {
+          "score": 1.0,
+          "weight": 0.4,
+          "weighted_score": 0.4,
+          "rationale": "Causal chain covers most key mechanistic steps."
+        },
+        "intervention_score": {
+          "score": 1.0,
+          "weight": 0.3,
+          "weighted_score": 0.3,
+          "rationale": "Intervention targets the correct variable and would test the diagnosis."
+        },
+        "final_score": 0.925,
+        "trajectory": {
+          "tool_calls_made": 0,
+          "tool_calls_budget": 15,
+          "tool_efficiency": null,
+          "budget_compliant": true,
+          "anti_patterns": []
+        }
+      },
+      "metadata": {
+        "reference_model": true,
+        "total_tokens": null,
+        "latency_seconds": 0.0
+      }
+    },
+    {
+      "test_case_id": "IN-009",
+      "model": "oracle",
+      "mode": "text",
+      "run_index": 0,
+      "timestamp": "2026-06-02T11:11:38.711507+00:00",
+      "response": {
+        "model_name": "oracle",
+        "test_case_id": "IN-009",
+        "mode": "text",
+        "root_cause": "The apparent checkout latency regression is an instrumentation artifact caused by wall-clock skew on checkout-canary-3. Chrony was inactive on that host after the new AMI bake, so its timestamps were about 1.24 seconds ahead of the rest of the fleet. The trace backend computed distributed span durations from these inconsistent wall-clock timestamps, producing impossible negative spans and inflated end-to-end latency. The checkout service itself was not slow.\n",
+        "causal_chain": [
+          "The canary base image booted checkout-canary-3 without chrony running",
+          "checkout-canary-3's wall clock drifted about 1.24 seconds ahead of gateway and dependency hosts",
+          "OpenTelemetry spans emitted by checkout-canary-3 used the skewed wall-clock timestamps",
+          "The trace collector combined spans from multiple machines and computed durations from inconsistent clocks",
+          "Some child spans appeared to start in the future or have negative durations",
+          "The collector's rollup inflated checkout end-to-end p95 latency to 1.84 seconds",
+          "Independent monotonic probe timings and dependency metrics stayed normal, showing the service did not actually regress"
+        ],
+        "intervention": "Re-enable chrony or remove checkout-canary-3 from the canary pool, wait for clock offset to return below 10 ms, and rerun the same load test. Confirm the diagnosis by comparing trace-derived latency against monotonic application timers and an independent synthetic probe. If the trace p95 returns to roughly 180 ms while probe timings remain unchanged, the failed release gate was caused by clock-skewed telemetry.\n",
+        "raw_response": "### Root Cause\nThe apparent checkout latency regression is an instrumentation artifact caused by wall-clock skew on checkout-canary-3. Chrony was inactive on that host after the new AMI bake, so its timestamps were about 1.24 seconds ahead of the rest of the fleet. The trace backend computed distributed span durations from these inconsistent wall-clock timestamps, producing impossible negative spans and inflated end-to-end latency. The checkout service itself was not slow.\n\n\n### Causal Chain\n1. The canary base image booted checkout-canary-3 without chrony running\n2. checkout-canary-3's wall clock drifted about 1.24 seconds ahead of gateway and dependency hosts\n3. OpenTelemetry spans emitted by checkout-canary-3 used the skewed wall-clock timestamps\n4. The trace collector combined spans from multiple machines and computed durations from inconsistent clocks\n5. Some child spans appeared to start in the future or have negative durations\n6. The collector's rollup inflated checkout end-to-end p95 latency to 1.84 seconds\n7. Independent monotonic probe timings and dependency metrics stayed normal, showing the service did not actually regress\n\n### Intervention\nRe-enable chrony or remove checkout-canary-3 from the canary pool, wait for clock offset to return below 10 ms, and rerun the same load test. Confirm the diagnosis by comparing trace-derived latency against monotonic application timers and an independent synthetic probe. If the trace p95 returns to roughly 180 ms while probe timings remain unchanged, the failed release gate was caused by clock-skewed telemetry.\n\n",
+        "tool_calls": [],
+        "total_tokens": null,
+        "latency_seconds": null,
+        "confidence": null
+      },
+      "score": {
+        "test_case_id": "IN-009",
+        "model_name": "oracle",
+        "mode": "text",
+        "root_cause_score": {
+          "score": 1.0,
+          "weight": 0.3,
+          "weighted_score": 0.3,
+          "rationale": "Root cause correctly identified \u2014 key terms match ground truth."
+        },
+        "causal_chain_score": {
+          "score": 1.0,
+          "weight": 0.4,
+          "weighted_score": 0.4,
+          "rationale": "Causal chain covers most key mechanistic steps."
+        },
+        "intervention_score": {
+          "score": 1.0,
+          "weight": 0.3,
+          "weighted_score": 0.3,
+          "rationale": "Intervention targets the correct variable and would test the diagnosis."
+        },
+        "final_score": 1.0,
+        "trajectory": {
+          "tool_calls_made": 0,
+          "tool_calls_budget": 12,
+          "tool_efficiency": null,
+          "budget_compliant": true,
+          "anti_patterns": []
+        }
+      },
+      "metadata": {
+        "reference_model": true,
+        "total_tokens": null,
+        "latency_seconds": 0.0
+      }
+    },
+    {
+      "test_case_id": "IN-011",
+      "model": "oracle",
+      "mode": "text",
+      "run_index": 0,
+      "timestamp": "2026-06-02T11:11:38.711804+00:00",
+      "response": {
+        "model_name": "oracle",
+        "test_case_id": "IN-011",
+        "mode": "text",
+        "root_cause": "The USB DAQ cold-junction compensation temperature was biased low because the module sat in a cold air stream. That introduced a common thermocouple offset and made the coupon temperatures appear 10-12 degC lower than they really were.\n",
+        "causal_chain": [
+          "Thermocouple voltage must be corrected using the DAQ cold-junction temperature",
+          "The DAQ cold-junction sensor was cooled by an air-conditioning vent",
+          "The DAQ estimated the reference junction about 11 degC too cold",
+          "All connected Type K thermocouple channels inherited the same temperature offset",
+          "The heat-treatment profile looked under-temperature even though the furnace was correct",
+          "Engineers almost changed a valid furnace recipe based on biased telemetry"
+        ],
+        "intervention": "Move the DAQ away from the vent, let it equilibrate, perform an ice-bath check, and rerun the furnace profile with the independent logger in parallel. If the DAQ agrees after cold-junction correction, the artifact is confirmed.\n",
+        "raw_response": "### Root Cause\nThe USB DAQ cold-junction compensation temperature was biased low because the module sat in a cold air stream. That introduced a common thermocouple offset and made the coupon temperatures appear 10-12 degC lower than they really were.\n\n\n### Causal Chain\n1. Thermocouple voltage must be corrected using the DAQ cold-junction temperature\n2. The DAQ cold-junction sensor was cooled by an air-conditioning vent\n3. The DAQ estimated the reference junction about 11 degC too cold\n4. All connected Type K thermocouple channels inherited the same temperature offset\n5. The heat-treatment profile looked under-temperature even though the furnace was correct\n6. Engineers almost changed a valid furnace recipe based on biased telemetry\n\n### Intervention\nMove the DAQ away from the vent, let it equilibrate, perform an ice-bath check, and rerun the furnace profile with the independent logger in parallel. If the DAQ agrees after cold-junction correction, the artifact is confirmed.\n\n",
+        "tool_calls": [],
+        "total_tokens": null,
+        "latency_seconds": null,
+        "confidence": null
+      },
+      "score": {
+        "test_case_id": "IN-011",
+        "model_name": "oracle",
+        "mode": "text",
+        "root_cause_score": {
+          "score": 1.0,
+          "weight": 0.3,
+          "weighted_score": 0.3,
+          "rationale": "Root cause correctly identified \u2014 key terms match ground truth."
+        },
+        "causal_chain_score": {
+          "score": 1.0,
+          "weight": 0.4,
+          "weighted_score": 0.4,
+          "rationale": "Causal chain covers most key mechanistic steps."
+        },
+        "intervention_score": {
+          "score": 1.0,
+          "weight": 0.3,
+          "weighted_score": 0.3,
+          "rationale": "Intervention targets the correct variable and would test the diagnosis."
+        },
+        "final_score": 1.0,
+        "trajectory": {
+          "tool_calls_made": 0,
+          "tool_calls_budget": 12,
+          "tool_efficiency": null,
+          "budget_compliant": true,
+          "anti_patterns": []
+        }
+      },
+      "metadata": {
+        "reference_model": true,
+        "total_tokens": null,
+        "latency_seconds": 0.0
+      }
+    },
+    {
+      "test_case_id": "IN-012",
+      "model": "oracle",
+      "mode": "text",
+      "run_index": 0,
+      "timestamp": "2026-06-02T11:11:38.712072+00:00",
+      "response": {
+        "model_name": "oracle",
+        "test_case_id": "IN-012",
+        "mode": "text",
+        "root_cause": "The installed compressor discharge pressure sensor was biased low after its harness was disturbed during maintenance. The prognostics model interpreted the biased pressure channel as compressor efficiency loss, producing a false rapid RUL drop.\n",
+        "causal_chain": [
+          "Maintenance disturbed the compressor pressure sensor connector",
+          "The installed pressure channel developed a low bias",
+          "The RUL model consumed the biased channel as if it were physical engine behavior",
+          "Low compressor pressure residual mimicked compressor efficiency degradation",
+          "Other channels failed to corroborate true degradation",
+          "The model predicted a false remaining-useful-life collapse"
+        ],
+        "intervention": "Repair or reseat the pressure-sensor harness, recalibrate the channel, rerun the ground test, and compare against the portable reference. The RUL estimate should return to the stable range if the root cause is the pressure bias.\n",
+        "raw_response": "### Root Cause\nThe installed compressor discharge pressure sensor was biased low after its harness was disturbed during maintenance. The prognostics model interpreted the biased pressure channel as compressor efficiency loss, producing a false rapid RUL drop.\n\n\n### Causal Chain\n1. Maintenance disturbed the compressor pressure sensor connector\n2. The installed pressure channel developed a low bias\n3. The RUL model consumed the biased channel as if it were physical engine behavior\n4. Low compressor pressure residual mimicked compressor efficiency degradation\n5. Other channels failed to corroborate true degradation\n6. The model predicted a false remaining-useful-life collapse\n\n### Intervention\nRepair or reseat the pressure-sensor harness, recalibrate the channel, rerun the ground test, and compare against the portable reference. The RUL estimate should return to the stable range if the root cause is the pressure bias.\n\n",
+        "tool_calls": [],
+        "total_tokens": null,
+        "latency_seconds": null,
+        "confidence": null
+      },
+      "score": {
+        "test_case_id": "IN-012",
+        "model_name": "oracle",
+        "mode": "text",
+        "root_cause_score": {
+          "score": 1.0,
+          "weight": 0.3,
+          "weighted_score": 0.3,
+          "rationale": "Root cause correctly identified \u2014 key terms match ground truth."
+        },
+        "causal_chain_score": {
+          "score": 1.0,
+          "weight": 0.4,
+          "weighted_score": 0.4,
+          "rationale": "Causal chain covers most key mechanistic steps."
+        },
+        "intervention_score": {
+          "score": 1.0,
+          "weight": 0.3,
+          "weighted_score": 0.3,
+          "rationale": "Intervention targets the correct variable and would test the diagnosis."
+        },
+        "final_score": 1.0,
+        "trajectory": {
+          "tool_calls_made": 0,
+          "tool_calls_budget": 15,
+          "tool_efficiency": null,
+          "budget_compliant": true,
+          "anti_patterns": []
+        }
+      },
+      "metadata": {
+        "reference_model": true,
+        "total_tokens": null,
+        "latency_seconds": 0.0
+      }
+    },
+    {
+      "test_case_id": "IN-013",
+      "model": "oracle",
+      "mode": "text",
+      "run_index": 0,
+      "timestamp": "2026-06-02T11:11:38.712336+00:00",
+      "response": {
+        "model_name": "oracle",
+        "test_case_id": "IN-013",
+        "mode": "text",
+        "root_cause": "The LC-MS/MS method has autosampler/needle carryover after high-concentration standards. Residual analyte from the high standard appears in subsequent blanks and nearby samples, creating false low-level biomarker positives.\n",
+        "causal_chain": [
+          "A high-concentration standard was injected before blanks and study samples",
+          "The sticky analyte remained in the needle or injection path",
+          "The 50% methanol wash did not remove all residual analyte",
+          "Residual analyte eluted in subsequent blank and sample injections",
+          "Blank signal decayed with injection order and exceeded LLOQ",
+          "Low-level study positives were artifacts of carryover"
+        ],
+        "intervention": "Reorder the batch with blanks before high standards, use a strong organic needle wash, and require blank-after-high-standard carryover below 20% of LLOQ. Reinject affected samples after clean blanks to confirm true positives.\n",
+        "raw_response": "### Root Cause\nThe LC-MS/MS method has autosampler/needle carryover after high-concentration standards. Residual analyte from the high standard appears in subsequent blanks and nearby samples, creating false low-level biomarker positives.\n\n\n### Causal Chain\n1. A high-concentration standard was injected before blanks and study samples\n2. The sticky analyte remained in the needle or injection path\n3. The 50% methanol wash did not remove all residual analyte\n4. Residual analyte eluted in subsequent blank and sample injections\n5. Blank signal decayed with injection order and exceeded LLOQ\n6. Low-level study positives were artifacts of carryover\n\n### Intervention\nReorder the batch with blanks before high standards, use a strong organic needle wash, and require blank-after-high-standard carryover below 20% of LLOQ. Reinject affected samples after clean blanks to confirm true positives.\n\n",
+        "tool_calls": [],
+        "total_tokens": null,
+        "latency_seconds": null,
+        "confidence": null
+      },
+      "score": {
+        "test_case_id": "IN-013",
+        "model_name": "oracle",
+        "mode": "text",
+        "root_cause_score": {
+          "score": 1.0,
+          "weight": 0.3,
+          "weighted_score": 0.3,
+          "rationale": "Root cause correctly identified \u2014 key terms match ground truth."
+        },
+        "causal_chain_score": {
+          "score": 1.0,
+          "weight": 0.4,
+          "weighted_score": 0.4,
+          "rationale": "Causal chain covers most key mechanistic steps."
+        },
+        "intervention_score": {
+          "score": 1.0,
+          "weight": 0.3,
+          "weighted_score": 0.3,
+          "rationale": "Intervention targets the correct variable and would test the diagnosis."
+        },
+        "final_score": 1.0,
+        "trajectory": {
+          "tool_calls_made": 0,
+          "tool_calls_budget": 10,
+          "tool_efficiency": null,
+          "budget_compliant": true,
+          "anti_patterns": []
+        }
+      },
+      "metadata": {
+        "reference_model": true,
+        "total_tokens": null,
+        "latency_seconds": 0.0
+      }
+    },
+    {
+      "test_case_id": "IN-014",
+      "model": "oracle",
+      "mode": "text",
+      "run_index": 0,
+      "timestamp": "2026-06-02T11:11:38.712558+00:00",
+      "response": {
+        "model_name": "oracle",
+        "test_case_id": "IN-014",
+        "mode": "text",
+        "root_cause": "The turbidity spike is an optical measurement artifact caused by biofouling and silt on the probe window. The river did not become turbid; the dirty window scattered light and inflated the NTU reading.\n",
+        "causal_chain": [
+          "Warm water and delayed maintenance allowed algae to grow on the optical window",
+          "Biofilm and trapped silt increased light scattering inside the probe path",
+          "The probe interpreted window fouling as high suspended sediment",
+          "Field NTU rose while manual grab samples remained near baseline",
+          "Cleaning the window restored normal readings"
+        ],
+        "intervention": "Clean the probe, redeploy with an upstream duplicate or wiper-equipped sensor, and compare field readings to grab samples after the same weather conditions.\n",
+        "raw_response": "### Root Cause\nThe turbidity spike is an optical measurement artifact caused by biofouling and silt on the probe window. The river did not become turbid; the dirty window scattered light and inflated the NTU reading.\n\n\n### Causal Chain\n1. Warm water and delayed maintenance allowed algae to grow on the optical window\n2. Biofilm and trapped silt increased light scattering inside the probe path\n3. The probe interpreted window fouling as high suspended sediment\n4. Field NTU rose while manual grab samples remained near baseline\n5. Cleaning the window restored normal readings\n\n### Intervention\nClean the probe, redeploy with an upstream duplicate or wiper-equipped sensor, and compare field readings to grab samples after the same weather conditions.\n\n",
+        "tool_calls": [],
+        "total_tokens": null,
+        "latency_seconds": null,
+        "confidence": null
+      },
+      "score": {
+        "test_case_id": "IN-014",
+        "model_name": "oracle",
+        "mode": "text",
+        "root_cause_score": {
+          "score": 1.0,
+          "weight": 0.3,
+          "weighted_score": 0.3,
+          "rationale": "Root cause correctly identified \u2014 key terms match ground truth."
+        },
+        "causal_chain_score": {
+          "score": 1.0,
+          "weight": 0.4,
+          "weighted_score": 0.4,
+          "rationale": "Causal chain covers most key mechanistic steps."
+        },
+        "intervention_score": {
+          "score": 1.0,
+          "weight": 0.3,
+          "weighted_score": 0.3,
+          "rationale": "Intervention targets the correct variable and would test the diagnosis."
+        },
+        "final_score": 1.0,
+        "trajectory": {
+          "tool_calls_made": 0,
+          "tool_calls_budget": 8,
+          "tool_efficiency": null,
+          "budget_compliant": true,
+          "anti_patterns": []
+        }
+      },
+      "metadata": {
+        "reference_model": true,
+        "total_tokens": null,
+        "latency_seconds": 0.0
+      }
+    },
+    {
+      "test_case_id": "PL-001",
+      "model": "oracle",
+      "mode": "text",
+      "run_index": 0,
+      "timestamp": "2026-06-02T11:11:38.713007+00:00",
+      "response": {
+        "model_name": "oracle",
+        "test_case_id": "PL-001",
+        "mode": "text",
+        "root_cause": "The researcher did not vortex the glycerol stock before inoculating. In a bacterial glycerol stock, cells settle to the bottom during freezing because glycerol (density ~1.26 g/mL) is denser than LB. Sampling from the top of the frozen stock transferred mostly glycerol with very few bacterial cells, resulting in an extremely low starting inoculum.",
+        "causal_chain": [
+          "Glycerol stock was retrieved from -80\u00b0C without vortexing or mixing",
+          "In frozen glycerol stocks, cells sediment to the bottom; top layer is mostly glycerol",
+          "Researcher scraped from the top, transferring mostly glycerol with very few cells",
+          "Extremely low starting inoculum in 5 mL overnight culture",
+          "Overnight culture reached only OD 0.12 instead of expected >2.0",
+          "1:100 dilution into 500 mL gave starting OD of ~0.001",
+          "Main culture grew extremely slowly \u2014 only reached OD 0.08 after 8 hours",
+          "Induction at OD 0.08 produced negligible protein \u2014 too few cells"
+        ],
+        "intervention": "Thaw a new aliquot of the same glycerol stock, vortex thoroughly for 10-15 seconds to fully resuspend cells, then inoculate a fresh overnight culture. If overnight culture reaches OD > 2.0 and subsequent expression yields the expected protein, the diagnosis is confirmed.",
+        "raw_response": "### Root Cause\nThe researcher did not vortex the glycerol stock before inoculating. In a bacterial glycerol stock, cells settle to the bottom during freezing because glycerol (density ~1.26 g/mL) is denser than LB. Sampling from the top of the frozen stock transferred mostly glycerol with very few bacterial cells, resulting in an extremely low starting inoculum.\n\n### Causal Chain\n1. Glycerol stock was retrieved from -80\u00b0C without vortexing or mixing\n2. In frozen glycerol stocks, cells sediment to the bottom; top layer is mostly glycerol\n3. Researcher scraped from the top, transferring mostly glycerol with very few cells\n4. Extremely low starting inoculum in 5 mL overnight culture\n5. Overnight culture reached only OD 0.12 instead of expected >2.0\n6. 1:100 dilution into 500 mL gave starting OD of ~0.001\n7. Main culture grew extremely slowly \u2014 only reached OD 0.08 after 8 hours\n8. Induction at OD 0.08 produced negligible protein \u2014 too few cells\n\n### Intervention\nThaw a new aliquot of the same glycerol stock, vortex thoroughly for 10-15 seconds to fully resuspend cells, then inoculate a fresh overnight culture. If overnight culture reaches OD > 2.0 and subsequent expression yields the expected protein, the diagnosis is confirmed.\n",
+        "tool_calls": [],
+        "total_tokens": null,
+        "latency_seconds": null,
+        "confidence": null
+      },
+      "score": {
+        "test_case_id": "PL-001",
+        "model_name": "oracle",
+        "mode": "text",
+        "root_cause_score": {
+          "score": 1.0,
+          "weight": 0.3,
+          "weighted_score": 0.3,
+          "rationale": "Root cause correctly identified \u2014 key terms match ground truth."
+        },
+        "causal_chain_score": {
+          "score": 1.0,
+          "weight": 0.4,
+          "weighted_score": 0.4,
+          "rationale": "Causal chain covers most key mechanistic steps."
+        },
+        "intervention_score": {
+          "score": 1.0,
+          "weight": 0.3,
+          "weighted_score": 0.3,
+          "rationale": "Intervention targets the correct variable and would test the diagnosis."
+        },
+        "final_score": 1.0,
+        "trajectory": {
+          "tool_calls_made": 0,
+          "tool_calls_budget": 12,
+          "tool_efficiency": null,
+          "budget_compliant": true,
+          "anti_patterns": []
+        }
+      },
+      "metadata": {
+        "reference_model": true,
+        "total_tokens": null,
+        "latency_seconds": 0.0
+      }
+    },
+    {
+      "test_case_id": "PL-004",
+      "model": "oracle",
+      "mode": "text",
+      "run_index": 0,
+      "timestamp": "2026-06-02T11:11:38.713676+00:00",
+      "response": {
+        "model_name": "oracle",
+        "test_case_id": "PL-004",
+        "mode": "text",
+        "root_cause": "A hairline crack in the stopcock grease seal on the Schlenk line (stopcock #3, connected to the reaction flask) allowed slow diffusion of atmospheric oxygen into the nominally inert reaction environment. The Pd(PPh3)4 catalyst, which requires strict anaerobic conditions, was progressively oxidized: first the triphenylphosphine ligands were oxidized to triphenylphosphine oxide (O=PPh3), stripping the ligands from Pd. The resulting unligated Pd(0) then aggregated into catalytically inactive Pd black nanoparticles.\n",
+        "causal_chain": [
+          "Stopcock #3 grease on the Schlenk line dried and cracked over 8 months without maintenance, creating a hairline channel between the bore and plug",
+          "During vacuum-N2 purge cycles, the leak was too slow to detect at the manifold gauge (~50 mTorr base pressure vs expected 10-30 mTorr, a subtle sign)",
+          "Once the reaction was running at 70\u00b0C with N2 flow, the slight positive room air pressure from HVAC and thermal gradients slowly pushed O2 through the stopcock crack",
+          "O2 diffusing into the reaction headspace dissolved into the THF/aqueous solvent system and contacted the Pd(PPh3)4 catalyst",
+          "Triphenylphosphine ligands on Pd(PPh3)4 were oxidized to O=PPh3, progressively stripping the catalyst of its stabilizing ligands",
+          "Unligated Pd(0) atoms aggregated into Pd black nanoparticles (visible as black precipitate), which are catalytically inactive for cross-coupling",
+          "Without active catalyst, the Suzuki coupling could not proceed \u2014 81% starting material was recovered unreacted with only 4.3% trace product formed in the initial period before catalyst decomposition"
+        ],
+        "intervention": "(1) Perform a static vacuum leak test: evacuate the Schlenk line to base pressure, isolate from the pump, and monitor pressure rise over 10 minutes \u2014 a well-sealed system should show <5 mTorr rise, a leaking system will show continuous pressure increase. (2) Regrease all stopcocks with fresh Apiezon H grease and retest. (3) Repeat the Suzuki coupling on the serviced Schlenk line with fresh Pd(PPh3)4. As a positive control, run a parallel reaction in a properly tested glovebox to confirm the reagents and protocol are otherwise correct.\n",
+        "raw_response": "### Root Cause\nA hairline crack in the stopcock grease seal on the Schlenk line (stopcock #3, connected to the reaction flask) allowed slow diffusion of atmospheric oxygen into the nominally inert reaction environment. The Pd(PPh3)4 catalyst, which requires strict anaerobic conditions, was progressively oxidized: first the triphenylphosphine ligands were oxidized to triphenylphosphine oxide (O=PPh3), stripping the ligands from Pd. The resulting unligated Pd(0) then aggregated into catalytically inactive Pd black nanoparticles.\n\n\n### Causal Chain\n1. Stopcock #3 grease on the Schlenk line dried and cracked over 8 months without maintenance, creating a hairline channel between the bore and plug\n2. During vacuum-N2 purge cycles, the leak was too slow to detect at the manifold gauge (~50 mTorr base pressure vs expected 10-30 mTorr, a subtle sign)\n3. Once the reaction was running at 70\u00b0C with N2 flow, the slight positive room air pressure from HVAC and thermal gradients slowly pushed O2 through the stopcock crack\n4. O2 diffusing into the reaction headspace dissolved into the THF/aqueous solvent system and contacted the Pd(PPh3)4 catalyst\n5. Triphenylphosphine ligands on Pd(PPh3)4 were oxidized to O=PPh3, progressively stripping the catalyst of its stabilizing ligands\n6. Unligated Pd(0) atoms aggregated into Pd black nanoparticles (visible as black precipitate), which are catalytically inactive for cross-coupling\n7. Without active catalyst, the Suzuki coupling could not proceed \u2014 81% starting material was recovered unreacted with only 4.3% trace product formed in the initial period before catalyst decomposition\n\n### Intervention\n(1) Perform a static vacuum leak test: evacuate the Schlenk line to base pressure, isolate from the pump, and monitor pressure rise over 10 minutes \u2014 a well-sealed system should show <5 mTorr rise, a leaking system will show continuous pressure increase. (2) Regrease all stopcocks with fresh Apiezon H grease and retest. (3) Repeat the Suzuki coupling on the serviced Schlenk line with fresh Pd(PPh3)4. As a positive control, run a parallel reaction in a properly tested glovebox to confirm the reagents and protocol are otherwise correct.\n\n",
+        "tool_calls": [],
+        "total_tokens": null,
+        "latency_seconds": null,
+        "confidence": null
+      },
+      "score": {
+        "test_case_id": "PL-004",
+        "model_name": "oracle",
+        "mode": "text",
+        "root_cause_score": {
+          "score": 1.0,
+          "weight": 0.3,
+          "weighted_score": 0.3,
+          "rationale": "Root cause correctly identified \u2014 key terms match ground truth."
+        },
+        "causal_chain_score": {
+          "score": 1.0,
+          "weight": 0.4,
+          "weighted_score": 0.4,
+          "rationale": "Causal chain covers most key mechanistic steps."
+        },
+        "intervention_score": {
+          "score": 1.0,
+          "weight": 0.3,
+          "weighted_score": 0.3,
+          "rationale": "Intervention targets the correct variable and would test the diagnosis."
+        },
+        "final_score": 1.0,
+        "trajectory": {
+          "tool_calls_made": 0,
+          "tool_calls_budget": 20,
+          "tool_efficiency": null,
+          "budget_compliant": true,
+          "anti_patterns": []
+        }
+      },
+      "metadata": {
+        "reference_model": true,
+        "total_tokens": null,
+        "latency_seconds": 0.0
+      }
+    },
+    {
+      "test_case_id": "PL-006",
+      "model": "oracle",
+      "mode": "text",
+      "run_index": 0,
+      "timestamp": "2026-06-02T11:11:38.713936+00:00",
+      "response": {
+        "model_name": "oracle",
+        "test_case_id": "PL-006",
+        "mode": "text",
+        "root_cause": "The analyst skipped the off-line mobile-phase degassing step while the inline degasser had weak vacuum. Dissolved gas formed bubbles in the pump/detector flow path, causing pressure pulsation, baseline noise, and retention-time drift.\n",
+        "causal_chain": [
+          "Fresh mobile phase retained dissolved gas",
+          "The off-line degassing step was skipped",
+          "The weak inline degasser failed to remove enough gas",
+          "Bubbles formed in the solvent line and pump head",
+          "Flow became unstable, causing pressure fluctuations",
+          "Retention time and detector baseline became noisy"
+        ],
+        "intervention": "Degas the same mobile phases by helium sparging or sonication, verify degasser vacuum, and rerun system suitability. If noise and RT RSD recover without changing column or method, the diagnosis is confirmed.\n",
+        "raw_response": "### Root Cause\nThe analyst skipped the off-line mobile-phase degassing step while the inline degasser had weak vacuum. Dissolved gas formed bubbles in the pump/detector flow path, causing pressure pulsation, baseline noise, and retention-time drift.\n\n\n### Causal Chain\n1. Fresh mobile phase retained dissolved gas\n2. The off-line degassing step was skipped\n3. The weak inline degasser failed to remove enough gas\n4. Bubbles formed in the solvent line and pump head\n5. Flow became unstable, causing pressure fluctuations\n6. Retention time and detector baseline became noisy\n\n### Intervention\nDegas the same mobile phases by helium sparging or sonication, verify degasser vacuum, and rerun system suitability. If noise and RT RSD recover without changing column or method, the diagnosis is confirmed.\n\n",
+        "tool_calls": [],
+        "total_tokens": null,
+        "latency_seconds": null,
+        "confidence": null
+      },
+      "score": {
+        "test_case_id": "PL-006",
+        "model_name": "oracle",
+        "mode": "text",
+        "root_cause_score": {
+          "score": 1.0,
+          "weight": 0.3,
+          "weighted_score": 0.3,
+          "rationale": "Root cause correctly identified \u2014 key terms match ground truth."
+        },
+        "causal_chain_score": {
+          "score": 1.0,
+          "weight": 0.4,
+          "weighted_score": 0.4,
+          "rationale": "Causal chain covers most key mechanistic steps."
+        },
+        "intervention_score": {
+          "score": 1.0,
+          "weight": 0.3,
+          "weighted_score": 0.3,
+          "rationale": "Intervention targets the correct variable and would test the diagnosis."
+        },
+        "final_score": 1.0,
+        "trajectory": {
+          "tool_calls_made": 0,
+          "tool_calls_budget": 8,
+          "tool_efficiency": null,
+          "budget_compliant": true,
+          "anti_patterns": []
+        }
+      },
+      "metadata": {
+        "reference_model": true,
+        "total_tokens": null,
+        "latency_seconds": 0.0
+      }
+    },
+    {
+      "test_case_id": "PL-007",
+      "model": "oracle",
+      "mode": "text",
+      "run_index": 0,
+      "timestamp": "2026-06-02T11:11:38.714201+00:00",
+      "response": {
+        "model_name": "oracle",
+        "test_case_id": "PL-007",
+        "mode": "text",
+        "root_cause": "The ground-control elevations were exported in the wrong vertical datum. The drone model used WGS84 ellipsoid heights while the CAD/design comparison used NAVD88 orthometric heights, creating a consistent vertical offset and erroneous earthwork volume.\n",
+        "causal_chain": [
+          "The rover project defaulted to WGS84 ellipsoid height",
+          "The CAD/design surface used NAVD88 orthometric elevation",
+          "GCPs were imported without vertical datum conversion",
+          "The photogrammetry model was internally consistent but vertically shifted",
+          "The shifted surface created an 11.8% volume error",
+          "Applying the geoid/datum conversion removed the bias"
+        ],
+        "intervention": "Reprocess the same images using GCP elevations transformed into the CAD vertical datum, then compare check points and earthwork volume against the ground survey. Add a required datum check to the field export template.\n",
+        "raw_response": "### Root Cause\nThe ground-control elevations were exported in the wrong vertical datum. The drone model used WGS84 ellipsoid heights while the CAD/design comparison used NAVD88 orthometric heights, creating a consistent vertical offset and erroneous earthwork volume.\n\n\n### Causal Chain\n1. The rover project defaulted to WGS84 ellipsoid height\n2. The CAD/design surface used NAVD88 orthometric elevation\n3. GCPs were imported without vertical datum conversion\n4. The photogrammetry model was internally consistent but vertically shifted\n5. The shifted surface created an 11.8% volume error\n6. Applying the geoid/datum conversion removed the bias\n\n### Intervention\nReprocess the same images using GCP elevations transformed into the CAD vertical datum, then compare check points and earthwork volume against the ground survey. Add a required datum check to the field export template.\n\n",
+        "tool_calls": [],
+        "total_tokens": null,
+        "latency_seconds": null,
+        "confidence": null
+      },
+      "score": {
+        "test_case_id": "PL-007",
+        "model_name": "oracle",
+        "mode": "text",
+        "root_cause_score": {
+          "score": 1.0,
+          "weight": 0.3,
+          "weighted_score": 0.3,
+          "rationale": "Root cause correctly identified \u2014 key terms match ground truth."
+        },
+        "causal_chain_score": {
+          "score": 1.0,
+          "weight": 0.4,
+          "weighted_score": 0.4,
+          "rationale": "Causal chain covers most key mechanistic steps."
+        },
+        "intervention_score": {
+          "score": 1.0,
+          "weight": 0.3,
+          "weighted_score": 0.3,
+          "rationale": "Intervention targets the correct variable and would test the diagnosis."
+        },
+        "final_score": 1.0,
+        "trajectory": {
+          "tool_calls_made": 0,
+          "tool_calls_budget": 12,
+          "tool_efficiency": null,
+          "budget_compliant": true,
+          "anti_patterns": []
+        }
+      },
+      "metadata": {
+        "reference_model": true,
+        "total_tokens": null,
+        "latency_seconds": 0.0
+      }
+    },
+    {
+      "test_case_id": "PL-008",
+      "model": "oracle",
+      "mode": "text",
+      "run_index": 0,
+      "timestamp": "2026-06-02T11:11:38.714440+00:00",
+      "response": {
+        "model_name": "oracle",
+        "test_case_id": "PL-008",
+        "mode": "text",
+        "root_cause": "The cold ELISA plate was not equilibrated to room temperature before reagent addition. Temperature gradients and condensation at the edges changed binding kinetics and volumes, creating an edge effect with high duplicate CV.\n",
+        "causal_chain": [
+          "The plate was taken from 4 degC storage",
+          "The 30-minute room-temperature equilibration step was skipped",
+          "Condensation and temperature gradients persisted at edges and corners",
+          "Antibody-antigen binding and effective reagent volumes varied spatially",
+          "Edge wells showed lower signal and high duplicate CV",
+          "Equilibration before repeat run removed the gradient"
+        ],
+        "intervention": "Repeat the ELISA with a sealed plate equilibrated for 30 minutes, randomized sample placement, and edge/center controls. The edge gradient should disappear if skipped equilibration was causal.\n",
+        "raw_response": "### Root Cause\nThe cold ELISA plate was not equilibrated to room temperature before reagent addition. Temperature gradients and condensation at the edges changed binding kinetics and volumes, creating an edge effect with high duplicate CV.\n\n\n### Causal Chain\n1. The plate was taken from 4 degC storage\n2. The 30-minute room-temperature equilibration step was skipped\n3. Condensation and temperature gradients persisted at edges and corners\n4. Antibody-antigen binding and effective reagent volumes varied spatially\n5. Edge wells showed lower signal and high duplicate CV\n6. Equilibration before repeat run removed the gradient\n\n### Intervention\nRepeat the ELISA with a sealed plate equilibrated for 30 minutes, randomized sample placement, and edge/center controls. The edge gradient should disappear if skipped equilibration was causal.\n\n",
+        "tool_calls": [],
+        "total_tokens": null,
+        "latency_seconds": null,
+        "confidence": null
+      },
+      "score": {
+        "test_case_id": "PL-008",
+        "model_name": "oracle",
+        "mode": "text",
+        "root_cause_score": {
+          "score": 1.0,
+          "weight": 0.3,
+          "weighted_score": 0.3,
+          "rationale": "Root cause correctly identified \u2014 key terms match ground truth."
+        },
+        "causal_chain_score": {
+          "score": 1.0,
+          "weight": 0.4,
+          "weighted_score": 0.4,
+          "rationale": "Causal chain covers most key mechanistic steps."
+        },
+        "intervention_score": {
+          "score": 1.0,
+          "weight": 0.3,
+          "weighted_score": 0.3,
+          "rationale": "Intervention targets the correct variable and would test the diagnosis."
+        },
+        "final_score": 1.0,
+        "trajectory": {
+          "tool_calls_made": 0,
+          "tool_calls_budget": 10,
+          "tool_efficiency": null,
+          "budget_compliant": true,
+          "anti_patterns": []
+        }
+      },
+      "metadata": {
+        "reference_model": true,
+        "total_tokens": null,
+        "latency_seconds": 0.0
+      }
+    },
+    {
+      "test_case_id": "PL-009",
+      "model": "oracle",
+      "mode": "text",
+      "run_index": 0,
+      "timestamp": "2026-06-02T11:11:38.714673+00:00",
+      "response": {
+        "model_name": "oracle",
+        "test_case_id": "PL-009",
+        "mode": "text",
+        "root_cause": "The flange leaked because the bolts were tightened clockwise in one pass instead of gradually in a star pattern. Uneven gasket compression left a low-clamp sector that leaked during pressure hold.\n",
+        "causal_chain": [
+          "The trainee skipped the staged star-pattern torque sequence",
+          "Clockwise full-torque tightening progressively distorted gasket compression",
+          "Bolt clamp load became uneven around the flange",
+          "One sector had insufficient gasket seating stress",
+          "Nitrogen leaked through the low-clamp sector",
+          "Retorquing in the required sequence equalized clamp load and stopped the leak"
+        ],
+        "intervention": "Disassemble or relax the flange, inspect the gasket, then retorque in three star-pattern passes with bolt-load verification. Repeat the pressure hold.\n",
+        "raw_response": "### Root Cause\nThe flange leaked because the bolts were tightened clockwise in one pass instead of gradually in a star pattern. Uneven gasket compression left a low-clamp sector that leaked during pressure hold.\n\n\n### Causal Chain\n1. The trainee skipped the staged star-pattern torque sequence\n2. Clockwise full-torque tightening progressively distorted gasket compression\n3. Bolt clamp load became uneven around the flange\n4. One sector had insufficient gasket seating stress\n5. Nitrogen leaked through the low-clamp sector\n6. Retorquing in the required sequence equalized clamp load and stopped the leak\n\n### Intervention\nDisassemble or relax the flange, inspect the gasket, then retorque in three star-pattern passes with bolt-load verification. Repeat the pressure hold.\n\n",
+        "tool_calls": [],
+        "total_tokens": null,
+        "latency_seconds": null,
+        "confidence": null
+      },
+      "score": {
+        "test_case_id": "PL-009",
+        "model_name": "oracle",
+        "mode": "text",
+        "root_cause_score": {
+          "score": 1.0,
+          "weight": 0.3,
+          "weighted_score": 0.3,
+          "rationale": "Root cause correctly identified \u2014 key terms match ground truth."
+        },
+        "causal_chain_score": {
+          "score": 1.0,
+          "weight": 0.4,
+          "weighted_score": 0.4,
+          "rationale": "Causal chain covers most key mechanistic steps."
+        },
+        "intervention_score": {
+          "score": 1.0,
+          "weight": 0.3,
+          "weighted_score": 0.3,
+          "rationale": "Intervention targets the correct variable and would test the diagnosis."
+        },
+        "final_score": 1.0,
+        "trajectory": {
+          "tool_calls_made": 0,
+          "tool_calls_budget": 10,
+          "tool_efficiency": null,
+          "budget_compliant": true,
+          "anti_patterns": []
+        }
+      },
+      "metadata": {
+        "reference_model": true,
+        "total_tokens": null,
+        "latency_seconds": 0.0
+      }
+    },
+    {
+      "test_case_id": "RF-001",
+      "model": "oracle",
+      "mode": "text",
+      "run_index": 0,
+      "timestamp": "2026-06-02T11:11:38.715138+00:00",
+      "response": {
+        "model_name": "oracle",
+        "test_case_id": "RF-001",
+        "mode": "text",
+        "root_cause": "Lysis buffer pH drifted from 8.0 to approximately 6.5 due to CO2 absorption from the nearby incubator over 3 weeks of storage at room temperature. At pH 6.5, the histidine residues in the 6xHis-tag become protonated and cannot coordinate Ni2+ ions, causing the protein to flow through the column.",
+        "causal_chain": [
+          "Tris-HCl lysis buffer was prepared and left at room temperature for 3 weeks",
+          "The nearby CO2 incubator vented CO2 into the ambient air on the bench",
+          "Atmospheric CO2 dissolved into the buffer: CO2 + H2O \u2192 H2CO3 (carbonic acid)",
+          "Carbonic acid overwhelmed the Tris buffering capacity, lowering pH from 8.0 to ~6.5",
+          "At pH 6.5, the imidazole side chains of the 6xHis-tag become protonated (pKa ~6.0)",
+          "Protonated histidine residues cannot coordinate Ni2+ ions on the NTA resin",
+          "The His-tagged protein flowed through the column without binding",
+          "Result: very low yield (0.3 mg vs expected 5+ mg) and poor purity in elution fractions"
+        ],
+        "intervention": "Re-prepare fresh lysis buffer from stock solutions, verify pH = 8.0 with a freshly calibrated pH meter immediately before use. Rerun the entire purification with the fresh buffer. If yield recovers to >5 mg/L at >90% purity, the diagnosis is confirmed.",
+        "raw_response": "### Root Cause\nLysis buffer pH drifted from 8.0 to approximately 6.5 due to CO2 absorption from the nearby incubator over 3 weeks of storage at room temperature. At pH 6.5, the histidine residues in the 6xHis-tag become protonated and cannot coordinate Ni2+ ions, causing the protein to flow through the column.\n\n### Causal Chain\n1. Tris-HCl lysis buffer was prepared and left at room temperature for 3 weeks\n2. The nearby CO2 incubator vented CO2 into the ambient air on the bench\n3. Atmospheric CO2 dissolved into the buffer: CO2 + H2O \u2192 H2CO3 (carbonic acid)\n4. Carbonic acid overwhelmed the Tris buffering capacity, lowering pH from 8.0 to ~6.5\n5. At pH 6.5, the imidazole side chains of the 6xHis-tag become protonated (pKa ~6.0)\n6. Protonated histidine residues cannot coordinate Ni2+ ions on the NTA resin\n7. The His-tagged protein flowed through the column without binding\n8. Result: very low yield (0.3 mg vs expected 5+ mg) and poor purity in elution fractions\n\n### Intervention\nRe-prepare fresh lysis buffer from stock solutions, verify pH = 8.0 with a freshly calibrated pH meter immediately before use. Rerun the entire purification with the fresh buffer. If yield recovers to >5 mg/L at >90% purity, the diagnosis is confirmed.\n",
+        "tool_calls": [],
+        "total_tokens": null,
+        "latency_seconds": null,
+        "confidence": null
+      },
+      "score": {
+        "test_case_id": "RF-001",
+        "model_name": "oracle",
+        "mode": "text",
+        "root_cause_score": {
+          "score": 1.0,
+          "weight": 0.3,
+          "weighted_score": 0.3,
+          "rationale": "Root cause correctly identified \u2014 key terms match ground truth."
+        },
+        "causal_chain_score": {
+          "score": 1.0,
+          "weight": 0.4,
+          "weighted_score": 0.4,
+          "rationale": "Causal chain covers most key mechanistic steps."
+        },
+        "intervention_score": {
+          "score": 1.0,
+          "weight": 0.3,
+          "weighted_score": 0.3,
+          "rationale": "Intervention targets the correct variable and would test the diagnosis."
+        },
+        "final_score": 1.0,
+        "trajectory": {
+          "tool_calls_made": 0,
+          "tool_calls_budget": 15,
+          "tool_efficiency": null,
+          "budget_compliant": true,
+          "anti_patterns": []
+        }
+      },
+      "metadata": {
+        "reference_model": true,
+        "total_tokens": null,
+        "latency_seconds": 0.0
+      }
+    },
+    {
+      "test_case_id": "RF-002",
+      "model": "oracle",
+      "mode": "text",
+      "run_index": 0,
+      "timestamp": "2026-06-02T11:11:38.715517+00:00",
+      "response": {
+        "model_name": "oracle",
+        "test_case_id": "RF-002",
+        "mode": "text",
+        "root_cause": "PCR primers degraded due to improper storage \u2014 diluted working stocks (10 \u00b5M) stored at 4\u00b0C for 4 months with ~15 freeze-thaw cycles. Oligonucleotide primers at low concentration in aqueous solution degrade via depurination and hydrolysis at 4\u00b0C over months.",
+        "causal_chain": [
+          "Primer working stocks (10 \u00b5M) were stored at 4\u00b0C instead of -20\u00b0C",
+          "At 4\u00b0C, dilute oligonucleotides undergo slow depurination and phosphodiester hydrolysis",
+          "Multiple freeze-thaw cycles (~15) further accelerated degradation",
+          "After 4 months, primers are substantially degraded \u2014 shortened fragments and modified bases",
+          "Degraded primers cannot anneal specifically to template at the annealing temperature",
+          "No amplification occurs \u2014 blank gel lanes",
+          "Fresh primers from concentrated frozen stock work perfectly, confirming primer-specific failure"
+        ],
+        "intervention": "Order fresh primers or prepare new working stocks from the concentrated frozen master stock (-20\u00b0C). Rerun PCR with fresh working stocks. If amplification succeeds, primer degradation is confirmed.",
+        "raw_response": "### Root Cause\nPCR primers degraded due to improper storage \u2014 diluted working stocks (10 \u00b5M) stored at 4\u00b0C for 4 months with ~15 freeze-thaw cycles. Oligonucleotide primers at low concentration in aqueous solution degrade via depurination and hydrolysis at 4\u00b0C over months.\n\n### Causal Chain\n1. Primer working stocks (10 \u00b5M) were stored at 4\u00b0C instead of -20\u00b0C\n2. At 4\u00b0C, dilute oligonucleotides undergo slow depurination and phosphodiester hydrolysis\n3. Multiple freeze-thaw cycles (~15) further accelerated degradation\n4. After 4 months, primers are substantially degraded \u2014 shortened fragments and modified bases\n5. Degraded primers cannot anneal specifically to template at the annealing temperature\n6. No amplification occurs \u2014 blank gel lanes\n7. Fresh primers from concentrated frozen stock work perfectly, confirming primer-specific failure\n\n### Intervention\nOrder fresh primers or prepare new working stocks from the concentrated frozen master stock (-20\u00b0C). Rerun PCR with fresh working stocks. If amplification succeeds, primer degradation is confirmed.\n",
+        "tool_calls": [],
+        "total_tokens": null,
+        "latency_seconds": null,
+        "confidence": null
+      },
+      "score": {
+        "test_case_id": "RF-002",
+        "model_name": "oracle",
+        "mode": "text",
+        "root_cause_score": {
+          "score": 1.0,
+          "weight": 0.3,
+          "weighted_score": 0.3,
+          "rationale": "Root cause correctly identified \u2014 key terms match ground truth."
+        },
+        "causal_chain_score": {
+          "score": 1.0,
+          "weight": 0.4,
+          "weighted_score": 0.4,
+          "rationale": "Causal chain covers most key mechanistic steps."
+        },
+        "intervention_score": {
+          "score": 1.0,
+          "weight": 0.3,
+          "weighted_score": 0.3,
+          "rationale": "Intervention targets the correct variable and would test the diagnosis."
+        },
+        "final_score": 1.0,
+        "trajectory": {
+          "tool_calls_made": 0,
+          "tool_calls_budget": 10,
+          "tool_efficiency": null,
+          "budget_compliant": true,
+          "anti_patterns": []
+        }
+      },
+      "metadata": {
+        "reference_model": true,
+        "total_tokens": null,
+        "latency_seconds": 0.0
+      }
+    },
+    {
+      "test_case_id": "RF-004",
+      "model": "oracle",
+      "mode": "text",
+      "run_index": 0,
+      "timestamp": "2026-06-02T11:11:38.716142+00:00",
+      "response": {
+        "model_name": "oracle",
+        "test_case_id": "RF-004",
+        "mode": "text",
+        "root_cause": "The THF solvent contained ~1,850 ppm water (37\u00d7 the acceptable limit of <50 ppm for Grignard chemistry). The moisture entered the Sure/Seal bottle through the compromised septum, which had been punctured ~40 times over 14 months. Atmospheric moisture (exacerbated by 65\u201370% RH in the lab) diffused through the damaged septum. The water protonated the phenylmagnesium bromide as it formed (PhMgBr + H\u2082O \u2192 PhH + Mg(OH)Br), converting it to benzene and destroying the Grignard reagent before it could react with benzaldehyde.\n",
+        "causal_chain": [
+          "Sure/Seal THF bottle septum degraded after ~40 punctures over 14 months, creating micro-channels for atmospheric moisture ingress",
+          "Lab humidity at 65-70% RH accelerated moisture permeation through the compromised septum",
+          "THF water content rose from <50 ppm (specification) to 1,850 ppm",
+          "During Grignard formation, water in THF reacts with PhMgBr as fast as it forms: PhMgBr + H\u2082O \u2192 C\u2086H\u2086 + Mg(OH)Br",
+          "Grignard reagent is consumed by protonolysis, producing benzene (observed by NMR at \u03b4 7.36 and GC-MS at m/z 78)",
+          "Without functional Grignard reagent, benzaldehyde remains unreacted (observed by NMR at \u03b4 9.98 and GC-MS at m/z 106)",
+          "No diphenylmethanol product is formed \u2014 reaction yields only benzene, unreacted benzaldehyde, and trace byproducts"
+        ],
+        "intervention": "Repeat the reaction using THF from a freshly opened Sure/Seal bottle (or THF freshly distilled from sodium/benzophenone \u2014 the ketyl radical should turn deep purple, confirming dryness). Verify water content is <50 ppm by Karl Fischer titration before use. All other conditions (Mg turnings, bromobenzene, benzaldehyde, glassware prep) remain identical. If the root cause is correct, the reaction should produce diphenylmethanol in \u226570% yield with the correct NMR spectrum (singlet at \u03b4 5.76).\n",
+        "raw_response": "### Root Cause\nThe THF solvent contained ~1,850 ppm water (37\u00d7 the acceptable limit of <50 ppm for Grignard chemistry). The moisture entered the Sure/Seal bottle through the compromised septum, which had been punctured ~40 times over 14 months. Atmospheric moisture (exacerbated by 65\u201370% RH in the lab) diffused through the damaged septum. The water protonated the phenylmagnesium bromide as it formed (PhMgBr + H\u2082O \u2192 PhH + Mg(OH)Br), converting it to benzene and destroying the Grignard reagent before it could react with benzaldehyde.\n\n\n### Causal Chain\n1. Sure/Seal THF bottle septum degraded after ~40 punctures over 14 months, creating micro-channels for atmospheric moisture ingress\n2. Lab humidity at 65-70% RH accelerated moisture permeation through the compromised septum\n3. THF water content rose from <50 ppm (specification) to 1,850 ppm\n4. During Grignard formation, water in THF reacts with PhMgBr as fast as it forms: PhMgBr + H\u2082O \u2192 C\u2086H\u2086 + Mg(OH)Br\n5. Grignard reagent is consumed by protonolysis, producing benzene (observed by NMR at \u03b4 7.36 and GC-MS at m/z 78)\n6. Without functional Grignard reagent, benzaldehyde remains unreacted (observed by NMR at \u03b4 9.98 and GC-MS at m/z 106)\n7. No diphenylmethanol product is formed \u2014 reaction yields only benzene, unreacted benzaldehyde, and trace byproducts\n\n### Intervention\nRepeat the reaction using THF from a freshly opened Sure/Seal bottle (or THF freshly distilled from sodium/benzophenone \u2014 the ketyl radical should turn deep purple, confirming dryness). Verify water content is <50 ppm by Karl Fischer titration before use. All other conditions (Mg turnings, bromobenzene, benzaldehyde, glassware prep) remain identical. If the root cause is correct, the reaction should produce diphenylmethanol in \u226570% yield with the correct NMR spectrum (singlet at \u03b4 5.76).\n\n",
+        "tool_calls": [],
+        "total_tokens": null,
+        "latency_seconds": null,
+        "confidence": null
+      },
+      "score": {
+        "test_case_id": "RF-004",
+        "model_name": "oracle",
+        "mode": "text",
+        "root_cause_score": {
+          "score": 1.0,
+          "weight": 0.3,
+          "weighted_score": 0.3,
+          "rationale": "Root cause correctly identified \u2014 key terms match ground truth."
+        },
+        "causal_chain_score": {
+          "score": 1.0,
+          "weight": 0.4,
+          "weighted_score": 0.4,
+          "rationale": "Causal chain covers most key mechanistic steps."
+        },
+        "intervention_score": {
+          "score": 1.0,
+          "weight": 0.3,
+          "weighted_score": 0.3,
+          "rationale": "Intervention targets the correct variable and would test the diagnosis."
+        },
+        "final_score": 1.0,
+        "trajectory": {
+          "tool_calls_made": 0,
+          "tool_calls_budget": 20,
+          "tool_efficiency": null,
+          "budget_compliant": true,
+          "anti_patterns": []
+        }
+      },
+      "metadata": {
+        "reference_model": true,
+        "total_tokens": null,
+        "latency_seconds": 0.0
+      }
+    },
+    {
+      "test_case_id": "RF-009",
+      "model": "oracle",
+      "mode": "text",
+      "run_index": 0,
+      "timestamp": "2026-06-02T11:11:38.716537+00:00",
+      "response": {
+        "model_name": "oracle",
+        "test_case_id": "RF-009",
+        "mode": "text",
+        "root_cause": "The reused 6 mm carbide end mill was worn beyond its tool-life limit. Flank wear and minor flute chipping increased cutting forces, vibration, and tool deflection during slot finishing. The worn cutter rubbed instead of shearing cleanly, creating burrs, poor surface finish, and undersized slots in later parts.\n",
+        "causal_chain": [
+          "Tool EM-6-F3 was reused from a previous run without resetting or checking tool life",
+          "The end mill accumulated 18.4 cutting hours, exceeding the recommended 8 hour life",
+          "Flank wear reached 0.34 mm and one flute developed small edge chipping",
+          "The dull tool required higher cutting force and generated more vibration",
+          "Higher force caused cutter deflection and rubbing during slot finishing",
+          "Slots became undersized while surface roughness and burr height increased",
+          "Late-batch parts failed dimensional and surface-finish inspection"
+        ],
+        "intervention": "Replace EM-6-F3 with a new end mill, rerun the same toolpath on the same stock and fixture for a short confirmation batch, and inspect slot width, Ra, burr height, spindle load, and vibration. If new-tool parts return to 6.00 +/- 0.03 mm with Ra below 1.6 um and lower spindle load, the diagnosis is confirmed. Add tool-life lockout or mandatory microscope inspection before production runs.\n",
+        "raw_response": "### Root Cause\nThe reused 6 mm carbide end mill was worn beyond its tool-life limit. Flank wear and minor flute chipping increased cutting forces, vibration, and tool deflection during slot finishing. The worn cutter rubbed instead of shearing cleanly, creating burrs, poor surface finish, and undersized slots in later parts.\n\n\n### Causal Chain\n1. Tool EM-6-F3 was reused from a previous run without resetting or checking tool life\n2. The end mill accumulated 18.4 cutting hours, exceeding the recommended 8 hour life\n3. Flank wear reached 0.34 mm and one flute developed small edge chipping\n4. The dull tool required higher cutting force and generated more vibration\n5. Higher force caused cutter deflection and rubbing during slot finishing\n6. Slots became undersized while surface roughness and burr height increased\n7. Late-batch parts failed dimensional and surface-finish inspection\n\n### Intervention\nReplace EM-6-F3 with a new end mill, rerun the same toolpath on the same stock and fixture for a short confirmation batch, and inspect slot width, Ra, burr height, spindle load, and vibration. If new-tool parts return to 6.00 +/- 0.03 mm with Ra below 1.6 um and lower spindle load, the diagnosis is confirmed. Add tool-life lockout or mandatory microscope inspection before production runs.\n\n",
+        "tool_calls": [],
+        "total_tokens": null,
+        "latency_seconds": null,
+        "confidence": null
+      },
+      "score": {
+        "test_case_id": "RF-009",
+        "model_name": "oracle",
+        "mode": "text",
+        "root_cause_score": {
+          "score": 1.0,
+          "weight": 0.3,
+          "weighted_score": 0.3,
+          "rationale": "Root cause correctly identified \u2014 key terms match ground truth."
+        },
+        "causal_chain_score": {
+          "score": 1.0,
+          "weight": 0.4,
+          "weighted_score": 0.4,
+          "rationale": "Causal chain covers most key mechanistic steps."
+        },
+        "intervention_score": {
+          "score": 1.0,
+          "weight": 0.3,
+          "weighted_score": 0.3,
+          "rationale": "Intervention targets the correct variable and would test the diagnosis."
+        },
+        "final_score": 1.0,
+        "trajectory": {
+          "tool_calls_made": 0,
+          "tool_calls_budget": 12,
+          "tool_efficiency": null,
+          "budget_compliant": true,
+          "anti_patterns": []
+        }
+      },
+      "metadata": {
+        "reference_model": true,
+        "total_tokens": null,
+        "latency_seconds": 0.0
+      }
+    },
+    {
+      "test_case_id": "RF-010",
+      "model": "oracle",
+      "mode": "text",
+      "run_index": 0,
+      "timestamp": "2026-06-02T11:11:38.716883+00:00",
+      "response": {
+        "model_name": "oracle",
+        "test_case_id": "RF-010",
+        "mode": "text",
+        "root_cause": "The high potassium signal is caused by hemolyzed plasma specimens, not true drug-induced hyperkalemia. Pneumatic tube transport and delayed centrifugation ruptured red blood cells, releasing intracellular potassium into plasma. The analyzer therefore reported pseudohyperkalemia in the affected samples.\n",
+        "causal_chain": [
+          "Day 3 post-dose blood tubes were transported through a rough pneumatic tube route",
+          "Several tubes also waited 70-90 minutes before centrifugation",
+          "Mechanical stress and delayed processing caused red blood cell hemolysis",
+          "Hemolyzed red cells released intracellular potassium, LDH, and AST into plasma",
+          "The chemistry analyzer measured elevated potassium in the compromised specimens",
+          "Participants had normal ECGs and repeat hand-carried samples normalized",
+          "The apparent safety signal was pseudohyperkalemia from sample damage"
+        ],
+        "intervention": "Recollect blood from affected participants using gentle venipuncture, hand-carry tubes to the lab, centrifuge within 30 minutes, and reject or annotate samples with hemolysis index above 20 for potassium interpretation. If potassium returns to baseline while hemolysis index, LDH, and AST normalize, the diagnosis is confirmed.\n",
+        "raw_response": "### Root Cause\nThe high potassium signal is caused by hemolyzed plasma specimens, not true drug-induced hyperkalemia. Pneumatic tube transport and delayed centrifugation ruptured red blood cells, releasing intracellular potassium into plasma. The analyzer therefore reported pseudohyperkalemia in the affected samples.\n\n\n### Causal Chain\n1. Day 3 post-dose blood tubes were transported through a rough pneumatic tube route\n2. Several tubes also waited 70-90 minutes before centrifugation\n3. Mechanical stress and delayed processing caused red blood cell hemolysis\n4. Hemolyzed red cells released intracellular potassium, LDH, and AST into plasma\n5. The chemistry analyzer measured elevated potassium in the compromised specimens\n6. Participants had normal ECGs and repeat hand-carried samples normalized\n7. The apparent safety signal was pseudohyperkalemia from sample damage\n\n### Intervention\nRecollect blood from affected participants using gentle venipuncture, hand-carry tubes to the lab, centrifuge within 30 minutes, and reject or annotate samples with hemolysis index above 20 for potassium interpretation. If potassium returns to baseline while hemolysis index, LDH, and AST normalize, the diagnosis is confirmed.\n\n",
+        "tool_calls": [],
+        "total_tokens": null,
+        "latency_seconds": null,
+        "confidence": null
+      },
+      "score": {
+        "test_case_id": "RF-010",
+        "model_name": "oracle",
+        "mode": "text",
+        "root_cause_score": {
+          "score": 1.0,
+          "weight": 0.3,
+          "weighted_score": 0.3,
+          "rationale": "Root cause correctly identified \u2014 key terms match ground truth."
+        },
+        "causal_chain_score": {
+          "score": 1.0,
+          "weight": 0.4,
+          "weighted_score": 0.4,
+          "rationale": "Causal chain covers most key mechanistic steps."
+        },
+        "intervention_score": {
+          "score": 1.0,
+          "weight": 0.3,
+          "weighted_score": 0.3,
+          "rationale": "Intervention targets the correct variable and would test the diagnosis."
+        },
+        "final_score": 1.0,
+        "trajectory": {
+          "tool_calls_made": 0,
+          "tool_calls_budget": 10,
+          "tool_efficiency": null,
+          "budget_compliant": true,
+          "anti_patterns": []
+        }
+      },
+      "metadata": {
+        "reference_model": true,
+        "total_tokens": null,
+        "latency_seconds": 0.0
+      }
+    },
+    {
+      "test_case_id": "RF-011",
+      "model": "oracle",
+      "mode": "text",
+      "run_index": 0,
+      "timestamp": "2026-06-02T11:11:38.717180+00:00",
+      "response": {
+        "model_name": "oracle",
+        "test_case_id": "RF-011",
+        "mode": "text",
+        "root_cause": "The cooling intake filter was clogged with aluminum fines, reducing heat dissipation. During low-speed operation, the machine could not remove heat fast enough, so the process-to-air temperature difference fell into the heat-dissipation-failure region while speed was below the safe threshold.\n",
+        "causal_chain": [
+          "The machine was moved near a deburring station that generated aluminum fines",
+          "The cooling intake filter became clogged before the next preventive-maintenance cleaning",
+          "Restricted airflow reduced heat removal from the process",
+          "At low rotational speed, convective cooling and fan flow were insufficient",
+          "Process temperature stayed too close to ambient delta-T while torque stayed high",
+          "The machine entered a heat-dissipation failure mode and quality checks failed"
+        ],
+        "intervention": "Clean or replace the intake filter, rerun the same low-speed/high-torque recipe, and verify that delta-T rises above the heat-dissipation threshold while shutdowns disappear. Add an intake pressure-drop check after cell moves.\n",
+        "raw_response": "### Root Cause\nThe cooling intake filter was clogged with aluminum fines, reducing heat dissipation. During low-speed operation, the machine could not remove heat fast enough, so the process-to-air temperature difference fell into the heat-dissipation-failure region while speed was below the safe threshold.\n\n\n### Causal Chain\n1. The machine was moved near a deburring station that generated aluminum fines\n2. The cooling intake filter became clogged before the next preventive-maintenance cleaning\n3. Restricted airflow reduced heat removal from the process\n4. At low rotational speed, convective cooling and fan flow were insufficient\n5. Process temperature stayed too close to ambient delta-T while torque stayed high\n6. The machine entered a heat-dissipation failure mode and quality checks failed\n\n### Intervention\nClean or replace the intake filter, rerun the same low-speed/high-torque recipe, and verify that delta-T rises above the heat-dissipation threshold while shutdowns disappear. Add an intake pressure-drop check after cell moves.\n\n",
+        "tool_calls": [],
+        "total_tokens": null,
+        "latency_seconds": null,
+        "confidence": null
+      },
+      "score": {
+        "test_case_id": "RF-011",
+        "model_name": "oracle",
+        "mode": "text",
+        "root_cause_score": {
+          "score": 1.0,
+          "weight": 0.3,
+          "weighted_score": 0.3,
+          "rationale": "Root cause correctly identified \u2014 key terms match ground truth."
+        },
+        "causal_chain_score": {
+          "score": 1.0,
+          "weight": 0.4,
+          "weighted_score": 0.4,
+          "rationale": "Causal chain covers most key mechanistic steps."
+        },
+        "intervention_score": {
+          "score": 1.0,
+          "weight": 0.3,
+          "weighted_score": 0.3,
+          "rationale": "Intervention targets the correct variable and would test the diagnosis."
+        },
+        "final_score": 1.0,
+        "trajectory": {
+          "tool_calls_made": 0,
+          "tool_calls_budget": 12,
+          "tool_efficiency": null,
+          "budget_compliant": true,
+          "anti_patterns": []
+        }
+      },
+      "metadata": {
+        "reference_model": true,
+        "total_tokens": null,
+        "latency_seconds": 0.0
+      }
+    },
+    {
+      "test_case_id": "RF-012",
+      "model": "oracle",
+      "mode": "text",
+      "run_index": 0,
+      "timestamp": "2026-06-02T11:11:38.717474+00:00",
+      "response": {
+        "model_name": "oracle",
+        "test_case_id": "RF-012",
+        "mode": "text",
+        "root_cause": "The shared LiPF6 electrolyte bottle was water-contaminated. Moisture hydrolyzed LiPF6 and produced acidic decomposition products, degrading the SEI and increasing interfacial resistance. This caused gas generation, poor first-cycle efficiency, and rapid capacity fade across both baseline and new-protocol cells.\n",
+        "causal_chain": [
+          "The electrolyte bottle was repeatedly opened and exposed during transfers",
+          "Water content rose to about 143 ppm",
+          "Water reacted with LiPF6 to produce acidic decomposition products",
+          "The contaminated electrolyte formed an unstable SEI on graphite",
+          "Interfacial resistance and gas generation increased during formation",
+          "Cells lost lithium inventory and capacity retention fell by cycle 20"
+        ],
+        "intervention": "Assemble matched cells with freshly opened low-water electrolyte and with the suspect bottle while keeping electrodes, separator, crimping, and formation protocol fixed. Confirm by Karl Fischer water measurement and recovery of first-cycle efficiency with fresh electrolyte.\n",
+        "raw_response": "### Root Cause\nThe shared LiPF6 electrolyte bottle was water-contaminated. Moisture hydrolyzed LiPF6 and produced acidic decomposition products, degrading the SEI and increasing interfacial resistance. This caused gas generation, poor first-cycle efficiency, and rapid capacity fade across both baseline and new-protocol cells.\n\n\n### Causal Chain\n1. The electrolyte bottle was repeatedly opened and exposed during transfers\n2. Water content rose to about 143 ppm\n3. Water reacted with LiPF6 to produce acidic decomposition products\n4. The contaminated electrolyte formed an unstable SEI on graphite\n5. Interfacial resistance and gas generation increased during formation\n6. Cells lost lithium inventory and capacity retention fell by cycle 20\n\n### Intervention\nAssemble matched cells with freshly opened low-water electrolyte and with the suspect bottle while keeping electrodes, separator, crimping, and formation protocol fixed. Confirm by Karl Fischer water measurement and recovery of first-cycle efficiency with fresh electrolyte.\n\n",
+        "tool_calls": [],
+        "total_tokens": null,
+        "latency_seconds": null,
+        "confidence": null
+      },
+      "score": {
+        "test_case_id": "RF-012",
+        "model_name": "oracle",
+        "mode": "text",
+        "root_cause_score": {
+          "score": 1.0,
+          "weight": 0.3,
+          "weighted_score": 0.3,
+          "rationale": "Root cause correctly identified \u2014 key terms match ground truth."
+        },
+        "causal_chain_score": {
+          "score": 1.0,
+          "weight": 0.4,
+          "weighted_score": 0.4,
+          "rationale": "Causal chain covers most key mechanistic steps."
+        },
+        "intervention_score": {
+          "score": 1.0,
+          "weight": 0.3,
+          "weighted_score": 0.3,
+          "rationale": "Intervention targets the correct variable and would test the diagnosis."
+        },
+        "final_score": 1.0,
+        "trajectory": {
+          "tool_calls_made": 0,
+          "tool_calls_budget": 12,
+          "tool_efficiency": null,
+          "budget_compliant": true,
+          "anti_patterns": []
+        }
+      },
+      "metadata": {
+        "reference_model": true,
+        "total_tokens": null,
+        "latency_seconds": 0.0
+      }
+    },
+    {
+      "test_case_id": "RF-013",
+      "model": "oracle",
+      "mode": "text",
+      "run_index": 0,
+      "timestamp": "2026-06-02T11:11:38.717803+00:00",
+      "response": {
+        "model_name": "oracle",
+        "test_case_id": "RF-013",
+        "mode": "text",
+        "root_cause": "The new FBS lot contained endotoxin that activated macrophages before any experimental treatment. This raised baseline cytokine secretion in untreated and vehicle controls and masked the nanoparticle treatment effect.\n",
+        "causal_chain": [
+          "A new FBS lot was introduced into the culture medium",
+          "The FBS lot contained elevated endotoxin",
+          "RAW264.7 macrophages sensed endotoxin through innate immune pathways",
+          "Cells secreted TNF-alpha and IL-6 even in untreated wells",
+          "High baseline compressed assay dynamic range",
+          "The nanoparticle treatment result became uninterpretable"
+        ],
+        "intervention": "Repeat the assay with certified low-endotoxin FBS and the suspect FBS side by side, keeping cells, ELISA kits, and nanoparticle stocks fixed. Confirm by LAL endotoxin testing and recovery of low untreated cytokines with clean FBS.\n",
+        "raw_response": "### Root Cause\nThe new FBS lot contained endotoxin that activated macrophages before any experimental treatment. This raised baseline cytokine secretion in untreated and vehicle controls and masked the nanoparticle treatment effect.\n\n\n### Causal Chain\n1. A new FBS lot was introduced into the culture medium\n2. The FBS lot contained elevated endotoxin\n3. RAW264.7 macrophages sensed endotoxin through innate immune pathways\n4. Cells secreted TNF-alpha and IL-6 even in untreated wells\n5. High baseline compressed assay dynamic range\n6. The nanoparticle treatment result became uninterpretable\n\n### Intervention\nRepeat the assay with certified low-endotoxin FBS and the suspect FBS side by side, keeping cells, ELISA kits, and nanoparticle stocks fixed. Confirm by LAL endotoxin testing and recovery of low untreated cytokines with clean FBS.\n\n",
+        "tool_calls": [],
+        "total_tokens": null,
+        "latency_seconds": null,
+        "confidence": null
+      },
+      "score": {
+        "test_case_id": "RF-013",
+        "model_name": "oracle",
+        "mode": "text",
+        "root_cause_score": {
+          "score": 1.0,
+          "weight": 0.3,
+          "weighted_score": 0.3,
+          "rationale": "Root cause correctly identified \u2014 key terms match ground truth."
+        },
+        "causal_chain_score": {
+          "score": 1.0,
+          "weight": 0.4,
+          "weighted_score": 0.4,
+          "rationale": "Causal chain covers most key mechanistic steps."
+        },
+        "intervention_score": {
+          "score": 1.0,
+          "weight": 0.3,
+          "weighted_score": 0.3,
+          "rationale": "Intervention targets the correct variable and would test the diagnosis."
+        },
+        "final_score": 1.0,
+        "trajectory": {
+          "tool_calls_made": 0,
+          "tool_calls_budget": 10,
+          "tool_efficiency": null,
+          "budget_compliant": true,
+          "anti_patterns": []
+        }
+      },
+      "metadata": {
+        "reference_model": true,
+        "total_tokens": null,
+        "latency_seconds": 0.0
+      }
+    },
+    {
+      "test_case_id": "RF-014",
+      "model": "oracle",
+      "mode": "text",
+      "run_index": 0,
+      "timestamp": "2026-06-02T11:11:38.718054+00:00",
+      "response": {
+        "model_name": "oracle",
+        "test_case_id": "RF-014",
+        "mode": "text",
+        "root_cause": "The DI rinse water was contaminated with chloride after a resin cartridge was installed incorrectly. Chloride residue remained on passivated 304 stainless coupons and drove localized pitting during humid exposure.\n",
+        "causal_chain": [
+          "DI resin maintenance introduced chloride leakage into the rinse stream",
+          "Coupons were rinsed in chloride-contaminated water",
+          "Chloride residue remained on the stainless surface after drying",
+          "In humid exposure, chloride broke down the passive film locally",
+          "Localized corrosion pits formed despite correct passivation bath chemistry"
+        ],
+        "intervention": "Re-rinse matched coupons with verified low-chloride DI water and with the suspect rinse stream, then repeat humidity exposure. Confirm by ion chromatography of rinse water and surface chloride swabs.\n",
+        "raw_response": "### Root Cause\nThe DI rinse water was contaminated with chloride after a resin cartridge was installed incorrectly. Chloride residue remained on passivated 304 stainless coupons and drove localized pitting during humid exposure.\n\n\n### Causal Chain\n1. DI resin maintenance introduced chloride leakage into the rinse stream\n2. Coupons were rinsed in chloride-contaminated water\n3. Chloride residue remained on the stainless surface after drying\n4. In humid exposure, chloride broke down the passive film locally\n5. Localized corrosion pits formed despite correct passivation bath chemistry\n\n### Intervention\nRe-rinse matched coupons with verified low-chloride DI water and with the suspect rinse stream, then repeat humidity exposure. Confirm by ion chromatography of rinse water and surface chloride swabs.\n\n",
+        "tool_calls": [],
+        "total_tokens": null,
+        "latency_seconds": null,
+        "confidence": null
+      },
+      "score": {
+        "test_case_id": "RF-014",
+        "model_name": "oracle",
+        "mode": "text",
+        "root_cause_score": {
+          "score": 1.0,
+          "weight": 0.3,
+          "weighted_score": 0.3,
+          "rationale": "Root cause correctly identified \u2014 key terms match ground truth."
+        },
+        "causal_chain_score": {
+          "score": 1.0,
+          "weight": 0.4,
+          "weighted_score": 0.4,
+          "rationale": "Causal chain covers most key mechanistic steps."
+        },
+        "intervention_score": {
+          "score": 1.0,
+          "weight": 0.3,
+          "weighted_score": 0.3,
+          "rationale": "Intervention targets the correct variable and would test the diagnosis."
+        },
+        "final_score": 1.0,
+        "trajectory": {
+          "tool_calls_made": 0,
+          "tool_calls_budget": 10,
+          "tool_efficiency": null,
+          "budget_compliant": true,
+          "anti_patterns": []
+        }
+      },
+      "metadata": {
+        "reference_model": true,
+        "total_tokens": null,
+        "latency_seconds": 0.0
+      }
+    }
+  ]
+}

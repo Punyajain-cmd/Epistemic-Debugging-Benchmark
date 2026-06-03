@@ -1,0 +1,2 @@
+[console_scripts]
+epidebug = scripts.run_benchmark:main

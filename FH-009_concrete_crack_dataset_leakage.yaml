@@ -1,0 +1,177 @@
+id: "FH-009"
+title: "Concrete Crack Classifier Learns Patch Leakage Instead of Structural Damage"
+version: "1.0"
+
+domain: "civil_engineering"
+subdomain: "structural_vision"
+failure_category: "flawed_hypothesis"
+difficulty: "hard"
+
+objective: >
+  Train a computer-vision model to detect cracks in concrete bridge surfaces
+  from close-range inspection photographs. The model must generalize to unseen
+  bridges and support triage of field-inspection images with F1 above 0.85.
+
+protocol:
+  - step: 1
+    action: "Collect labeled concrete surface photographs from six bridge sites"
+    details: "Images include cracked and non-cracked surfaces from walls, decks, and columns."
+    notes: "Two sites use painted grid marks for manual crack mapping; other sites do not."
+
+  - step: 2
+    action: "Slice each high-resolution photo into overlapping 224 x 224 patches"
+    details: "Stride is 112 pixels, so adjacent patches overlap by 50%."
+    notes: "Patch labels inherit the parent image label."
+
+  - step: 3
+    action: "Randomly split all patches into train, validation, and test sets"
+    details: "80/10/10 random patch split, stratified by crack label."
+    notes: "Patches from the same source image and bridge can appear in multiple splits."
+
+  - step: 4
+    action: "Train a ResNet-50 crack classifier"
+    details: "Standard ImageNet initialization, random crop augmentation, 25 epochs."
+    notes: "Random-patch validation accuracy reaches 98.2% and F1 reaches 97.8%."
+
+  - step: 5
+    action: "Deploy the model to a holdout bridge inspection"
+    details: "Field team evaluates 420 images from a bridge site not present in training."
+    notes: "Field F1 drops to 0.52 with many false positives on rough but uncracked concrete."
+
+  - step: 6
+    action: "Audit the dataset split and model saliency"
+    details: "Run near-duplicate detection, group-by-site validation, and Grad-CAM on false positives."
+    notes: "Audit finds adjacent near-duplicate patches across splits and saliency on grid marks and texture."
+
+telemetry:
+  model_metrics:
+    description: "Model performance under different validation strategies"
+    data_type: "table"
+    values:
+      split_strategy: ["random_patch", "source_image_holdout", "bridge_site_holdout", "new_field_site"]
+      accuracy: [0.982, 0.811, 0.614, 0.602]
+      f1: [0.978, 0.742, 0.520, 0.515]
+      false_positive_rate: [0.03, 0.19, 0.38, 0.41]
+    observations:
+      - "Random-patch validation looks excellent."
+      - "Performance collapses when validation holds out whole source images or bridge sites."
+      - "The field site result matches the bridge-site holdout, not the random-patch split."
+
+  duplicate_audit:
+    description: "Near-duplicate and leakage audit of patch splits"
+    data_type: "table"
+    values:
+      validation_patches_with_train_neighbor_percent: 41.0
+      median_neighbor_ssim: 0.94
+      overlapping_parent_images_across_splits: 312
+      overlapping_bridge_sites_across_splits: 6
+    observations:
+      - "Many validation patches have near-identical training neighbors."
+      - "All six bridge sites appear in every split under random patching."
+
+  saliency_review:
+    description: "Grad-CAM and error review on validation and field images"
+    data_type: "text"
+    observations:
+      - "On random validation positives, saliency often highlights painted grid marks adjacent to cracks."
+      - "On field false positives, saliency highlights aggregate texture, stains, and shadow edges."
+      - "Only 37% of reviewed true-positive heatmaps concentrate on the crack pixels themselves."
+
+  data_distribution:
+    description: "Site-level distribution of crack labels and acquisition artifacts"
+    data_type: "table"
+    values:
+      site: ["A", "B", "C", "D", "E", "F"]
+      positive_patch_fraction: [0.72, 0.68, 0.12, 0.19, 0.21, 0.15]
+      painted_grid_present: [true, true, false, false, false, false]
+      dominant_lighting: ["side_light", "side_light", "overcast", "flash", "overcast", "shade"]
+    observations:
+      - "Positive labels are concentrated in two sites that also contain painted grid marks."
+      - "Lighting and surface texture differ systematically by bridge site."
+
+contextual_clues:
+  - "The data scientist assumed a random patch split was sufficient because the class labels were stratified."
+  - "Adjacent patches overlap by 50%, so many patches share most of their pixels."
+  - "The field bridge is from a different district with a rougher aggregate mix and no painted grid marks."
+  - "Manual labels were assigned at parent-image level, so some non-cracked patches inside cracked images inherited positive labels."
+  - "The deployment threshold was chosen using the random-patch validation set."
+
+ground_truth:
+  root_cause: >
+    The model validation hypothesis was flawed: random patch splitting measured
+    leakage and site-specific shortcut learning, not general crack recognition.
+    Overlapping patches and patches from the same bridge appeared in both train
+    and validation sets, while crack-positive labels were concentrated in sites
+    with painted grid marks and distinctive lighting. The classifier learned
+    background texture, grid marks, and near-duplicate patch identity instead of
+    crack morphology, so it failed on an unseen bridge site.
+  root_cause_category: "flawed_hypothesis"
+  causal_chain:
+    - "High-resolution bridge images were sliced into overlapping patches"
+    - "The random patch split allowed adjacent patches and the same bridge sites to appear in both train and validation sets"
+    - "Validation patches often had near-duplicate training neighbors and shared site-specific texture, lighting, and painted grid marks"
+    - "The model optimized shortcuts correlated with the label distribution instead of learning robust crack morphology"
+    - "Random-patch validation accuracy reached 98.2%, giving a false sense of generalization"
+    - "When evaluated by held-out bridge site, the shortcuts no longer matched the target distribution"
+    - "The model produced many false positives on rough uncracked concrete and field F1 collapsed to about 0.52"
+  intervention: >
+    Rebuild the evaluation protocol with splits grouped by parent image and bridge
+    site, remove or separately label overlapping near-duplicate patches, and choose
+    thresholds only on site-held-out validation. Confirm the diagnosis by retraining
+    and comparing random-patch versus site-held-out performance, plus saliency review
+    showing attention on crack pixels rather than grid marks or texture.
+  key_evidence:
+    - "Random-patch F1 is 0.978 while bridge-site-holdout F1 is 0.520"
+    - "41% of validation patches have near-duplicate training neighbors"
+    - "All bridge sites appear in all splits under random patching"
+    - "Saliency highlights grid marks, texture, stains, and shadows more than crack pixels"
+    - "Positive labels are concentrated in the two sites with painted grids"
+  alternative_diagnoses:
+    - "The ResNet architecture is too small for crack detection"
+    - "The field images are mislabeled"
+    - "The model needs more training epochs"
+    - "The deployment camera has insufficient resolution"
+  why_alternatives_fail:
+    "The ResNet architecture is too small for crack detection": "The same architecture fails specifically under site holdout, revealing validation leakage rather than insufficient capacity."
+    "The field images are mislabeled": "Manual review confirms many false positives are truly uncracked rough concrete."
+    "The model needs more training epochs": "Random validation already converged; more epochs would reinforce the same shortcuts."
+    "The deployment camera has insufficient resolution": "Failure also appears in held-out sites from the original camera pipeline."
+  difficulty_justification: >
+    Hard difficulty: the model appears excellent under the initial metric, so the
+    solver must challenge the evaluation hypothesis and diagnose data leakage,
+    label granularity, and shortcut learning rather than treating this as a normal
+    computer-vision tuning problem.
+
+scoring:
+  weights:
+    root_cause: 0.30
+    causal_chain: 0.40
+    intervention: 0.30
+  root_cause_keywords:
+    - "data leakage"
+    - "patch"
+    - "site"
+    - "shortcut"
+    - "validation"
+    - "near-duplicate"
+    - "generalization"
+  partial_credit_causes:
+    "train test leakage": 0.85
+    "random split was invalid": 0.75
+    "model learned background artifacts": 0.7
+    "domain shift": 0.45
+
+available_tools:
+  - "vision_dataset_auditor"
+  - "statistical_analyzer"
+max_tool_calls: 15
+
+source: "Synthetic composite inspired by concrete crack image datasets and common ML evaluation leakage failures"
+expert_validated: false
+tags:
+  - "civil_engineering"
+  - "computer_vision"
+  - "data_leakage"
+  - "shortcut_learning"
+  - "structural_inspection"
+author: "EpiDebug Team"

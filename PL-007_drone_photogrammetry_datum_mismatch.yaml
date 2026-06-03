@@ -1,0 +1,97 @@
+id: "PL-007"
+title: "Drone Survey Volume Error from Coordinate Datum Mismatch"
+version: "1.0"
+
+domain: "civil_engineering"
+subdomain: "survey_photogrammetry"
+failure_category: "protocol_human_loophole"
+difficulty: "hard"
+
+objective: >
+  Estimate weekly earthwork volume at a construction site using drone
+  photogrammetry. Cut/fill volume should agree with ground survey within 2%.
+
+protocol:
+  - step: 1
+    action: "Fly drone grid mission and collect overlapping images"
+    details: "Image overlap, lighting, and camera calibration match the survey plan."
+  - step: 2
+    action: "Mark ground control points with RTK rover"
+    details: "Rover project was set to WGS84 ellipsoid height by default."
+  - step: 3
+    action: "Process photogrammetry model and compare to site CAD surface"
+    details: "CAD design surface uses local state-plane coordinates and orthometric elevation."
+
+telemetry:
+  survey_comparison:
+    description: "Photogrammetry versus ground survey"
+    data_type: "table"
+    values:
+      metric: ["horizontal_RMSE_cm", "vertical_bias_cm", "volume_difference_percent"]
+      drone_model: [2.4, 62.0, 11.8]
+      after_datum_fix: [2.6, 3.1, 1.4]
+    observations:
+      - "Horizontal alignment is good but vertical bias is about 62 cm."
+      - "Volume estimate recovers after converting GCP elevations to the CAD datum."
+  processing_log:
+    description: "Photogrammetry processing warnings"
+    data_type: "text"
+    observations:
+      - "Software warns: GCP vertical datum not specified."
+      - "All GCP residuals are internally consistent."
+      - "No image blur or camera calibration warning is present."
+
+contextual_clues:
+  - "The site CAD surface uses NAVD88 orthometric heights."
+  - "The RTK rover export defaulted to WGS84 ellipsoid heights."
+  - "The local geoid separation is approximately 0.62 m."
+  - "A junior surveyor copied the previous week's workflow but used a new rover project template."
+
+ground_truth:
+  root_cause: >
+    The ground-control elevations were exported in the wrong vertical datum. The
+    drone model used WGS84 ellipsoid heights while the CAD/design comparison used
+    NAVD88 orthometric heights, creating a consistent vertical offset and erroneous
+    earthwork volume.
+  root_cause_category: "protocol_human_loophole"
+  causal_chain:
+    - "The rover project defaulted to WGS84 ellipsoid height"
+    - "The CAD/design surface used NAVD88 orthometric elevation"
+    - "GCPs were imported without vertical datum conversion"
+    - "The photogrammetry model was internally consistent but vertically shifted"
+    - "The shifted surface created an 11.8% volume error"
+    - "Applying the geoid/datum conversion removed the bias"
+  intervention: >
+    Reprocess the same images using GCP elevations transformed into the CAD vertical
+    datum, then compare check points and earthwork volume against the ground survey.
+    Add a required datum check to the field export template.
+  key_evidence:
+    - "Horizontal RMSE is good while vertical bias is nearly constant"
+    - "Bias magnitude matches local geoid separation"
+    - "GCP residuals are internally consistent"
+    - "Datum fix restores volume agreement"
+  alternative_diagnoses:
+    - "Drone camera calibration failed"
+    - "Insufficient image overlap"
+    - "Stockpile physically changed between surveys"
+  why_alternatives_fail:
+    "Drone camera calibration failed": "There is no image/camera warning and horizontal accuracy is good."
+    "Insufficient image overlap": "Overlap would create noisy deformation, not a datum-sized constant vertical offset."
+    "Stockpile physically changed between surveys": "Reprocessing the same images with corrected datum fixes the discrepancy."
+  difficulty_justification: "Hard because the data look precise; the failure is a hidden coordinate-system assumption."
+
+scoring:
+  root_cause_keywords: ["datum", "vertical", "GCP", "ellipsoid", "orthometric", "geoid"]
+  partial_credit_causes:
+    "coordinate system mismatch": 0.85
+    "wrong GCP elevations": 0.75
+    "photogrammetry processing error": 0.45
+
+available_tools:
+  - "statistical_analyzer"
+max_tool_calls: 12
+
+source: "Synthetic composite based on civil photogrammetry and survey workflow failures"
+expert_validated: false
+tags: ["photogrammetry", "drone", "datum", "earthwork", "survey"]
+author: "EpiDebug Team"

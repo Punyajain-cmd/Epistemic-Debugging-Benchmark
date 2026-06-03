@@ -1,0 +1,288 @@
+id: "IN-007"
+title: "Flow Cytometer Laser Alignment Drift Causes Bimodal Peak Artifact"
+version: "1.0"
+
+domain: biotech
+subdomain: flow_cytometry
+failure_category: instrumentation_artifact
+difficulty: medium
+
+objective: >
+  Quantify the percentage of GFP-positive HEK293T cells 48 hours after transient
+  transfection with a CMV-driven GFP plasmid using a BD FACSCanto II flow cytometer.
+  Expected result is a unimodal GFP-positive population at ~60-70% transfection
+  efficiency based on prior experiments with the same protocol.
+
+protocol:
+  - step: 1
+    action: "Transfected HEK293T cells with pCMV-GFP plasmid using Lipofectamine 3000"
+    details: "6-well plate format. 2.5 µg plasmid DNA + 3.75 µL Lipofectamine 3000 + 5 µL P3000 per well in Opti-MEM. Cells at 70% confluency at time of transfection."
+    duration: "30 min"
+    notes: "Used the same batch of Lipofectamine 3000 and DNA prep that yielded 65% transfection efficiency two weeks ago."
+
+  - step: 2
+    action: "Incubated transfected cells for 48 hours at 37°C, 5% CO2"
+    details: "DMEM + 10% FBS + 1% pen/strep. Media changed at 6 hours post-transfection to remove lipofection complexes."
+    duration: "48 h"
+    notes: "Cells appeared healthy with no signs of excessive toxicity. Fluorescence microscopy at 24h showed GFP expression in an estimated 50-60% of cells."
+
+  - step: 3
+    action: "Harvested cells by trypsinization"
+    details: "Washed with PBS, added 0.5 mL 0.25% trypsin-EDTA, incubated 3 min at 37°C, neutralized with 1 mL complete media."
+    duration: "10 min"
+    notes: "Cells detached easily. Single-cell suspension confirmed by visual inspection under microscope."
+
+  - step: 4
+    action: "Prepared samples for flow cytometry"
+    details: "Resuspended cells at 1 × 10^6/mL in FACS buffer (PBS + 2% FBS + 1 mM EDTA). Filtered through 40 µm cell strainer. Kept on ice."
+    duration: "15 min"
+    notes: "Prepared three samples: untransfected control, GFP-transfected, and compensation beads."
+
+  - step: 5
+    action: "Turned on BD FACSCanto II flow cytometer and allowed 30-minute warm-up"
+    details: "488 nm blue laser (20 mW) and 633 nm red laser (17 mW). Standard optical configuration with 530/30 FITC filter for GFP detection."
+    duration: "30 min"
+    notes: "Instrument powered on by a newly hired technician (3 weeks on the job) who is still being trained."
+
+  - step: 6
+    action: "Technician proceeded directly to running samples without daily QC"
+    details: "Standard lab protocol requires running CS&T (Cytometer Setup and Tracking) beads before each session for QC. The new technician was unaware of this requirement and began sample acquisition immediately after warm-up."
+    duration: "0 min (skipped)"
+    notes: "QC bead check was not performed. No CS&T report was generated for this session."
+
+  - step: 7
+    action: "Set up acquisition parameters in BD FACSDiva software"
+    details: "FSC threshold: 5,000. SSC voltage: 350V. FITC (GFP) PMT voltage: 425V. Acquisition: 10,000 events per sample. Flow rate: medium (~35 µL/min)."
+    duration: "10 min"
+    notes: "Voltages were set based on the previous session's saved settings."
+
+  - step: 8
+    action: "Acquired untransfected control sample"
+    details: "Ran untransfected HEK293T cells to establish GFP-negative baseline."
+    duration: "5 min"
+    notes: "Negative control appeared normal — single peak in FITC channel at low fluorescence intensity."
+
+  - step: 9
+    action: "Acquired GFP-transfected sample"
+    details: "Ran GFP-transfected HEK293T sample — 10,000 events collected."
+    duration: "5 min"
+    notes: "GFP histogram unexpectedly showed a bimodal distribution in the FITC-positive region instead of the expected single broad peak."
+
+  - step: 10
+    action: "Repeated acquisition of GFP sample with fresh aliquot"
+    details: "Took a new aliquot from the same tube, ran again."
+    duration: "5 min"
+    notes: "Same bimodal pattern reproduced. Researcher suspected two distinct GFP-expressing populations."
+
+  - step: 11
+    action: "Ran sample on different flow rate settings"
+    details: "Tested low (~12 µL/min), medium (~35 µL/min), and high (~60 µL/min) flow rates."
+    duration: "15 min"
+    notes: "Bimodal pattern persisted at all flow rates, but split was slightly more pronounced at high flow rate. Low flow rate showed slightly less splitting but still bimodal."
+
+  - step: 12
+    action: "Ran BD CS&T calibration beads (belatedly, after observing anomalous results)"
+    details: "CS&T beads are monodisperse fluorescent microspheres that should produce a single tight peak (CV <3%) in each detector."
+    duration: "10 min"
+    notes: "CS&T beads showed a broadened, asymmetric peak with a clear shoulder in the FITC channel — CV was 8.7% instead of expected <3%. This is diagnostic of laser alignment issues."
+
+telemetry:
+  gfp_histogram:
+    description: "FITC (GFP) fluorescence histogram of transfected HEK293T cells"
+    data_type: table
+    values:
+      fluorescence_log_decade: [1.0, 1.5, 2.0, 2.5, 3.0, 3.2, 3.4, 3.5, 3.6, 3.8, 4.0, 4.2, 4.4, 4.5, 4.6, 4.8, 5.0]
+      event_count: [2100, 350, 180, 120, 250, 480, 720, 890, 780, 450, 320, 580, 850, 920, 710, 280, 90]
+    observations:
+      - "GFP-negative population at decade 1.0 contains ~2100 events (21% — untransfected cells)"
+      - "GFP-positive region shows TWO distinct peaks: Peak A centered at decade 3.5 and Peak B at decade 4.5"
+      - "Valley between peaks at decade 4.0 (~320 events) — clear bimodal distribution"
+      - "Expected result: a single broad GFP-positive peak centered around decade 3.8-4.2"
+      - "Peak A and Peak B are approximately 1 log decade apart, which is inconsistent with typical biological heterogeneity"
+    note: "Bimodal distribution of a transiently expressed reporter from a uniform promoter (CMV) with the same plasmid is biologically implausible. True expression heterogeneity is typically unimodal with high variance."
+
+  untransfected_control:
+    description: "FITC histogram of untransfected HEK293T control cells"
+    data_type: table
+    values:
+      fluorescence_log_decade: [0.5, 1.0, 1.5, 2.0, 2.5, 3.0]
+      event_count: [450, 7200, 1800, 420, 90, 40]
+    observations:
+      - "Single peak centered at decade 1.0 — appears normal"
+      - "Peak is relatively tight (CV ~12%) and unimodal"
+      - "The negative control appears less affected because autofluorescence signal is low and mostly in one optical channel"
+    note: "The negative control can appear normal even with laser misalignment because the autofluorescence signal is dim and the split peaks may not be resolved at low fluorescence intensities."
+
+  cst_bead_qc:
+    description: "CS&T (Cytometer Setup and Tracking) calibration bead results — run AFTER anomalous data observed"
+    data_type: table
+    values:
+      parameter: ["FITC MFI", "FITC CV%", "FITC peak shape", "PE MFI", "PE CV%", "APC MFI", "APC CV%", "Laser delay"]
+      measured: [42500, 8.7, "asymmetric with shoulder", 35200, 4.2, 28900, 2.8, "not optimized"]
+      expected: [45000, "<3.0", "symmetric Gaussian", 36000, "<3.0", 29000, "<3.0", "optimized"]
+    observations:
+      - "FITC channel: CV of 8.7% is nearly 3× the expected <3.0% — FAIL"
+      - "FITC peak shape is asymmetric with a visible shoulder on the high side — diagnostic of laser misalignment"
+      - "PE channel: CV of 4.2% is above spec but less severely affected (shares 488 nm excitation but different emission path)"
+      - "APC channel: CV of 2.8% is within spec (uses 633 nm laser, which is unaffected)"
+      - "The pattern — FITC worst, PE intermediate, APC normal — indicates the 488 nm laser alignment is specifically drifted"
+
+  fsc_ssc_plot:
+    description: "Forward scatter vs. side scatter dot plot for cell population gating"
+    data_type: text
+    observations:
+      - "FSC/SSC plot shows a single main population with normal scatter profile"
+      - "No evidence of cell clumps (doublets), debris, or dead cell populations that could explain bimodal fluorescence"
+      - "Doublet discrimination plot (FSC-H vs FSC-A) shows <2% doublets, within normal range"
+      - "The cell population is clean — the bimodality is in fluorescence only, not in scatter parameters"
+    note: "Clean scatter profile rules out cellular artifacts (aggregation, debris, mixed populations) as the source of the bimodal fluorescence signal."
+
+  flow_rate_comparison:
+    description: "Effect of flow rate on GFP histogram bimodality"
+    data_type: table
+    values:
+      flow_rate: ["low (~12 µL/min)", "medium (~35 µL/min)", "high (~60 µL/min)"]
+      peak_a_mfi: [3100, 3200, 3350]
+      peak_b_mfi: [28500, 31000, 34500]
+      valley_depth_percent: [62, 55, 45]
+      bimodal_pattern: ["present, less pronounced", "present, clear", "present, most pronounced"]
+    observations:
+      - "Bimodal pattern persists at all flow rates — this is NOT a flow-rate-dependent coincidence detection artifact"
+      - "Peak separation increases slightly at higher flow rates, consistent with alignment-dependent interrogation variability"
+      - "If this were a true biological bimodality, flow rate would not affect the peak positions or relative intensities"
+
+  fluorescence_microscopy:
+    description: "GFP fluorescence microscopy check of transfected cells before harvest"
+    data_type: text
+    observations:
+      - "Epifluorescence microscopy at 24h post-transfection shows GFP-positive cells at estimated 55-65% of total"
+      - "GFP-positive cells show a continuous range of fluorescence intensities — no obvious 'dim' vs 'bright' subpopulations"
+      - "Cell morphology is normal, no signs of toxicity or apoptosis"
+      - "The microscopy images are inconsistent with the bimodal flow cytometry result — microscopy suggests unimodal GFP expression"
+    note: "Fluorescence microscopy provides an independent, instrument-unrelated measure of GFP expression, confirming that the bimodality is an instrumental artifact."
+
+contextual_clues:
+  - "The newly hired technician (3 weeks experience) ran the flow cytometer without performing the required daily CS&T bead quality control check, which is the first step in the lab's standard operating procedure."
+  - "The BD FACSCanto II was last serviced by a BD field engineer 6 months ago. The recommended service interval is every 6-12 months, but the instrument has been used heavily (2-3 sessions daily) by 8 lab members."
+  - "A colleague ran the same cytometer two days ago and noted 'the FITC data looked a bit noisy' in their lab notebook but didn't investigate further."
+  - "The lab recently moved a large centrifuge onto the bench next to the flow cytometer, which introduces vibrations during operation. The centrifuge was running during part of the flow cytometry session."
+  - "The FITC bandpass filter (530/30 nm) was replaced 2 months ago as part of routine optical maintenance. The replacement filter was a genuine BD part, properly installed."
+
+ground_truth:
+  root_cause: >
+    The 488 nm laser on the BD FACSCanto II has drifted out of optimal alignment with
+    the flow cell interrogation point. When the laser spot is not precisely centered on
+    the sample stream, cells passing through the flow cell are illuminated unevenly —
+    some pass through the center of the (defocused) beam and receive full excitation,
+    while others pass through the edge of the beam and receive partial excitation. This
+    creates an artifactual bimodal distribution where a single population is split into
+    two apparent peaks based on their position in the stream relative to the laser spot.
+    The misalignment was not detected because the newly hired technician skipped the
+    mandatory daily CS&T bead quality control check.
+  root_cause_category: instrumentation_artifact
+  causal_chain:
+    - "488 nm laser alignment gradually drifted over months of heavy use (2-3 sessions/day by 8 users), possibly exacerbated by vibrations from the adjacent centrifuge"
+    - "Laser spot is no longer centered on the flow cell interrogation point — cells at different positions in the sample stream receive different excitation intensities"
+    - "Newly hired technician (3 weeks experience) was unaware of or skipped the mandatory daily CS&T bead QC check that would have detected the alignment issue"
+    - "Without QC verification, the misaligned instrument was used for sample acquisition"
+    - "GFP-expressing cells passing through the beam center receive full 488 nm excitation, producing higher FITC signal (Peak B at decade 4.5)"
+    - "GFP-expressing cells passing through the beam edge receive partial excitation, producing lower FITC signal (Peak A at decade 3.5)"
+    - "The result is an artifactual bimodal distribution in the FITC channel that is misinterpreted as two distinct GFP-expressing subpopulations"
+  intervention: >
+    (1) Immediately run CS&T beads and confirm the FITC CV >3% and asymmetric peak shape,
+    documenting the misalignment. (2) Contact BD service for laser realignment or perform
+    in-house alignment using the instrument's service mode and CS&T beads to optimize
+    FITC signal CV to <3%. (3) After alignment, re-run the same GFP-transfected sample
+    (if still viable) or a fresh transfection to confirm a unimodal GFP-positive peak.
+    (4) Also re-run CS&T beads to verify alignment is restored. (5) Institute a policy
+    requiring the QC bead log to be checked before any user begins sample acquisition.
+  key_evidence:
+    - "CS&T beads — monodisperse standard — show CV of 8.7% in FITC (expected <3%) with asymmetric peak shape, directly demonstrating 488 nm laser misalignment"
+    - "FITC channel is most affected, PE intermediately affected, APC (633 nm laser) normal — pattern specific to 488 nm laser misalignment"
+    - "Fluorescence microscopy shows continuous unimodal GFP expression, contradicting the bimodal flow cytometry result"
+    - "Flow rate variation changes peak splitting characteristics, consistent with alignment-dependent positional artifact rather than biological heterogeneity"
+    - "FSC/SSC plot shows clean single population with <2% doublets, ruling out cellular artifacts"
+    - "Daily QC was skipped — the CS&T check would have caught this before sample acquisition"
+  alternative_diagnoses:
+    - "Two biologically distinct GFP-expressing cell populations (e.g., from plasmid copy number variation)"
+    - "Cell aggregation (doublets) creating a second peak at higher fluorescence"
+    - "FITC bandpass filter defect or misalignment"
+    - "Fluidics issue — bubble in the flow cell or clogged nozzle"
+  why_alternatives_fail:
+    "Two biologically distinct GFP-expressing cell populations (e.g., from plasmid copy number variation)": >
+      Transient transfection from a single CMV-GFP plasmid typically produces a continuous
+      unimodal distribution of expression levels, not discrete subpopulations. More
+      importantly, fluorescence microscopy of the same cells shows continuous GFP
+      intensity variation without two distinct brightness classes. The CS&T beads (which
+      have zero biological variability) also show the same broadened/asymmetric pattern,
+      conclusively ruling out a biological explanation.
+    "Cell aggregation (doublets) creating a second peak at higher fluorescence": >
+      The FSC-H vs. FSC-A doublet discrimination plot shows <2% doublets, well within
+      normal range. Additionally, doublets would create a peak at exactly 2× the singlet
+      fluorescence, but the observed peaks are separated by ~1 log decade (~10×), which
+      is inconsistent with simple doublet formation. The cells were filtered through a
+      40 µm strainer and confirmed as single-cell suspension by microscopy.
+    "FITC bandpass filter defect or misalignment": >
+      The FITC 530/30 bandpass filter was replaced 2 months ago with a genuine BD part
+      and was properly installed. A filter defect would reduce overall signal but would
+      not create a bimodal peak from a monodisperse standard. The CS&T beads show a
+      broadened peak with a shoulder (not reduced intensity), which is specifically
+      diagnostic of laser beam misalignment, not filter issues.
+    "Fluidics issue — bubble in the flow cell or clogged nozzle": >
+      Fluidic issues (bubbles, clogs) cause event rate instability, high abort rates,
+      and erratic scatter patterns. The FSC/SSC plot shows a clean, stable population
+      with consistent event rate throughout acquisition. Additionally, the problem
+      persists across multiple sample aliquots and flow rates. Fluidic problems are
+      typically transient and resolve after flushing — this is a persistent, reproducible
+      artifact consistent with a fixed optical misalignment.
+  difficulty_justification: >
+    This is a medium-difficulty case because the bimodal distribution could plausibly
+    be biological (GFP expression heterogeneity) to someone unfamiliar with flow
+    cytometry artifacts. The key diagnostic clue — that CS&T calibration beads also
+    show broadened/split peaks — directly identifies the instrument as the source.
+    However, the belated QC check means the solver must recognize that the bead data
+    contradicts a biological explanation. The fluorescence microscopy cross-check
+    provides a second independent line of evidence.
+
+scoring:
+  weights:
+    root_cause: 0.30
+    causal_chain: 0.40
+    intervention: 0.30
+  root_cause_keywords:
+    - "laser"
+    - "alignment"
+    - "488"
+    - "drift"
+    - "calibration"
+    - "CS&T"
+    - "beads"
+    - "QC"
+    - "flow cytometer"
+    - "optical"
+  partial_credit_causes:
+    "instrument calibration issue causing artifactual peaks": 0.5
+    "laser misalignment on flow cytometer": 0.8
+    "optical alignment drift": 0.7
+    "skipped QC check missed instrument problem": 0.4
+
+available_tools:
+  - "flow_cytometry_analyzer"
+  - "calibration_bead_runner"
+  - "histogram_plotter"
+  - "microscopy_viewer"
+  - "instrument_service_log"
+
+mock_data_refs: []
+max_tool_calls: 15
+
+source: "Composite — based on BD FACSCanto II troubleshooting guide, ISAC (International Society for Advancement of Cytometry) quality assurance guidelines, and common flow cytometry artifacts documented in Shapiro 'Practical Flow Cytometry' (4th ed.)"
+tags:
+  - "flow_cytometry"
+  - "laser_alignment"
+  - "calibration"
+  - "QC"
+  - "GFP"
+  - "transfection"
+  - "instrumental_artifact"
+author: "EpiDebug Benchmark Team"

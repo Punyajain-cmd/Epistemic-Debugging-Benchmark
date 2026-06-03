@@ -1,0 +1,103 @@
+id: "IN-011"
+title: "Furnace Profile Shift from Thermocouple Cold-Junction Compensation Error"
+version: "1.0"
+
+domain: "materials_science"
+subdomain: "thermal_processing"
+failure_category: "instrumentation_artifact"
+difficulty: "medium"
+
+objective: >
+  Validate a heat-treatment furnace profile for aluminum test coupons. The coupon
+  soak should reach 175 +/- 2 degC for 8 hours before mechanical testing.
+
+protocol:
+  - step: 1
+    action: "Attach Type K thermocouples to three coupons and one furnace wall location"
+    details: "Thermocouples connect to a new USB DAQ module."
+  - step: 2
+    action: "Run the validated 175 degC aging profile"
+    details: "Furnace controller reads 175.4 degC during soak."
+  - step: 3
+    action: "Compare coupon thermocouple logs with an independent calibrated logger"
+    details: "Independent logger was added after coupons showed unexpectedly low hardness."
+
+telemetry:
+  daq_profile:
+    description: "USB DAQ thermocouple readings during soak"
+    data_type: "table"
+    values:
+      channel: ["coupon_1", "coupon_2", "coupon_3", "wall"]
+      mean_temperature_degC: [164.1, 164.5, 163.8, 165.2]
+    observations:
+      - "All DAQ channels read about 10-12 degC below the furnace controller."
+  independent_logger:
+    description: "Independent logger readings during repeated soak"
+    data_type: "table"
+    values:
+      channel: ["coupon_1", "coupon_2", "coupon_3"]
+      mean_temperature_degC: [175.1, 175.3, 174.9]
+    observations:
+      - "Independent logger agrees with the furnace controller."
+  daq_status:
+    description: "DAQ configuration and ambient readings"
+    data_type: "text"
+    observations:
+      - "Cold-junction compensation sensor reports 12.1 degC while room temperature is 23.4 degC."
+      - "DAQ module is mounted next to an air-conditioning vent."
+      - "Ice-bath check shows the thermocouple channels read -10.8 degC instead of 0 degC."
+
+contextual_clues:
+  - "All channels show nearly the same offset, regardless of thermocouple location."
+  - "Coupon hardness recovered when the original furnace recipe was repeated and measured with the calibrated logger."
+  - "The furnace controller thermocouple was calibrated two weeks earlier."
+  - "The DAQ was newly installed for this validation run."
+
+ground_truth:
+  root_cause: >
+    The USB DAQ cold-junction compensation temperature was biased low because the
+    module sat in a cold air stream. That introduced a common thermocouple offset
+    and made the coupon temperatures appear 10-12 degC lower than they really were.
+  root_cause_category: "instrumentation_artifact"
+  causal_chain:
+    - "Thermocouple voltage must be corrected using the DAQ cold-junction temperature"
+    - "The DAQ cold-junction sensor was cooled by an air-conditioning vent"
+    - "The DAQ estimated the reference junction about 11 degC too cold"
+    - "All connected Type K thermocouple channels inherited the same temperature offset"
+    - "The heat-treatment profile looked under-temperature even though the furnace was correct"
+    - "Engineers almost changed a valid furnace recipe based on biased telemetry"
+  intervention: >
+    Move the DAQ away from the vent, let it equilibrate, perform an ice-bath check,
+    and rerun the furnace profile with the independent logger in parallel. If the
+    DAQ agrees after cold-junction correction, the artifact is confirmed.
+  key_evidence:
+    - "All DAQ channels share the same offset"
+    - "Cold-junction sensor disagrees with room temperature"
+    - "Ice-bath check shows the same offset"
+    - "Independent logger and furnace controller agree"
+  alternative_diagnoses:
+    - "Furnace controller failed"
+    - "Coupons were placed in a cold zone"
+    - "Wrong thermocouple type was selected"
+  why_alternatives_fail:
+    "Furnace controller failed": "Independent logger agrees with the furnace controller."
+    "Coupons were placed in a cold zone": "Wall and coupon channels all share the same offset."
+    "Wrong thermocouple type was selected": "The offset is common and matches the cold-junction bias, not a thermocouple-type curve error."
+  difficulty_justification: "Requires understanding thermocouple measurement, not just furnace operation."
+
+scoring:
+  root_cause_keywords: ["cold junction", "thermocouple", "DAQ", "offset", "compensation", "temperature"]
+  partial_credit_causes:
+    "thermocouple calibration error": 0.7
+    "temperature sensor artifact": 0.65
+    "furnace underheated": 0.25
+
+available_tools:
+  - "calibration_checker"
+  - "statistical_analyzer"
+max_tool_calls: 12
+
+source: "Synthetic composite based on thermal-processing instrumentation failures"
+expert_validated: false
+tags: ["thermocouple", "cold_junction", "furnace", "calibration", "materials"]
+author: "EpiDebug Team"

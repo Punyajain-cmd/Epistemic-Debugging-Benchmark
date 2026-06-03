@@ -1,0 +1,96 @@
+id: "PL-008"
+title: "ELISA Edge Gradient from Cold Plate Not Equilibrated Before Reagent Addition"
+version: "1.0"
+
+domain: "biotech"
+subdomain: "immunoassay"
+failure_category: "protocol_human_loophole"
+difficulty: "medium"
+
+objective: >
+  Quantify IL-8 in conditioned media using a 96-well sandwich ELISA. Duplicate CV
+  should be below 10% and the standard curve should have R2 above 0.99.
+
+protocol:
+  - step: 1
+    action: "Remove coated ELISA plate from 4 degC storage"
+    details: "SOP says to equilibrate sealed plate to room temperature for 30 minutes."
+  - step: 2
+    action: "Add standards and samples immediately because the incubator booking is short"
+    details: "Edge wells warm slower than center wells."
+  - step: 3
+    action: "Incubate, wash, develop, and read absorbance at 450 nm"
+    details: "Plate washer and reader QC pass."
+
+telemetry:
+  plate_map:
+    description: "Spatial pattern of duplicate CV"
+    data_type: "table"
+    values:
+      region: ["corner_wells", "edge_wells", "center_wells"]
+      duplicate_CV_percent: [24.5, 18.2, 6.1]
+      mean_absorbance_shift_percent: [-19, -12, 0]
+    observations:
+      - "High CV and low signal are concentrated at plate edges and corners."
+  repeat_run:
+    description: "Repeat after room-temperature equilibration"
+    data_type: "table"
+    values:
+      duplicate_CV_percent: [6.4]
+      standard_curve_R2: [0.997]
+    observations:
+      - "Equilibrating the plate fixes the spatial gradient."
+
+contextual_clues:
+  - "Condensation was visible on the plate seal when reagents were added."
+  - "The same sample layout was used in previous successful runs."
+  - "The technician skipped the equilibration timer only on the failed day."
+  - "Reader lamp and plate washer checks passed."
+
+ground_truth:
+  root_cause: >
+    The cold ELISA plate was not equilibrated to room temperature before reagent
+    addition. Temperature gradients and condensation at the edges changed binding
+    kinetics and volumes, creating an edge effect with high duplicate CV.
+  root_cause_category: "protocol_human_loophole"
+  causal_chain:
+    - "The plate was taken from 4 degC storage"
+    - "The 30-minute room-temperature equilibration step was skipped"
+    - "Condensation and temperature gradients persisted at edges and corners"
+    - "Antibody-antigen binding and effective reagent volumes varied spatially"
+    - "Edge wells showed lower signal and high duplicate CV"
+    - "Equilibration before repeat run removed the gradient"
+  intervention: >
+    Repeat the ELISA with a sealed plate equilibrated for 30 minutes, randomized
+    sample placement, and edge/center controls. The edge gradient should disappear
+    if skipped equilibration was causal.
+  key_evidence:
+    - "CV problem is spatial, strongest at edges"
+    - "Condensation was visible"
+    - "Only equilibration was skipped"
+    - "Reader and washer pass QC"
+  alternative_diagnoses:
+    - "Plate washer clogged"
+    - "Reader lamp drift"
+    - "Samples degraded"
+  why_alternatives_fail:
+    "Plate washer clogged": "Washer QC passes and the effect follows temperature-exposed edges."
+    "Reader lamp drift": "Lamp drift would not create edge/corner localization."
+    "Samples degraded": "Standards and controls show the same spatial effect."
+  difficulty_justification: "Requires using spatial telemetry to identify an implicit timing/temperature step."
+
+scoring:
+  root_cause_keywords: ["equilibrated", "cold plate", "ELISA", "edge effect", "condensation", "temperature"]
+  partial_credit_causes:
+    "plate edge effect": 0.7
+    "temperature gradient": 0.75
+    "washer problem": 0.25
+
+available_tools:
+  - "statistical_analyzer"
+max_tool_calls: 10
+
+source: "Synthetic composite based on immunoassay troubleshooting patterns"
+expert_validated: false
+tags: ["ELISA", "edge_effect", "temperature", "immunoassay", "protocol"]
+author: "EpiDebug Team"

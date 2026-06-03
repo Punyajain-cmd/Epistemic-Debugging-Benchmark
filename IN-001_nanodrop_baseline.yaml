@@ -1,0 +1,133 @@
+id: "IN-001"
+title: "Nanodrop Pedestal Contamination Causing False DNA Concentration"
+version: "1.0"
+domain: "molecular_biology"
+subdomain: "spectrophotometry"
+failure_category: "instrumentation_artifact"
+difficulty: "easy"
+
+objective: |
+  Quantify purified plasmid DNA concentration using Nanodrop spectrophotometry,
+  then verify by restriction digest and gel electrophoresis. Need accurate concentration
+  for setting up a ligation reaction at 50 ng insert.
+
+protocol:
+  - step: 1
+    action: "Clean Nanodrop pedestal with lint-free wipe"
+    details: "Quick wipe, no water rinse performed"
+  - step: 2
+    action: "Blank with 1.5 µL elution buffer (EB)"
+    details: "Blank reading: 0.08 AU at 260 nm"
+    notes: "Blank seemed a bit high but proceeded anyway"
+  - step: 3
+    action: "Load 1.5 µL of purified plasmid DNA"
+  - step: 4
+    action: "Record Nanodrop readings"
+    details: "Took 3 readings, all consistent"
+  - step: 5
+    action: "Calculate DNA needed for 50 ng in ligation"
+    details: "Based on Nanodrop: 285 ng/µL × volume = amount"
+  - step: 6
+    action: "Set up diagnostic restriction digest"
+    details: "10 µL reaction: 1 µL DNA (supposedly 285 ng), 1 µL enzyme, 1 µL buffer, 7 µL water"
+  - step: 7
+    action: "Run digest on 1% agarose gel alongside uncut plasmid and DNA ladder"
+  - step: 8
+    action: "Image gel and compare band intensities to ladder standards"
+
+telemetry:
+  nanodrop_readings:
+    description: "Nanodrop One spectrophotometer readings (3 replicates)"
+    data_type: "table"
+    observations:
+      - "Reading 1: 282 ng/µL, A260/280 = 1.85, A260/230 = 2.10"
+      - "Reading 2: 287 ng/µL, A260/280 = 1.84, A260/230 = 2.08"
+      - "Reading 3: 285 ng/µL, A260/280 = 1.86, A260/230 = 2.12"
+      - "Average: 285 ng/µL — readings are highly consistent"
+    note: "All quality ratios look excellent"
+  blank_reading:
+    description: "Blank measurement on elution buffer"
+    data_type: "numeric"
+    values: [0.08]
+    units: "AU at 260 nm"
+    note: "Blank reads 0.08 AU — normally should be < 0.04 AU"
+    expected_range:
+      min: 0.0
+      max: 0.04
+  gel_analysis:
+    description: "1% agarose gel with restriction digest and quantification"
+    data_type: "text"
+    observations:
+      - "Lane M: 1 kb ladder with quantified bands (500 ng total loaded)"
+      - "Lane 1 (Uncut plasmid, 1 µL = 'supposedly 285 ng'): Band intensity comparable to ~80 ng ladder band"
+      - "Lane 2 (Cut plasmid): Expected two fragments at 3.2 kb and 1.8 kb, both visible but MUCH fainter than expected for 285 ng input"
+      - "Digest pattern is correct (right fragment sizes), just very faint"
+    note: "Gel estimation suggests actual concentration is ~80 ng/µL, NOT 285 ng/µL"
+  qubit_measurement:
+    description: "Qubit fluorometric quantification (performed after gel discrepancy noticed)"
+    data_type: "numeric"
+    values: [78.5]
+    units: "ng/µL"
+    note: "Qubit (dsDNA-specific) reads 78.5 ng/µL — 3.6× lower than Nanodrop"
+
+contextual_clues:
+  - "The previous user measured RNA samples on the same Nanodrop and may not have cleaned thoroughly"
+  - "The blank reading was 0.08 AU at 260 nm (expected < 0.04 AU)"
+  - "Nanodrop was factory calibrated 3 months ago — calibration is current"
+  - "The elution buffer (EB) used for blanking was from a freshly opened bottle"
+  - "Lab temperature and humidity were normal"
+
+ground_truth:
+  root_cause: "Nanodrop pedestal had residue from a previous user's RNA sample, causing an elevated baseline (0.08 AU vs expected < 0.04 AU). This baseline offset inflated all subsequent absorbance readings, making the DNA appear ~3.6× more concentrated than it actually is. The Nanodrop measures total absorbance at 260 nm non-specifically, so any UV-absorbing residue on the pedestal adds to the reading."
+  root_cause_category: "instrumentation_artifact"
+  causal_chain:
+    - "Previous user measured RNA samples and did not clean the pedestal thoroughly"
+    - "UV-absorbing residue (dried RNA/nucleotide) remained on the Nanodrop pedestal"
+    - "Blank with EB read 0.08 AU instead of < 0.04 AU, but researcher proceeded anyway"
+    - "The elevated baseline was subtracted from blank but residue remained, adding ~0.04 AU offset to all readings"
+    - "DNA readings were inflated by the residue contribution: actual ~80 ng/µL reported as 285 ng/µL"
+    - "Downstream calculations based on inflated concentration used too little DNA"
+    - "Gel shows band intensities consistent with ~80 ng/µL, not 285 ng/µL"
+  intervention: "Thoroughly clean both Nanodrop pedestals with 70% ethanol and lint-free wipe, then with nuclease-free water. Verify blank reads < 0.02 AU. Re-measure the DNA sample. If new reading is ~80 ng/µL (matching Qubit), the diagnosis is confirmed."
+  key_evidence:
+    - "Blank reading was 0.08 AU (abnormally high, expected < 0.04)"
+    - "Gel band intensity suggests ~80 ng/µL, but Nanodrop says 285 ng/µL"
+    - "Qubit (fluorometric, dsDNA-specific) confirms 78.5 ng/µL"
+    - "Previous user measured RNA on the same instrument"
+  alternative_diagnoses:
+    - "DNA sample is contaminated with protein or phenol"
+    - "Nanodrop calibration error"
+    - "Gel loading error — loaded less than expected"
+  why_alternatives_fail:
+    "DNA sample is contaminated with protein or phenol": "A260/280 ratio is 1.85 (excellent) and A260/230 is 2.10 (excellent). Protein contamination would lower 260/280, phenol would affect 260/230."
+    "Nanodrop calibration error": "Factory calibration is current. The issue is pedestal contamination, not calibration."
+    "Gel loading error — loaded less than expected": "Pipette was verified. And Qubit independently confirms the lower concentration."
+  difficulty_justification: "Straightforward — the blank reading anomaly and Nanodrop vs gel discrepancy clearly point to a measurement artifact. Rated easy because the Qubit cross-check directly reveals the issue."
+
+scoring:
+  weights:
+    root_cause: 0.30
+    causal_chain: 0.40
+    intervention: 0.30
+  root_cause_keywords:
+    - "pedestal"
+    - "residue"
+    - "contamination"
+    - "baseline"
+    - "blank"
+    - "nanodrop"
+  partial_credit_causes:
+    "nanodrop reading error": 0.5
+    "instrument contamination": 0.75
+    "absorbance artifact": 0.5
+
+available_tools:
+  - "spectrophotometer"
+  - "calibration_checker"
+  - "gel_imager"
+max_tool_calls: 10
+
+source: "Extremely common lab error documented in Nanodrop troubleshooting guides (Thermo Fisher) and molecular biology forums"
+expert_validated: false
+tags: ["nanodrop", "spectrophotometry", "DNA_quantification", "pedestal", "contamination"]
+author: "EpiDebug Team"

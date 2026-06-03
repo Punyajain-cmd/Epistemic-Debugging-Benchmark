@@ -1,0 +1,97 @@
+id: "IN-014"
+title: "River Turbidity Spike from Biofouled Optical Sensor Window"
+version: "1.0"
+
+domain: "environmental_science"
+subdomain: "water_quality_monitoring"
+failure_category: "instrumentation_artifact"
+difficulty: "easy"
+
+objective: >
+  Monitor river turbidity downstream of a construction site. Regulatory alerts
+  trigger if turbidity exceeds baseline by more than 50 NTU for over 30 minutes.
+
+protocol:
+  - step: 1
+    action: "Deploy optical turbidity probe on a fixed river platform"
+    details: "Probe reports 5-minute NTU averages and is cleaned every two weeks."
+  - step: 2
+    action: "Investigate a sudden turbidity alert"
+    details: "The alert occurs after 12 days without rain."
+  - step: 3
+    action: "Collect grab samples and inspect the probe window"
+    details: "Manual samples are measured on a benchtop turbidimeter."
+
+telemetry:
+  field_probe:
+    description: "Field turbidity sensor readings"
+    data_type: "timeseries"
+    values: [18, 19, 21, 76, 88, 95, 102, 99]
+    units: "NTU"
+    observations:
+      - "Probe reports a sharp turbidity increase without rainfall or flow increase."
+  grab_samples:
+    description: "Manual grab-sample turbidity"
+    data_type: "numeric"
+    values: [20, 22, 19]
+    units: "NTU"
+    observations:
+      - "Manual samples remain near baseline."
+  inspection:
+    description: "Probe inspection"
+    data_type: "text"
+    observations:
+      - "Optical window is covered by algae film and trapped silt."
+      - "After cleaning, field probe immediately reads 21 NTU."
+
+contextual_clues:
+  - "Water temperature increased during the week before the alert."
+  - "No rainfall, excavation, or upstream flow change is recorded."
+  - "The cleaning interval was extended because staff were unavailable."
+  - "A second upstream station did not show a turbidity spike."
+
+ground_truth:
+  root_cause: >
+    The turbidity spike is an optical measurement artifact caused by biofouling
+    and silt on the probe window. The river did not become turbid; the dirty window
+    scattered light and inflated the NTU reading.
+  root_cause_category: "instrumentation_artifact"
+  causal_chain:
+    - "Warm water and delayed maintenance allowed algae to grow on the optical window"
+    - "Biofilm and trapped silt increased light scattering inside the probe path"
+    - "The probe interpreted window fouling as high suspended sediment"
+    - "Field NTU rose while manual grab samples remained near baseline"
+    - "Cleaning the window restored normal readings"
+  intervention: >
+    Clean the probe, redeploy with an upstream duplicate or wiper-equipped sensor,
+    and compare field readings to grab samples after the same weather conditions.
+  key_evidence:
+    - "Manual grab samples are normal"
+    - "No hydrologic trigger is present"
+    - "Probe window is visibly fouled"
+    - "Cleaning immediately restores baseline"
+  alternative_diagnoses:
+    - "Construction runoff event"
+    - "Benchtop turbidimeter failed"
+    - "Natural storm-driven sediment pulse"
+  why_alternatives_fail:
+    "Construction runoff event": "No rain, flow change, or upstream station spike occurred."
+    "Benchtop turbidimeter failed": "Multiple grab samples agree with the upstream station."
+    "Natural storm-driven sediment pulse": "There was no rainfall or discharge increase."
+  difficulty_justification: "Easy because manual samples and cleaning directly isolate the sensor artifact."
+
+scoring:
+  root_cause_keywords: ["biofouling", "sensor", "optical", "window", "algae", "turbidity"]
+  partial_credit_causes:
+    "dirty sensor": 0.85
+    "probe fouling": 0.9
+    "construction runoff": 0.2
+
+available_tools:
+  - "statistical_analyzer"
+max_tool_calls: 8
+
+source: "Synthetic composite based on water-quality sensor maintenance failures"
+expert_validated: false
+tags: ["environmental_monitoring", "turbidity", "biofouling", "sensor_artifact"]
+author: "EpiDebug Team"

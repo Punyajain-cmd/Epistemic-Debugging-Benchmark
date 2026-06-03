@@ -1,0 +1,106 @@
+id: "FH-013"
+title: "CRISPR Knockout Phenotype from Paralog Off-Target Editing"
+version: "1.0"
+
+domain: "biotech"
+subdomain: "functional_genomics"
+failure_category: "flawed_hypothesis"
+difficulty: "expert"
+
+objective: >
+  Knock out kinase KIN1 in a cancer cell line to test whether loss of KIN1 reduces
+  proliferation. The team expects phenotype rescue with KIN1 cDNA.
+
+protocol:
+  - step: 1
+    action: "Design sgRNA targeting exon 2 of KIN1"
+    details: "Design tool reports perfect on-target match and no coding off-targets under the old genome annotation."
+  - step: 2
+    action: "Transduce cells with Cas9/sgRNA and select clones"
+    details: "Two clones show frameshift indels at KIN1 and a strong proliferation defect."
+  - step: 3
+    action: "Attempt rescue and perform amplicon sequencing"
+    details: "KIN1 cDNA partially rescues, but not to wild-type growth."
+
+telemetry:
+  editing_results:
+    description: "Amplicon sequencing results"
+    data_type: "table"
+    values:
+      locus: ["KIN1_on_target", "KIN1P_paralog_site", "top_intergenic_site"]
+      indel_percent_clone_A: [96, 82, 3]
+      indel_percent_clone_B: [94, 79, 2]
+    observations:
+      - "A newly annotated paralog KIN1P has high indel frequency."
+  phenotype_rescue:
+    description: "Growth phenotype after rescue constructs"
+    data_type: "table"
+    values:
+      condition: ["wild_type", "KIN1_KO", "KIN1_KO_plus_KIN1_cDNA", "dual_sgRNA_specific_KIN1"]
+      relative_growth_day5: [1.00, 0.32, 0.58, 0.86]
+    observations:
+      - "KIN1 cDNA only partially rescues the original clones."
+      - "A redesigned KIN1-specific guide gives a much weaker phenotype."
+  sequence_context:
+    description: "Guide sequence context"
+    data_type: "text"
+    observations:
+      - "The sgRNA has a one-mismatch hit in KIN1P within the seed-tolerant region."
+      - "KIN1P is expressed in this cancer cell line."
+      - "Old genome annotation did not include the duplicated KIN1P exon."
+
+contextual_clues:
+  - "KIN1 and KIN1P are recent segmental-duplication paralogs."
+  - "The original guide was designed against an older reference annotation."
+  - "The phenotype is stronger than expected from RNAi knockdown of KIN1."
+  - "Two independent clones share the same KIN1P edit because the same sgRNA was used."
+
+ground_truth:
+  root_cause: >
+    The hypothesis that the phenotype was caused solely by KIN1 knockout was flawed.
+    The sgRNA also edited an expressed paralog, KIN1P, because the design used an
+    outdated annotation that missed the duplicated exon. The severe proliferation
+    defect reflects combined KIN1/KIN1P disruption, so KIN1-only rescue is partial.
+  root_cause_category: "flawed_hypothesis"
+  causal_chain:
+    - "The sgRNA was designed against an outdated genome annotation"
+    - "A newly annotated KIN1P paralog contained a near-match target site"
+    - "Cas9 edited both KIN1 and KIN1P in selected clones"
+    - "KIN1P is expressed and contributes to proliferation in this cell line"
+    - "The observed phenotype reflected combined loss of KIN1 and KIN1P"
+    - "KIN1-only cDNA rescue could not fully restore growth"
+    - "A redesigned KIN1-specific guide produced a weaker phenotype"
+  intervention: >
+    Redesign multiple sgRNAs unique to KIN1 under the current genome annotation,
+    validate all paralog sites by amplicon sequencing, and rescue with KIN1 and
+    KIN1P separately. A true KIN1-specific phenotype should reproduce without KIN1P edits.
+  key_evidence:
+    - "KIN1P has 79-82% indels in both clones"
+    - "KIN1 rescue is only partial"
+    - "Redesigned KIN1-specific guide has weaker phenotype"
+    - "KIN1P is expressed and absent from old annotation"
+  alternative_diagnoses:
+    - "KIN1 cDNA rescue construct is weakly expressed"
+    - "Clonal variation caused the phenotype"
+    - "Cas9 toxicity slowed growth"
+  why_alternatives_fail:
+    "KIN1 cDNA rescue construct is weakly expressed": "Expression is confirmed, but it cannot rescue KIN1P loss."
+    "Clonal variation caused the phenotype": "Both clones share high KIN1P editing from the same sgRNA."
+    "Cas9 toxicity slowed growth": "Redesigned guide with same Cas9 system has much weaker effect."
+  difficulty_justification: "Expert because it requires genomics annotation awareness, off-target reasoning, and rescue interpretation."
+
+scoring:
+  root_cause_keywords: ["paralog", "off-target", "sgRNA", "CRISPR", "annotation", "KIN1P"]
+  partial_credit_causes:
+    "off-target editing": 0.8
+    "guide not specific": 0.7
+    "clonal artifact": 0.3
+
+available_tools:
+  - "statistical_analyzer"
+max_tool_calls: 15
+
+source: "Synthetic composite based on CRISPR guide-specificity and genome-annotation failure modes"
+expert_validated: false
+tags: ["CRISPR", "off_target", "paralog", "functional_genomics", "rescue"]
+author: "EpiDebug Team"

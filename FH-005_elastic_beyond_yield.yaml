@@ -1,0 +1,264 @@
+id: "FH-005"
+title: "Linear Elastic FEA Assumption Fails at Stress Concentration — Permanent Deformation in Al 6061-T6 Component"
+version: "1.0"
+
+domain: engineering
+subdomain: structural_mechanics
+failure_category: flawed_hypothesis
+difficulty: hard
+
+objective: >
+  Design and validate a lightweight aluminum 6061-T6 bracket for a cyclic loading
+  application in an aerospace test rig. The bracket must withstand 10,000 load
+  cycles at a design load of 8 kN without permanent deformation. FEA analysis
+  predicted a safety factor of 1.45 against yield. The first prototype exhibited
+  permanent deformation after a single loading cycle.
+
+protocol:
+  - step: 1
+    action: "Designed bracket geometry in SolidWorks 2024"
+    details: "L-shaped bracket, 120 mm × 80 mm × 6 mm thick with two M8 bolt holes for mounting. Includes a 15 mm radius fillet at the L-junction, with a small 2 mm radius notch at the base of the fillet from a manufacturing step-down feature."
+    duration: "8 h"
+    notes: "Design includes a manufacturing step-down (shelf) feature at the fillet root for assembly alignment, creating a 2 mm notch radius."
+
+  - step: 2
+    action: "Performed FEA analysis using ANSYS Mechanical 2024 R1"
+    details: "Linear elastic static analysis. Material: Al 6061-T6 (E = 68.9 GPa, ν = 0.33, σ_y = 276 MPa). Mesh: 10-node tetrahedral elements, global seed size 2.0 mm. Applied load: 8 kN at bolt hole centerline. Fixed support at base mounting face."
+    duration: "4 h"
+    notes: "Used default mesh settings. Did not apply local mesh refinement at the notch or fillet region."
+
+  - step: 3
+    action: "Evaluated FEA results and calculated safety factor"
+    details: "Maximum von Mises stress from FEA: 190.3 MPa at the fillet region. Safety factor calculated as σ_y / σ_max = 276 / 190.3 = 1.45."
+    duration: "1 h"
+    notes: "Engineer accepted the 1.45 safety factor as adequate (company standard minimum is 1.25 for static loads). Did not check stresses at the 2 mm notch with refined mesh."
+
+  - step: 4
+    action: "Manufactured prototype bracket by CNC machining from 6061-T6 plate stock"
+    details: "Machined by external vendor. Material certification provided: UTS = 310 MPa, σ_y = 276 MPa, elongation = 12%. Heat treatment verified as T6 condition."
+    duration: "5 days (outsourced)"
+    notes: "Dimensional inspection confirmed all dimensions within ±0.1 mm tolerance. The 2 mm notch radius at the fillet root was confirmed present."
+
+  - step: 5
+    action: "Instrumented prototype with strain gauges for validation testing"
+    details: "Installed 3 Micro-Measurements EA-06-062AQ-350 strain gauges: SG1 at mid-span of the horizontal arm, SG2 at the fillet region (15 mm radius), SG3 near the 2 mm notch root (as close as physically possible, ~3 mm from notch center)."
+    duration: "3 h"
+    notes: "SG3 could not be placed exactly at the notch root due to physical constraints of gauge size (6.35 mm gauge length). Actual measurement is averaged over the gauge length near the notch."
+
+  - step: 6
+    action: "Performed static loading test: applied 8 kN design load via hydraulic actuator"
+    details: "MTS 858 servo-hydraulic test frame. Load cell: MTS 661.20H-03 (±25 kN range, ±0.5% accuracy). Displacement measured by LVDT with 0.001 mm resolution."
+    duration: "30 min"
+    notes: "Load applied quasi-statically at 0.5 kN/s ramp rate to design load, held for 10 seconds, then unloaded."
+
+  - step: 7
+    action: "Recorded strain gauge data during loading and unloading"
+    details: "Data acquisition at 100 Hz via NI cDAQ-9178 with NI-9237 bridge module. Quarter-bridge configuration with temperature compensation."
+    duration: "5 min of active recording"
+    notes: "SG3 (near notch) showed nonlinear strain response above 5.5 kN. All three gauges recorded residual strain after unloading."
+
+  - step: 8
+    action: "Measured permanent deformation after unloading"
+    details: "Dial indicator (0.01 mm resolution) placed at the load application point. Zeroed before loading."
+    duration: "10 min"
+    notes: "After unloading to zero force, dial indicator showed 0.18 mm permanent set at the load point. Bracket did not return to original shape."
+
+  - step: 9
+    action: "Inspected notch root area under 10× stereo microscope"
+    details: "Examined the 2 mm notch root region for visible signs of yielding or cracking."
+    duration: "30 min"
+    notes: "Faint slip lines visible at the notch root, consistent with localized plastic deformation. No cracks observed."
+
+  - step: 10
+    action: "Performed FEA re-analysis with mesh refinement at notch"
+    details: "Applied local mesh refinement at the 2 mm notch root: element size 0.15 mm (vs. original 2.0 mm global seed). Maintained linear elastic material model."
+    duration: "2 h"
+    notes: "Refined mesh FEA now shows peak von Mises stress of 412 MPa at the notch root — 1.49× the yield strength of 276 MPa. Stress concentration factor Kt ≈ 2.17."
+
+telemetry:
+  strain_gauge_loading:
+    description: "Strain gauge readings during quasi-static loading to 8 kN and unloading"
+    data_type: table
+    values:
+      load_kN: [0, 1, 2, 3, 4, 5, 5.5, 6, 7, 8, 8, 7, 6, 5, 4, 3, 2, 1, 0]
+      sg1_microstrain: [0, 95, 192, 287, 383, 478, 526, 574, 670, 765, 765, 670, 574, 478, 383, 287, 192, 95, 0]
+      sg2_microstrain: [0, 230, 462, 691, 923, 1155, 1270, 1386, 1617, 1848, 1848, 1617, 1386, 1155, 923, 691, 462, 230, 2]
+      sg3_microstrain: [0, 420, 843, 1270, 1700, 2145, 2490, 2920, 3680, 4510, 4510, 3510, 2950, 2400, 1860, 1325, 850, 415, 180]
+    units: "microstrain (µε)"
+    observations:
+      - "SG1 (mid-span): Linear and fully reversible — no residual strain. Max 765 µε corresponds to ~52.8 MPa (within elastic range)."
+      - "SG2 (fillet): Nearly linear with tiny residual of 2 µε after unloading. Max 1848 µε corresponds to ~127.4 MPa (within elastic range)."
+      - "SG3 (near notch): Linear up to ~5 kN, then increasingly nonlinear above 5.5 kN. At 8 kN, reads 4510 µε (~311 MPa equivalent elastic stress, well above σ_y = 276 MPa)."
+      - "SG3 shows 180 µε residual strain after complete unloading — clear evidence of local plastic deformation near the notch."
+      - "The nonlinear onset at ~5.5 kN corresponds to the notch root first reaching yield stress."
+
+  permanent_deformation:
+    description: "Permanent set measured at load application point after unloading from 8 kN"
+    data_type: numeric
+    values:
+      - 0.18
+    units: "mm"
+    expected_range:
+      min: 0.0
+      max: 0.0
+    observations:
+      - "0.18 mm permanent set after a single load cycle — specification requires zero permanent deformation"
+      - "This confirms the bracket has yielded and will not meet the 10,000 cycle fatigue requirement"
+      - "Elastic deflection at 8 kN was 1.42 mm; permanent set is 12.7% of elastic deflection"
+
+  fea_comparison:
+    description: "Comparison between original coarse-mesh FEA and refined-mesh FEA at the notch root"
+    data_type: table
+    values:
+      parameter: ["Global mesh size", "Local mesh size at notch", "Elements in notch region", "Peak von Mises stress (MPa)", "Location of peak stress", "Safety factor vs yield", "Stress concentration factor Kt"]
+      original_fea: ["2.0 mm", "2.0 mm (no refinement)", "~12", "190.3", "Fillet mid-region", "1.45", "not resolved"]
+      refined_fea: ["2.0 mm", "0.15 mm", "~2400", "412.0", "Notch root (2 mm radius)", "0.67", "2.17"]
+    observations:
+      - "Original coarse mesh completely missed the stress concentration at the 2 mm notch root"
+      - "With 2.0 mm elements, the 2 mm radius notch is represented by only 1-2 elements across — grossly insufficient to resolve the stress gradient"
+      - "Refined mesh reveals peak stress of 412 MPa at the notch root, which is 1.49× yield (276 MPa)"
+      - "The actual safety factor at the notch root is 0.67, not 1.45 as originally predicted"
+      - "Stress concentration factor Kt = 412/190.3 ≈ 2.17, consistent with Peterson's for a stepped shaft with r/d = 2/6 = 0.33"
+
+  load_displacement_curve:
+    description: "Load vs. displacement curve from the MTS test frame"
+    data_type: timeseries
+    values:
+      load_kN: [0, 1, 2, 3, 4, 5, 5.5, 6, 7, 8, 7, 6, 5, 4, 3, 2, 1, 0]
+      displacement_mm: [0.0, 0.18, 0.36, 0.53, 0.71, 0.89, 0.98, 1.08, 1.27, 1.60, 1.45, 1.27, 1.09, 0.91, 0.73, 0.55, 0.36, 0.18]
+    units: "kN vs mm"
+    observations:
+      - "Loading curve shows slight nonlinearity above 5.5 kN — visible 'knee' in load-displacement plot"
+      - "Unloading curve does not retrace loading curve — hysteresis loop evident above 5.5 kN"
+      - "Residual displacement of 0.18 mm at zero load confirms permanent (plastic) deformation"
+      - "Stiffness on unloading (slope) equals initial elastic stiffness, consistent with elastic-plastic behavior (elastic unloading from yielded state)"
+
+  microscope_inspection:
+    description: "Stereo microscope examination of notch root region at 10× magnification"
+    data_type: text
+    observations:
+      - "Faint slip lines (Lüders bands) visible at the notch root surface, extending approximately 1.5 mm from the notch"
+      - "Slip lines oriented at approximately 45° to the loading direction, consistent with maximum shear stress planes"
+      - "No surface cracks or fracture initiation observed"
+      - "Surface finish at notch root appears roughened compared to surrounding area"
+    note: "Slip lines are a classic visual indicator of plastic deformation in aluminum alloys, confirming that local yielding occurred at the notch root."
+
+contextual_clues:
+  - "The company's FEA standard operating procedure (SOP) states 'mesh refinement is recommended at geometric discontinuities' but does not make it mandatory — the engineer followed the SOP minimally."
+  - "The previous version of this bracket (V1) used a 5 mm fillet radius without the step-down notch feature and passed all load testing. The notch was added in V2 for assembly convenience."
+  - "The material certification confirms σ_y = 276 MPa and elongation = 12%, so the material itself meets spec. This is not a material defect."
+  - "The engineer has 2 years of experience with FEA and has successfully designed 6 brackets previously, all with simpler geometries (no sharp notches or step-downs)."
+  - "Lab temperature was 22°C ± 1°C during testing. Aluminum 6061-T6 properties are not significantly temperature-dependent at room temperature."
+
+ground_truth:
+  root_cause: >
+    The FEA analysis used a coarse mesh (2.0 mm element size) that was too large to
+    resolve the stress concentration at the 2 mm radius notch at the fillet root. The
+    coarse mesh reported a peak stress of 190.3 MPa (safety factor 1.45), but a properly
+    refined mesh reveals the true peak stress at the notch root is 412 MPa (safety factor
+    0.67), which exceeds the material yield strength of 276 MPa by 49%. The fundamental
+    error was applying a linear elastic assumption without verifying that stresses everywhere
+    in the component remained below yield — the notch root experienced plastic deformation
+    that the linear elastic model cannot capture.
+  root_cause_category: flawed_hypothesis
+  causal_chain:
+    - "Design included a 2 mm radius notch (step-down feature) at the base of the 15 mm fillet, creating a geometric stress concentration"
+    - "FEA mesh used a global 2.0 mm element size with no local refinement, resulting in only 1-2 elements across the 2 mm notch radius"
+    - "Coarse mesh could not resolve the steep stress gradient at the notch root, reporting 190.3 MPa peak stress instead of the true 412 MPa"
+    - "Engineer concluded safety factor was 1.45 (>1.25 minimum), approving the design for manufacture"
+    - "Under 8 kN loading, the actual notch root stress reached ~412 MPa, exceeding the 276 MPa yield strength by 49%"
+    - "Localized plastic deformation occurred at the notch root, redistributing load and causing permanent shape change"
+    - "After unloading, 0.18 mm permanent set remained — the bracket failed the zero-permanent-deformation requirement after a single cycle"
+  intervention: >
+    (1) Re-run the FEA with proper mesh refinement at the notch root (element size ≤ 0.2 mm,
+    or ≤ r/10 where r is the notch radius), confirming the 412 MPa peak stress.
+    (2) Run an elastic-plastic FEA with a bilinear or multilinear hardening material model
+    to predict the actual plastic zone size and residual deformation.
+    (3) Redesign: either increase the notch radius to ≥5 mm (reducing Kt) or increase
+    wall thickness to ≥8 mm to keep peak stress below yield. (4) Validate the redesign
+    with a physical test including strain gauges at the notch root.
+  key_evidence:
+    - "SG3 near the notch shows nonlinear strain response above 5.5 kN and 180 µε residual strain — direct measurement of plastic deformation"
+    - "0.18 mm permanent set measured after unloading confirms yielding occurred"
+    - "Refined FEA mesh reveals peak stress of 412 MPa at notch root vs. 190.3 MPa from coarse mesh — the coarse mesh missed the stress concentration entirely"
+    - "Load-displacement curve shows hysteresis loop above 5.5 kN, consistent with elastic-plastic behavior"
+    - "Slip lines visible at notch root under microscope at 45° to loading axis — classic indicator of shear-driven plastic deformation"
+    - "SG1 and SG2 (away from notch) remain linear and reversible, confirming the problem is localized to the notch"
+  alternative_diagnoses:
+    - "Material was not properly heat-treated — lower yield strength than specified"
+    - "Bolt preload created additional stress not accounted for in FEA"
+    - "Load cell was miscalibrated — actual load exceeded 8 kN"
+    - "Residual machining stresses pre-loaded the notch region"
+  why_alternatives_fail:
+    "Material was not properly heat-treated — lower yield strength than specified": >
+      Material certification from the vendor confirms σ_y = 276 MPa and UTS = 310 MPa,
+      consistent with T6 temper condition. Hardness testing (Rockwell B) on the prototype
+      reads 60 HRB, matching the T6 specification range of 60-65 HRB. The material
+      meets spec — the design simply overloads it locally.
+    "Bolt preload created additional stress not accounted for in FEA": >
+      The static test was performed with the bracket mounted via finger-tight bolts
+      (minimal preload) specifically to match the FEA boundary conditions. Even with
+      full bolt preload (~15 kN per M8 bolt), the preload creates compressive stress
+      at the bolt holes, not tensile stress at the notch root 40 mm away. Bolt preload
+      cannot explain the notch root yielding.
+    "Load cell was miscalibrated — actual load exceeded 8 kN": >
+      The MTS 661 load cell was calibrated 2 months ago (certificate on file) with
+      NIST-traceable standards. SG1 (mid-span) reads 765 µε at 8 kN, which corresponds
+      to 52.8 MPa — exactly matching beam theory prediction of Mc/I = 53.1 MPa for
+      8 kN at that location. The load measurement is accurate.
+    "Residual machining stresses pre-loaded the notch region": >
+      CNC machining of 6061-T6 typically introduces surface residual stresses of
+      ±20-40 MPa, which is small relative to the ~136 MPa overstress (412 - 276 MPa)
+      at the notch root. Even in the worst case, residual stresses alone cannot
+      explain the 49% exceedance of yield strength. Additionally, stress relief
+      annealing of a test sample showed the same deformation behavior.
+  difficulty_justification: >
+    This is a hard case because it requires understanding of both FEA methodology
+    (mesh sensitivity at stress concentrations) and structural mechanics (stress
+    concentration factors, elastic vs. plastic behavior). The solver must recognize
+    that the coarse FEA mesh is the analytical error, not a physical defect in the
+    part or material. The connection between mesh resolution and stress concentration
+    accuracy requires domain expertise in computational mechanics. The strain gauge
+    data provides clear evidence but must be correctly interpreted.
+
+scoring:
+  weights:
+    root_cause: 0.30
+    causal_chain: 0.40
+    intervention: 0.30
+  root_cause_keywords:
+    - "mesh"
+    - "stress concentration"
+    - "notch"
+    - "yield"
+    - "plastic"
+    - "FEA"
+    - "linear elastic"
+    - "refinement"
+    - "Kt"
+  partial_credit_causes:
+    "stress at notch exceeded yield strength": 0.6
+    "FEA mesh was too coarse to capture stress concentration": 0.7
+    "design did not account for stress concentration factor": 0.5
+    "linear elastic model invalid at notch root": 0.6
+
+available_tools:
+  - "fea_solver"
+  - "strain_data_analyzer"
+  - "material_database"
+  - "stress_concentration_calculator"
+  - "load_cell_calibration_check"
+
+mock_data_refs: []
+max_tool_calls: 20
+
+source: "Composite — based on Peterson's Stress Concentration Factors (Pilkey & Pilkey, 4th ed.), ANSYS Mechanical best practices for mesh refinement, and common FEA pitfalls documented in NAFEMS benchmark reports"
+tags:
+  - "FEA"
+  - "stress_concentration"
+  - "aluminum_6061"
+  - "plastic_deformation"
+  - "mesh_convergence"
+  - "structural_design"
+  - "aerospace"
+author: "EpiDebug Benchmark Team"

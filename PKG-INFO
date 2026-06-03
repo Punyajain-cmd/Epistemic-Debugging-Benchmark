@@ -1,3 +1,41 @@
+Metadata-Version: 2.4
+Name: epidebug
+Version: 0.1.0
+Summary: Epistemic Debugging Benchmark — Can AI models diagnose why experiments fail?
+Author: Epistemic Debugging Team
+License: Apache-2.0
+Keywords: benchmark,evaluation,scientific-reasoning,ai-safety,epistemic-debugging
+Classifier: Development Status :: 3 - Alpha
+Classifier: Intended Audience :: Science/Research
+Classifier: License :: OSI Approved :: Apache Software License
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3.10
+Classifier: Programming Language :: Python :: 3.11
+Classifier: Programming Language :: Python :: 3.12
+Classifier: Topic :: Scientific/Engineering :: Artificial Intelligence
+Requires-Python: >=3.10
+Description-Content-Type: text/markdown
+Requires-Dist: pydantic>=2.0
+Requires-Dist: pyyaml>=6.0
+Requires-Dist: rich>=13.0
+Requires-Dist: click>=8.0
+Requires-Dist: jinja2>=3.1
+Requires-Dist: numpy>=1.24
+Provides-Extra: eval
+Requires-Dist: inspect-ai>=0.3; extra == "eval"
+Requires-Dist: openai>=1.0; extra == "eval"
+Requires-Dist: anthropic>=0.20; extra == "eval"
+Requires-Dist: google-genai>=1.0; extra == "eval"
+Provides-Extra: scoring
+Requires-Dist: sentence-transformers>=2.2; extra == "scoring"
+Requires-Dist: scikit-learn>=1.3; extra == "scoring"
+Provides-Extra: dev
+Requires-Dist: pytest>=7.0; extra == "dev"
+Requires-Dist: pytest-asyncio>=0.21; extra == "dev"
+Requires-Dist: ruff>=0.4; extra == "dev"
+Provides-Extra: all
+Requires-Dist: epidebug[dev,eval,scoring]; extra == "all"
+
 # 🔬 EpiDebug — Epistemic Debugging Benchmark
 
 **Can AI models diagnose why experiments fail — the way human researchers do?**
@@ -35,17 +73,11 @@ The AI must then provide:
 
 ## 📊 Domains Covered
 
-- Molecular biology (protein purification, PCR, gel electrophoresis)
+- Molecular Biology (protein purification, PCR, gel electrophoresis)
 - Chemistry (organic synthesis, Grignard reactions, catalysis)
-- Physics and engineering (signal processing, materials science, FEA)
+- Physics & Engineering (signal processing, materials science, FEA)
 - Biotechnology (cell culture, flow cytometry, assays)
-- Clinical research (sample quality, biomarkers, pre-analytical artifacts)
-- Software systems (cloud observability, distributed traces, production incidents)
-- Manufacturing (CNC process control, equipment/tool wear, metrology)
-- Civil engineering (structural inspection, concrete defect detection, field validation)
-- Aerospace, energy, environmental science, materials science, and robotics seed cases
-
-The current starter set contains **30 validated YAML cases** across these domains.
+- Clinical Research (biomarkers, statistical analysis)
 
 ---
 
@@ -97,17 +129,6 @@ python scripts/run_benchmark.py --model claude-sonnet --all -o results/claude.js
 python scripts/generate_report.py --input results/ --output report.html
 ```
 
-### Run Reference Baselines
-
-Reference baselines are deterministic sanity checks, not LLM results. They help
-verify that the cases, scorer, result schema, and report generator are wired
-before running paid/provider-backed evaluations.
-
-```bash
-python scripts/run_reference_models.py --all
-python scripts/generate_report.py --input results/reference --output results/reference_report.html
-```
-
 ---
 
 ## 📁 Project Structure
@@ -139,7 +160,6 @@ epidebug/
 ## 📝 Writing Test Cases
 
 See [docs/test_case_authoring.md](docs/test_case_authoring.md) for the full guide.
-For source discovery and curation strategy, see [docs/data_sources.md](docs/data_sources.md).
 
 Each test case is a YAML file following this schema:
 

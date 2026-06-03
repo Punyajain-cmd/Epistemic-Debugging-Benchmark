@@ -1,0 +1,138 @@
+id: "FH-003"
+title: "E2 Elimination Dominates Over Expected SN2 Substitution"
+version: "1.0"
+domain: "chemistry"
+subdomain: "organic_synthesis"
+failure_category: "flawed_hypothesis"
+difficulty: "hard"
+
+objective: |
+  Synthesize a novel ether compound via SN2 nucleophilic substitution of sodium ethoxide
+  (NaOEt) with 1-bromobutane in ethanol at reflux. Expected product: butyl ethyl ether
+  (CH3CH2OCH2CH2CH2CH3, MW 102.17). Need >70% isolated yield for downstream reactions.
+
+protocol:
+  - step: 1
+    action: "Dissolve 1.2 equivalents sodium metal in dry ethanol under N2 to form NaOEt"
+    details: "Slow addition over 30 minutes, all sodium dissolved"
+  - step: 2
+    action: "Add 1.0 equivalent 1-bromobutane to the NaOEt solution"
+    details: "Added dropwise over 15 minutes"
+  - step: 3
+    action: "Heat to reflux (78°C) for 12 hours"
+    details: "Maintained gentle reflux with condenser"
+  - step: 4
+    action: "Cool to room temperature"
+  - step: 5
+    action: "Quench with water, extract with diethyl ether (3 × 50 mL)"
+  - step: 6
+    action: "Dry organic layer over MgSO4, filter, concentrate by rotary evaporation"
+  - step: 7
+    action: "Obtain crude product as a clear, volatile liquid"
+  - step: 8
+    action: "Analyze crude product by 1H NMR and GC-MS"
+  - step: 9
+    action: "Purify by fractional distillation"
+    details: "Collected fractions at different temperatures"
+
+telemetry:
+  nmr_analysis:
+    description: "1H NMR spectrum of crude product (400 MHz, CDCl3)"
+    data_type: "text"
+    observations:
+      - "Major peaks: δ 5.82 (ddt, 1H), δ 5.02 (dd, 1H), δ 4.95 (dd, 1H) — terminal alkene"
+      - "δ 2.05 (m, 2H) — allylic CH2"
+      - "δ 1.42 (m, 2H) — CH2"
+      - "Minor peaks: δ 3.38 (t, 2H) — could be OCH2 of expected ether product"
+      - "δ 1.20 (t, 3H) — ethyl CH3, very small"
+      - "Integration ratio: alkene signals ~85% of product, ether signals ~15%"
+    note: "Major product is 1-butene (elimination), not butyl ethyl ether (substitution)"
+  gc_ms:
+    description: "GC-MS analysis of crude product"
+    data_type: "text"
+    observations:
+      - "Peak 1 (RT 3.2 min, 82% area): m/z = 56.06 — matches 1-butene (C4H8, MW 56.11)"
+      - "Peak 2 (RT 8.7 min, 13% area): m/z = 102.10 — matches butyl ethyl ether (C6H14O, MW 102.17)"
+      - "Peak 3 (RT 5.1 min, 5% area): m/z = 56.06 — likely 2-butene (isomer)"
+    note: "Elimination product (1-butene) is the major product at 82%, desired substitution product is only 13%"
+  yield_data:
+    description: "Isolated yield of desired ether product"
+    data_type: "numeric"
+    values: [8.5]
+    units: "percent"
+    note: "Isolated yield of butyl ethyl ether = 8.5% (expected >70%)"
+    expected_range:
+      min: 60.0
+      max: 90.0
+  tlc_monitoring:
+    description: "TLC monitoring during reaction"
+    data_type: "text"
+    observations:
+      - "t=0h: Starting material spot (Rf 0.7, hexanes/EtOAc 9:1)"
+      - "t=4h: Starting material decreasing, new spot at Rf 0.9 (very non-polar)"
+      - "t=8h: Starting material mostly consumed, major spot at Rf 0.9"
+      - "t=12h: Starting material gone, major spot at Rf 0.9, minor spot at Rf 0.5"
+    note: "Major product is more non-polar than expected ether product"
+
+contextual_clues:
+  - "The reaction was run at reflux (78°C) for 12 hours — high temperature and long duration"
+  - "Sodium ethoxide is a strong, moderately bulky base (pKb is very low)"
+  - "1-bromobutane is a primary alkyl halide"
+  - "The solvent is ethanol (protic solvent)"
+  - "A colleague ran a similar reaction at room temperature with NaI as catalyst and got 75% ether yield"
+
+ground_truth:
+  root_cause: "The researcher's hypothesis that SN2 would dominate was flawed under these specific conditions. While 1-bromobutane is a primary substrate (favoring SN2), the combination of strong base (NaOEt), high temperature (78°C reflux), and extended reaction time (12h) shifted the competition decisively toward E2 elimination. At elevated temperatures, the entropy-favored elimination pathway (ΔS > 0, generates two molecules from one) outcompetes substitution."
+  root_cause_category: "flawed_hypothesis"
+  causal_chain:
+    - "Researcher assumed SN2 would dominate because 1-bromobutane is a primary substrate"
+    - "However, NaOEt is a strong base (pKb very low), which can promote E2 as well as act as nucleophile"
+    - "Reaction was run at reflux (78°C) — high temperature strongly favors elimination over substitution"
+    - "E2 elimination is entropy-driven (one reactant → two products), so higher T increases E2 rate via TΔS"
+    - "The beta-hydrogens on 1-bromobutane are sterically accessible for E2 anti-periplanar transition state"
+    - "At 78°C over 12 hours, E2 pathway dominated: 82% 1-butene + 5% 2-butene vs only 13% ether"
+    - "Isolated ether yield was only 8.5% instead of expected >70%"
+  intervention: "Rerun the reaction at room temperature (25°C) or 0°C, using a weaker/smaller nucleophile (e.g., NaI in acetone for Finkelstein, then NaOEt at 25°C) or switching to a polar aprotic solvent (DMF) to maximize SN2. If ether yield increases to >60%, the temperature/E2 hypothesis is confirmed."
+  key_evidence:
+    - "NMR shows terminal alkene peaks as major product (85%) — characteristic of E2"
+    - "GC-MS confirms MW 56 (butene) as major product, MW 102 (ether) as minor"
+    - "Colleague got 75% ether yield at room temperature — temperature is the key variable"
+    - "TLC shows non-polar major product (gaseous alkene condensed on TLC) — consistent with elimination"
+  alternative_diagnoses:
+    - "Starting material is not 1-bromobutane (wrong substrate)"
+    - "NaOEt was not properly prepared"
+    - "Solvent was contaminated"
+    - "Reaction didn't reach completion"
+  why_alternatives_fail:
+    "Starting material is not 1-bromobutane (wrong substrate)": "Starting material was consumed (TLC shows completion). GC-MS fragments are consistent with C4 substrate."
+    "NaOEt was not properly prepared": "Sodium dissolved completely in ethanol. If NaOEt formation failed, no reaction would occur at all."
+    "Solvent was contaminated": "Ethanol was from a fresh bottle. No unexpected peaks in NMR."
+    "Reaction didn't reach completion": "TLC at 12h shows complete consumption of starting material. The reaction went to completion — just gave the wrong product."
+  difficulty_justification: "Requires understanding SN2 vs E2 competition, the effect of temperature on reaction selectivity (thermodynamic vs kinetic control), and recognizing that a primary substrate can still undergo E2 under forcing conditions. The contextual clue about the colleague's room-temperature success is key."
+
+scoring:
+  weights:
+    root_cause: 0.30
+    causal_chain: 0.40
+    intervention: 0.30
+  root_cause_keywords:
+    - "elimination"
+    - "E2"
+    - "temperature"
+    - "base"
+    - "SN2"
+    - "reflux"
+  partial_credit_causes:
+    "wrong reaction pathway": 0.5
+    "elimination instead of substitution": 0.75
+    "temperature too high": 0.5
+
+available_tools:
+  - "reaction_database"
+  - "spectrum_analyzer"
+max_tool_calls: 12
+
+source: "Classic organic chemistry competition between SN2 and E2 mechanisms, documented in Clayden, Greeves, Warren 'Organic Chemistry' and March's 'Advanced Organic Chemistry'"
+expert_validated: false
+tags: ["organic_chemistry", "SN2", "E2", "elimination", "substitution", "temperature", "mechanism"]
+author: "EpiDebug Team"

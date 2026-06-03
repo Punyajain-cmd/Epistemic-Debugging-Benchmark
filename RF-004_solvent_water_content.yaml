@@ -1,0 +1,290 @@
+# ===========================================================================
+# EpiDebug Test Case: RF-004 — Wet Solvent Quenches Grignard Reaction
+# ===========================================================================
+# A Grignard reaction (phenylmagnesium bromide + benzaldehyde → diphenyl-
+# methanol) fails because THF solvent absorbed atmospheric moisture. Water
+# protonates the Grignard reagent, yielding benzene instead of the expected
+# secondary alcohol product.
+# ===========================================================================
+
+id: "RF-004"
+title: "Grignard reaction failure due to moisture-contaminated THF solvent"
+version: "1.0"
+
+domain: "chemistry"
+subdomain: "organic_synthesis"
+failure_category: "reagent_material_flaw"
+difficulty: "medium"
+
+objective: >
+  Synthesize diphenylmethanol (benzhydrol) via Grignard reaction between
+  phenylmagnesium bromide (PhMgBr) and benzaldehyde (PhCHO) in anhydrous
+  THF. The reaction should produce diphenylmethanol in ≥70% isolated yield
+  after aqueous workup and purification. This is a standard sophomore
+  organic chemistry preparation used for teaching and as a synthetic
+  building block.
+
+protocol:
+  - step: 1
+    action: "Set up a 250 mL three-neck round-bottom flask equipped with reflux condenser, addition funnel, and magnetic stir bar"
+    details: "Glassware was oven-dried at 120°C overnight, assembled hot, and allowed to cool under nitrogen flow"
+    notes: "Nitrogen line connected to Schlenk manifold"
+
+  - step: 2
+    action: "Add 1.22 g Mg turnings (50 mmol, 1.0 equiv) and a small crystal of I₂ to the flask"
+    details: "Magnesium turnings from a bottle that has been in use for 6 months, stored in a desiccator"
+    notes: "Iodine crystal added as activator; turnings appeared shiny with minimal oxidation"
+
+  - step: 3
+    action: "Add 30 mL anhydrous THF from the lab's Sure/Seal bottle to the flask via syringe"
+    details: "THF bottle was a Sure/Seal 800 mL bottle purchased 14 months ago. The bottle has been punctured with syringe needles approximately 40 times over its lifetime. The septum shows multiple puncture marks."
+    notes: "THF appeared clear and colorless"
+
+  - step: 4
+    action: "Add bromobenzene (7.85 g, 50 mmol) dissolved in 20 mL THF dropwise via addition funnel"
+    details: "Bromobenzene from freshly opened bottle (Sigma-Aldrich, ≥99%)"
+    duration: "45 minutes for addition"
+    notes: "Expected: vigorous reflux and clouding as Grignard reagent forms. Observed: very slow initiation; gentle heating with heat gun needed. Solution remained mostly clear with only slight haziness. Minimal exotherm detected."
+
+  - step: 5
+    action: "Stir reaction at gentle reflux for 1 hour to ensure complete Grignard formation"
+    duration: "1 hour"
+    notes: "Solution is only slightly cloudy/grey rather than the typical dark grey opaque appearance of a successful Grignard formation"
+
+  - step: 6
+    action: "Cool reaction to 0°C in ice bath"
+    duration: "15 minutes"
+
+  - step: 7
+    action: "Add benzaldehyde (5.30 g, 50 mmol) in 10 mL THF dropwise via addition funnel"
+    duration: "30 minutes"
+    notes: "Expected: exotherm and color change to yellow/orange. Observed: no noticeable exotherm, solution remained pale"
+
+  - step: 8
+    action: "Allow reaction to warm to room temperature and stir for 2 hours"
+    duration: "2 hours"
+    notes: "No visible color change occurred; reaction mixture remained pale grey"
+
+  - step: 9
+    action: "Quench reaction by careful addition of saturated NH₄Cl solution (30 mL)"
+    details: "Added slowly with stirring at 0°C"
+    notes: "Minimal gas evolution during quench — unexpected for a Grignard reaction"
+
+  - step: 10
+    action: "Extract with diethyl ether (3 × 50 mL), wash organic layer with brine, dry over MgSO₄, filter, and evaporate solvent under reduced pressure"
+    notes: "Crude product mass: 1.2 g (very low — expected ~8.5 g for 70% yield)"
+
+  - step: 11
+    action: "Analyze crude product by ¹H NMR (400 MHz, CDCl₃) and TLC"
+    details: "TLC run in 3:1 hexanes/ethyl acetate; NMR acquired on Bruker Avance III 400"
+
+  - step: 12
+    action: "Analyze crude product by GC-MS"
+    details: "Agilent 7890B GC with 5977B MSD, HP-5ms column, 50–280°C at 10°C/min"
+
+telemetry:
+  nmr_spectrum:
+    description: "¹H NMR spectrum (400 MHz, CDCl₃) of crude product"
+    data_type: "spectrum"
+    observations:
+      - "Expected diphenylmethanol peak at δ 5.76 (s, 1H, CH-OH) — ABSENT"
+      - "Expected aromatic multiplet at δ 7.25–7.40 (10H) for diphenylmethanol — present but integration suggests fewer aromatic H's"
+      - "Singlet at δ 7.36 (5H) consistent with benzene (from PhMgBr protonation by water)"
+      - "Peak at δ 9.98 (s, 1H) consistent with unreacted benzaldehyde (PhCHO)"
+      - "No broad OH peak observed at δ 2.0–3.0"
+      - "Trace peaks at δ 4.48 consistent with benzyl alcohol (from benzaldehyde reduction — minor side product)"
+    values:
+      peaks_ppm: [9.98, 7.36, 4.48]
+      assignments: ["benzaldehyde_CHO", "benzene_ArH", "benzyl_alcohol_CH2"]
+      integrations: [0.8, 5.0, 0.15]
+    note: "Spectrum is dominated by benzene and unreacted benzaldehyde — Grignard reagent was quenched before it could react with the aldehyde"
+
+  gc_ms_analysis:
+    description: "GC-MS analysis of crude product"
+    data_type: "table"
+    observations:
+      - "Major peak at RT 3.2 min: m/z = 78 (benzene, MW = 78.11)"
+      - "Major peak at RT 8.4 min: m/z = 106 (benzaldehyde, MW = 106.12)"
+      - "Minor peak at RT 7.1 min: m/z = 108 (benzyl alcohol, MW = 108.14)"
+      - "No peak corresponding to diphenylmethanol (MW = 184.24) at expected RT ~14 min"
+      - "Trace peak at RT 12.8 min: m/z = 154 (biphenyl, MW = 154.21 — Wurtz coupling byproduct)"
+    values:
+      retention_times_min: [3.2, 7.1, 8.4, 12.8]
+      mz_values: [78, 108, 106, 154]
+      identifications: ["benzene", "benzyl_alcohol", "benzaldehyde", "biphenyl"]
+      relative_areas_percent: [35.2, 3.1, 52.8, 1.5]
+    note: "Absence of product (m/z 184) and presence of benzene (m/z 78) indicates Grignard reagent was protonated rather than reacting with benzaldehyde"
+
+  tlc_analysis:
+    description: "TLC analysis of crude product vs. authentic standards"
+    data_type: "table"
+    observations:
+      - "Crude product spot at Rf 0.82 matches authentic benzaldehyde standard"
+      - "No spot at Rf 0.35 where authentic diphenylmethanol standard runs"
+      - "Faint spot at Rf 0.28 — possibly benzyl alcohol"
+      - "UV-active spots at 254 nm confirm aromatic compounds present"
+    values:
+      solvent_system: "3:1 hexanes/ethyl acetate"
+      crude_rf_values: [0.82, 0.28]
+      benzaldehyde_standard_rf: 0.82
+      diphenylmethanol_standard_rf: 0.35
+
+  reaction_observations:
+    description: "Visual observations during Grignard formation and reaction"
+    data_type: "text"
+    observations:
+      - "Grignard initiation was sluggish — required heat gun activation (normally initiates spontaneously with iodine crystal)"
+      - "During PhBr addition, solution showed only slight cloudiness instead of characteristic dark grey/brown color"
+      - "Minimal exotherm during Grignard formation — reflux was barely maintained"
+      - "No exotherm or color change upon benzaldehyde addition — typical of no reactive Grignard present"
+      - "Very little gas evolution during aqueous quench — indicates little unreacted Mg or MgBr₂ present"
+    note: "All observations consistent with failed Grignard formation due to reagent quenching by water"
+
+  crude_yield:
+    description: "Crude product mass after workup"
+    data_type: "numeric"
+    observations:
+      - "Crude mass: 1.2 g recovered"
+      - "Theoretical yield of diphenylmethanol: 9.21 g (50 mmol)"
+      - "Crude yield is 13% by mass, but product is mostly unreacted benzaldehyde"
+    values: [1.2]
+    units: "grams"
+    expected_range:
+      min: 6.0
+      max: 9.5
+
+  karl_fischer_thf:
+    description: "Karl Fischer titration of the THF solvent (measured after the failed reaction)"
+    data_type: "numeric"
+    observations:
+      - "Water content of THF from the Sure/Seal bottle: 1,850 ppm (0.185%)"
+      - "Specification for anhydrous THF: <50 ppm"
+      - "This is nearly 40× the acceptable limit for Grignard chemistry"
+    values: [1850]
+    units: "ppm (w/w)"
+    expected_range:
+      min: 0
+      max: 50
+    note: "THF water content is drastically above specification — the septum integrity has been compromised by repeated punctures"
+
+contextual_clues:
+  - "The Sure/Seal THF bottle has been in use for 14 months and has been punctured approximately 40 times — the septum shows visible wear with multiple needle marks."
+  - "The lab's nitrogen manifold was tested last month and is functioning correctly at 2 psi positive pressure."
+  - "Magnesium turnings were stored in a desiccator and appeared shiny — they are unlikely to be passivated."
+  - "The lab humidity has been elevated this month (65–70% RH) due to the building HVAC system being serviced."
+  - "A labmate using THF from a freshly opened Sure/Seal bottle performed a successful Grignard reaction last week."
+
+ground_truth:
+  root_cause: >
+    The THF solvent contained ~1,850 ppm water (37× the acceptable limit of
+    <50 ppm for Grignard chemistry). The moisture entered the Sure/Seal bottle
+    through the compromised septum, which had been punctured ~40 times over 14
+    months. Atmospheric moisture (exacerbated by 65–70% RH in the lab) diffused
+    through the damaged septum. The water protonated the phenylmagnesium bromide
+    as it formed (PhMgBr + H₂O → PhH + Mg(OH)Br), converting it to benzene
+    and destroying the Grignard reagent before it could react with benzaldehyde.
+  root_cause_category: "reagent_material_flaw"
+  causal_chain:
+    - "Sure/Seal THF bottle septum degraded after ~40 punctures over 14 months, creating micro-channels for atmospheric moisture ingress"
+    - "Lab humidity at 65-70% RH accelerated moisture permeation through the compromised septum"
+    - "THF water content rose from <50 ppm (specification) to 1,850 ppm"
+    - "During Grignard formation, water in THF reacts with PhMgBr as fast as it forms: PhMgBr + H₂O → C₆H₆ + Mg(OH)Br"
+    - "Grignard reagent is consumed by protonolysis, producing benzene (observed by NMR at δ 7.36 and GC-MS at m/z 78)"
+    - "Without functional Grignard reagent, benzaldehyde remains unreacted (observed by NMR at δ 9.98 and GC-MS at m/z 106)"
+    - "No diphenylmethanol product is formed — reaction yields only benzene, unreacted benzaldehyde, and trace byproducts"
+  intervention: >
+    Repeat the reaction using THF from a freshly opened Sure/Seal bottle (or
+    THF freshly distilled from sodium/benzophenone — the ketyl radical should
+    turn deep purple, confirming dryness). Verify water content is <50 ppm by
+    Karl Fischer titration before use. All other conditions (Mg turnings,
+    bromobenzene, benzaldehyde, glassware prep) remain identical. If the root
+    cause is correct, the reaction should produce diphenylmethanol in ≥70%
+    yield with the correct NMR spectrum (singlet at δ 5.76).
+  key_evidence:
+    - "Karl Fischer titration of THF shows 1,850 ppm water — 37× above the <50 ppm specification"
+    - "NMR shows benzene (δ 7.36) as major product — the protonolysis product of PhMgBr by water"
+    - "GC-MS confirms benzene (m/z 78) and unreacted benzaldehyde (m/z 106) with no diphenylmethanol (m/z 184)"
+    - "Grignard initiation was sluggish and solution remained mostly clear — consistent with immediate quenching by water"
+    - "Sure/Seal bottle punctured ~40 times over 14 months — septum integrity compromised"
+    - "A labmate's reaction with fresh THF succeeded — same chemistry, different solvent source"
+  alternative_diagnoses:
+    - "Magnesium turnings passivated by surface oxide layer"
+    - "Bromobenzene quality issue or insufficient quantity"
+    - "Glassware not sufficiently dried — residual moisture from apparatus"
+    - "Nitrogen atmosphere compromised — air leak in the Schlenk line"
+  why_alternatives_fail:
+    "Magnesium turnings passivated by surface oxide layer": >
+      Turnings were stored in a desiccator and appeared shiny with minimal
+      oxidation. Iodine crystal was added as activator. More importantly,
+      passivated Mg would show NO initiation at all, while some Grignard
+      formation did occur (slight cloudiness observed). The Karl Fischer
+      data directly identifies the water source as the THF, not the Mg.
+    "Bromobenzene quality issue or insufficient quantity": >
+      Bromobenzene was from a freshly opened, sealed bottle (≥99% purity).
+      The stoichiometry was correct (50 mmol each of Mg and PhBr). If PhBr
+      were the issue, we would not see benzene in the product mixture — the
+      presence of benzene confirms that PhMgBr DID form but was then quenched.
+    "Glassware not sufficiently dried — residual moisture from apparatus": >
+      Glassware was oven-dried at 120°C overnight and assembled hot under
+      nitrogen flow. Even if trace moisture remained on glass surfaces, it
+      would account for only microgram quantities — far less than the ~55 mg
+      of water present in 30 mL of THF at 1,850 ppm. The Karl Fischer data
+      quantitatively implicates the THF as the major water source.
+    "Nitrogen atmosphere compromised — air leak in the Schlenk line": >
+      The nitrogen manifold was tested and confirmed functional at 2 psi
+      last month. Even with a small leak, the main moisture exposure is
+      through the THF (which constitutes the bulk of the reaction medium).
+      An air leak would primarily introduce O₂, which causes Grignard
+      oxidation (producing phenol), not protonolysis (which produces benzene).
+  difficulty_justification: >
+    Rated 'medium' because the Karl Fischer data (1,850 ppm) is a strong
+    quantitative indicator, but the solver must connect the septum degradation
+    to moisture ingress and understand the specific chemistry of Grignard
+    protonolysis vs. other failure modes. Interpreting NMR and GC-MS data
+    to distinguish benzene (protonolysis product) from other possible
+    byproducts requires organic chemistry knowledge.
+
+scoring:
+  weights:
+    root_cause: 0.30
+    causal_chain: 0.40
+    intervention: 0.30
+  root_cause_keywords:
+    - "water"
+    - "moisture"
+    - "THF"
+    - "wet"
+    - "solvent"
+    - "septum"
+    - "protonolysis"
+    - "Grignard"
+    - "quench"
+    - "hydrolysis"
+  partial_credit_causes:
+    "THF was wet/contained water": 0.8
+    "solvent was not anhydrous": 0.7
+    "moisture contamination of the reaction": 0.6
+    "Grignard reagent was destroyed by water": 0.9
+
+available_tools:
+  - "karl_fischer_titrator"
+  - "nmr_analyzer"
+  - "gc_ms_analyzer"
+  - "solvent_purification_system"
+  - "tlc_analyzer"
+
+mock_data_refs: []
+max_tool_calls: 20
+
+source: "Composite case based on standard organic chemistry teaching laboratory Grignard failures and literature on solvent moisture sensitivity"
+source_url: null
+expert_validated: false
+tags:
+  - "organic_synthesis"
+  - "Grignard_reaction"
+  - "moisture_sensitivity"
+  - "anhydrous_technique"
+  - "THF"
+  - "solvent_quality"
+  - "protonolysis"
+author: "EpiDebug Benchmark Team"

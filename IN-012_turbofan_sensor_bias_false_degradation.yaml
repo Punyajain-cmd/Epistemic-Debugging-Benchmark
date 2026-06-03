@@ -1,0 +1,111 @@
+id: "IN-012"
+title: "Turbofan Health Monitor Flags False Degradation from Compressor Sensor Bias"
+version: "1.0"
+
+domain: "aerospace"
+subdomain: "engine_prognostics"
+failure_category: "instrumentation_artifact"
+difficulty: "hard"
+
+objective: >
+  Diagnose why a turbofan prognostics model predicts a rapid remaining-useful-life
+  drop during a ground test. The engine should show stable health indicators after
+  a routine borescope inspection.
+
+protocol:
+  - step: 1
+    action: "Run a standard ground-test profile after maintenance"
+    details: "Sensors include fan speed, compressor discharge pressure, exhaust gas temperature, and fuel flow."
+  - step: 2
+    action: "Feed normalized sensor channels into the RUL estimator"
+    details: "The estimator was trained on C-MAPSS-like degradation trajectories."
+  - step: 3
+    action: "Cross-check suspect channels against redundant gauges"
+    details: "A portable calibrated pressure transducer is installed after the model flags rapid degradation."
+
+telemetry:
+  prognostics_output:
+    description: "Model output and sensor residuals"
+    data_type: "table"
+    values:
+      cycle: [1, 2, 3, 4]
+      predicted_RUL_cycles: [182, 131, 88, 45]
+      compressor_pressure_residual_percent: [-1.8, -3.7, -5.9, -7.2]
+      exhaust_temperature_residual_degC: [1.1, 1.5, 1.2, 1.7]
+    observations:
+      - "RUL collapses mainly because compressor pressure appears low."
+      - "Temperature and fuel-flow channels do not show a matching degradation pattern."
+  calibration_check:
+    description: "Pressure-channel cross-check"
+    data_type: "table"
+    values:
+      source: ["installed_sensor", "portable_reference"]
+      compressor_discharge_pressure_kPa: [890, 962]
+      expected_kPa: [960, 960]
+    observations:
+      - "Installed sensor reads about 7.5% low."
+      - "Portable reference matches expected pressure."
+  maintenance_notes:
+    description: "Recent maintenance observations"
+    data_type: "text"
+    observations:
+      - "Pressure sensor harness was disconnected during borescope access."
+      - "Connector shell shows a bent shield clamp and slight moisture residue."
+      - "Borescope found no compressor blade damage."
+
+contextual_clues:
+  - "The RUL model assumes sensor channels are calibrated and comparable to training data."
+  - "True compressor degradation should also shift exhaust gas temperature and fuel flow."
+  - "The warning appeared immediately after maintenance, not gradually over flight cycles."
+  - "The portable pressure transducer was calibrated last month."
+
+ground_truth:
+  root_cause: >
+    The installed compressor discharge pressure sensor was biased low after its
+    harness was disturbed during maintenance. The prognostics model interpreted
+    the biased pressure channel as compressor efficiency loss, producing a false
+    rapid RUL drop.
+  root_cause_category: "instrumentation_artifact"
+  causal_chain:
+    - "Maintenance disturbed the compressor pressure sensor connector"
+    - "The installed pressure channel developed a low bias"
+    - "The RUL model consumed the biased channel as if it were physical engine behavior"
+    - "Low compressor pressure residual mimicked compressor efficiency degradation"
+    - "Other channels failed to corroborate true degradation"
+    - "The model predicted a false remaining-useful-life collapse"
+  intervention: >
+    Repair or reseat the pressure-sensor harness, recalibrate the channel, rerun
+    the ground test, and compare against the portable reference. The RUL estimate
+    should return to the stable range if the root cause is the pressure bias.
+  key_evidence:
+    - "Installed pressure sensor reads 7.5% low against a reference"
+    - "Temperature and fuel flow do not corroborate engine degradation"
+    - "Fault appears immediately after connector disturbance"
+    - "Borescope inspection found no physical compressor damage"
+  alternative_diagnoses:
+    - "Actual compressor efficiency degradation"
+    - "Fuel control problem"
+    - "RUL model architecture is invalid"
+  why_alternatives_fail:
+    "Actual compressor efficiency degradation": "Reference pressure and borescope inspection do not support physical degradation."
+    "Fuel control problem": "Fuel-flow channel is stable."
+    "RUL model architecture is invalid": "The immediate issue is a biased input channel, not the model structure."
+  difficulty_justification: "Hard because it requires disentangling model output from sensor validity."
+
+scoring:
+  root_cause_keywords: ["pressure sensor", "bias", "compressor", "calibration", "RUL", "instrumentation"]
+  partial_credit_causes:
+    "bad sensor input": 0.75
+    "false prognostics alarm": 0.55
+    "compressor degradation": 0.25
+
+available_tools:
+  - "calibration_checker"
+  - "statistical_analyzer"
+max_tool_calls: 15
+
+source: "Synthetic composite inspired by NASA PCoE turbofan prognostics datasets"
+source_url: "https://www.nasa.gov/intelligent-systems-division/discovery-and-systems-health/pcoe/pcoe-data-set-repository/"
+expert_validated: false
+tags: ["turbofan", "prognostics", "sensor_bias", "RUL", "aerospace"]
+author: "EpiDebug Team"

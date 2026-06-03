@@ -1,0 +1,45 @@
+# EpiDebug Test Case Manifest
+# Auto-generated index of all test cases
+
+version: "0.1.0"
+last_updated: "2026-06-02"
+
+categories:
+  reagent_material_flaw:
+    prefix: "RF"
+    description: "The protocol was correct, but the inputs were compromised"
+    directory: "reagent_flaw/"
+    
+  instrumentation_artifact:
+    prefix: "IN"
+    description: "The experiment didn't fail conceptually, but the instrument lied"
+    directory: "instrumentation/"
+    
+  protocol_human_loophole:
+    prefix: "PL"
+    description: "A subtle, unwritten step was missed or done incorrectly"
+    directory: "protocol_loophole/"
+    
+  flawed_hypothesis:
+    prefix: "FH"
+    description: "The underlying science doesn't work the way the scientist thought"
+    directory: "flawed_hypothesis/"
+
+domains:
+  - molecular_biology
+  - chemistry
+  - physics
+  - engineering
+  - biotech
+  - clinical
+  - software_systems
+  - manufacturing
+  - civil_engineering
+  - aerospace
+  - energy
+  - environmental_science
+  - materials_science
+  - robotics
+
+# Test cases are loaded dynamically from YAML files in subdirectories.
+# Run `python scripts/validate_cases.py --all` to verify all cases.

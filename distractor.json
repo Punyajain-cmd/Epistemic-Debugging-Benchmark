@@ -1,0 +1,1781 @@
+{
+  "benchmark": "epidebug",
+  "version": "0.1.0",
+  "model": "distractor",
+  "mode": "text",
+  "timestamp": "2026-06-02T11:11:38.745722+00:00",
+  "total_cases": 30,
+  "reference_model": true,
+  "results": [
+    {
+      "test_case_id": "FH-003",
+      "model": "distractor",
+      "mode": "text",
+      "run_index": 0,
+      "timestamp": "2026-06-02T11:11:38.740403+00:00",
+      "response": {
+        "model_name": "distractor",
+        "test_case_id": "FH-003",
+        "mode": "text",
+        "root_cause": "Starting material is not 1-bromobutane (wrong substrate)",
+        "causal_chain": [
+          "Starting material is not 1-bromobutane (wrong substrate) occurred",
+          "The suspected alternative caused the observed failure"
+        ],
+        "intervention": "Change or replace the factor associated with: Starting material is not 1-bromobutane (wrong substrate).",
+        "raw_response": "### Root Cause\nStarting material is not 1-bromobutane (wrong substrate)\n\n### Causal Chain\n1. Starting material is not 1-bromobutane (wrong substrate) occurred\n2. The suspected alternative caused the observed failure\n\n### Intervention\nChange or replace the factor associated with: Starting material is not 1-bromobutane (wrong substrate).\n",
+        "tool_calls": [],
+        "total_tokens": null,
+        "latency_seconds": null,
+        "confidence": null
+      },
+      "score": {
+        "test_case_id": "FH-003",
+        "model_name": "distractor",
+        "mode": "text",
+        "root_cause_score": {
+          "score": 0.0,
+          "weight": 0.3,
+          "weighted_score": 0.0,
+          "rationale": "Root cause not identified or completely incorrect."
+        },
+        "causal_chain_score": {
+          "score": 0.0,
+          "weight": 0.4,
+          "weighted_score": 0.0,
+          "rationale": "Causal chain does not match the expected failure mechanism."
+        },
+        "intervention_score": {
+          "score": 0.0,
+          "weight": 0.3,
+          "weighted_score": 0.0,
+          "rationale": "Intervention does not address the identified root cause."
+        },
+        "final_score": 0.0,
+        "trajectory": {
+          "tool_calls_made": 0,
+          "tool_calls_budget": 12,
+          "tool_efficiency": null,
+          "budget_compliant": true,
+          "anti_patterns": []
+        }
+      },
+      "metadata": {
+        "reference_model": true,
+        "total_tokens": null,
+        "latency_seconds": 0.0
+      }
+    },
+    {
+      "test_case_id": "FH-005",
+      "model": "distractor",
+      "mode": "text",
+      "run_index": 0,
+      "timestamp": "2026-06-02T11:11:38.740707+00:00",
+      "response": {
+        "model_name": "distractor",
+        "test_case_id": "FH-005",
+        "mode": "text",
+        "root_cause": "Material was not properly heat-treated \u2014 lower yield strength than specified",
+        "causal_chain": [
+          "Material was not properly heat-treated \u2014 lower yield strength than specified occurred",
+          "The suspected alternative caused the observed failure"
+        ],
+        "intervention": "Change or replace the factor associated with: Material was not properly heat-treated \u2014 lower yield strength than specified.",
+        "raw_response": "### Root Cause\nMaterial was not properly heat-treated \u2014 lower yield strength than specified\n\n### Causal Chain\n1. Material was not properly heat-treated \u2014 lower yield strength than specified occurred\n2. The suspected alternative caused the observed failure\n\n### Intervention\nChange or replace the factor associated with: Material was not properly heat-treated \u2014 lower yield strength than specified.\n",
+        "tool_calls": [],
+        "total_tokens": null,
+        "latency_seconds": null,
+        "confidence": null
+      },
+      "score": {
+        "test_case_id": "FH-005",
+        "model_name": "distractor",
+        "mode": "text",
+        "root_cause_score": {
+          "score": 0.0,
+          "weight": 0.3,
+          "weighted_score": 0.0,
+          "rationale": "Root cause not identified or completely incorrect."
+        },
+        "causal_chain_score": {
+          "score": 0.0,
+          "weight": 0.4,
+          "weighted_score": 0.0,
+          "rationale": "Causal chain does not match the expected failure mechanism."
+        },
+        "intervention_score": {
+          "score": 0.0,
+          "weight": 0.3,
+          "weighted_score": 0.0,
+          "rationale": "Intervention does not address the identified root cause."
+        },
+        "final_score": 0.0,
+        "trajectory": {
+          "tool_calls_made": 0,
+          "tool_calls_budget": 20,
+          "tool_efficiency": null,
+          "budget_compliant": true,
+          "anti_patterns": []
+        }
+      },
+      "metadata": {
+        "reference_model": true,
+        "total_tokens": null,
+        "latency_seconds": 0.0
+      }
+    },
+    {
+      "test_case_id": "FH-009",
+      "model": "distractor",
+      "mode": "text",
+      "run_index": 0,
+      "timestamp": "2026-06-02T11:11:38.740944+00:00",
+      "response": {
+        "model_name": "distractor",
+        "test_case_id": "FH-009",
+        "mode": "text",
+        "root_cause": "The ResNet architecture is too small for crack detection",
+        "causal_chain": [
+          "The ResNet architecture is too small for crack detection occurred",
+          "The suspected alternative caused the observed failure"
+        ],
+        "intervention": "Change or replace the factor associated with: The ResNet architecture is too small for crack detection.",
+        "raw_response": "### Root Cause\nThe ResNet architecture is too small for crack detection\n\n### Causal Chain\n1. The ResNet architecture is too small for crack detection occurred\n2. The suspected alternative caused the observed failure\n\n### Intervention\nChange or replace the factor associated with: The ResNet architecture is too small for crack detection.\n",
+        "tool_calls": [],
+        "total_tokens": null,
+        "latency_seconds": null,
+        "confidence": null
+      },
+      "score": {
+        "test_case_id": "FH-009",
+        "model_name": "distractor",
+        "mode": "text",
+        "root_cause_score": {
+          "score": 0.0,
+          "weight": 0.3,
+          "weighted_score": 0.0,
+          "rationale": "Root cause not identified or completely incorrect."
+        },
+        "causal_chain_score": {
+          "score": 0.0,
+          "weight": 0.4,
+          "weighted_score": 0.0,
+          "rationale": "Causal chain does not match the expected failure mechanism."
+        },
+        "intervention_score": {
+          "score": 0.0,
+          "weight": 0.3,
+          "weighted_score": 0.0,
+          "rationale": "Intervention does not address the identified root cause."
+        },
+        "final_score": 0.0,
+        "trajectory": {
+          "tool_calls_made": 0,
+          "tool_calls_budget": 15,
+          "tool_efficiency": null,
+          "budget_compliant": true,
+          "anti_patterns": []
+        }
+      },
+      "metadata": {
+        "reference_model": true,
+        "total_tokens": null,
+        "latency_seconds": 0.0
+      }
+    },
+    {
+      "test_case_id": "FH-010",
+      "model": "distractor",
+      "mode": "text",
+      "run_index": 0,
+      "timestamp": "2026-06-02T11:11:38.741101+00:00",
+      "response": {
+        "model_name": "distractor",
+        "test_case_id": "FH-010",
+        "mode": "text",
+        "root_cause": "The classifier family is too weak",
+        "causal_chain": [
+          "The classifier family is too weak occurred",
+          "The suspected alternative caused the observed failure"
+        ],
+        "intervention": "Change or replace the factor associated with: The classifier family is too weak.",
+        "raw_response": "### Root Cause\nThe classifier family is too weak\n\n### Causal Chain\n1. The classifier family is too weak occurred\n2. The suspected alternative caused the observed failure\n\n### Intervention\nChange or replace the factor associated with: The classifier family is too weak.\n",
+        "tool_calls": [],
+        "total_tokens": null,
+        "latency_seconds": null,
+        "confidence": null
+      },
+      "score": {
+        "test_case_id": "FH-010",
+        "model_name": "distractor",
+        "mode": "text",
+        "root_cause_score": {
+          "score": 0.0,
+          "weight": 0.3,
+          "weighted_score": 0.0,
+          "rationale": "Root cause not identified or completely incorrect."
+        },
+        "causal_chain_score": {
+          "score": 0.0,
+          "weight": 0.4,
+          "weighted_score": 0.0,
+          "rationale": "Causal chain does not match the expected failure mechanism."
+        },
+        "intervention_score": {
+          "score": 0.0,
+          "weight": 0.3,
+          "weighted_score": 0.0,
+          "rationale": "Intervention does not address the identified root cause."
+        },
+        "final_score": 0.0,
+        "trajectory": {
+          "tool_calls_made": 0,
+          "tool_calls_budget": 12,
+          "tool_efficiency": null,
+          "budget_compliant": true,
+          "anti_patterns": []
+        }
+      },
+      "metadata": {
+        "reference_model": true,
+        "total_tokens": null,
+        "latency_seconds": 0.0
+      }
+    },
+    {
+      "test_case_id": "FH-011",
+      "model": "distractor",
+      "mode": "text",
+      "run_index": 0,
+      "timestamp": "2026-06-02T11:11:38.741241+00:00",
+      "response": {
+        "model_name": "distractor",
+        "test_case_id": "FH-011",
+        "mode": "text",
+        "root_cause": "Motor acceleration is too high",
+        "causal_chain": [
+          "Motor acceleration is too high occurred",
+          "The suspected alternative caused the observed failure"
+        ],
+        "intervention": "Change or replace the factor associated with: Motor acceleration is too high.",
+        "raw_response": "### Root Cause\nMotor acceleration is too high\n\n### Causal Chain\n1. Motor acceleration is too high occurred\n2. The suspected alternative caused the observed failure\n\n### Intervention\nChange or replace the factor associated with: Motor acceleration is too high.\n",
+        "tool_calls": [],
+        "total_tokens": null,
+        "latency_seconds": null,
+        "confidence": null
+      },
+      "score": {
+        "test_case_id": "FH-011",
+        "model_name": "distractor",
+        "mode": "text",
+        "root_cause_score": {
+          "score": 0.0,
+          "weight": 0.3,
+          "weighted_score": 0.0,
+          "rationale": "Root cause not identified or completely incorrect."
+        },
+        "causal_chain_score": {
+          "score": 0.0,
+          "weight": 0.4,
+          "weighted_score": 0.0,
+          "rationale": "Causal chain does not match the expected failure mechanism."
+        },
+        "intervention_score": {
+          "score": 0.0,
+          "weight": 0.3,
+          "weighted_score": 0.0,
+          "rationale": "Intervention does not address the identified root cause."
+        },
+        "final_score": 0.0,
+        "trajectory": {
+          "tool_calls_made": 0,
+          "tool_calls_budget": 12,
+          "tool_efficiency": null,
+          "budget_compliant": true,
+          "anti_patterns": []
+        }
+      },
+      "metadata": {
+        "reference_model": true,
+        "total_tokens": null,
+        "latency_seconds": 0.0
+      }
+    },
+    {
+      "test_case_id": "FH-012",
+      "model": "distractor",
+      "mode": "text",
+      "run_index": 0,
+      "timestamp": "2026-06-02T11:11:38.741383+00:00",
+      "response": {
+        "model_name": "distractor",
+        "test_case_id": "FH-012",
+        "mode": "text",
+        "root_cause": "Load frame applied wrong amplitude",
+        "causal_chain": [
+          "Load frame applied wrong amplitude occurred",
+          "The suspected alternative caused the observed failure"
+        ],
+        "intervention": "Change or replace the factor associated with: Load frame applied wrong amplitude.",
+        "raw_response": "### Root Cause\nLoad frame applied wrong amplitude\n\n### Causal Chain\n1. Load frame applied wrong amplitude occurred\n2. The suspected alternative caused the observed failure\n\n### Intervention\nChange or replace the factor associated with: Load frame applied wrong amplitude.\n",
+        "tool_calls": [],
+        "total_tokens": null,
+        "latency_seconds": null,
+        "confidence": null
+      },
+      "score": {
+        "test_case_id": "FH-012",
+        "model_name": "distractor",
+        "mode": "text",
+        "root_cause_score": {
+          "score": 0.0,
+          "weight": 0.3,
+          "weighted_score": 0.0,
+          "rationale": "Root cause not identified or completely incorrect."
+        },
+        "causal_chain_score": {
+          "score": 0.0,
+          "weight": 0.4,
+          "weighted_score": 0.0,
+          "rationale": "Causal chain does not match the expected failure mechanism."
+        },
+        "intervention_score": {
+          "score": 0.0,
+          "weight": 0.3,
+          "weighted_score": 0.0,
+          "rationale": "Intervention does not address the identified root cause."
+        },
+        "final_score": 0.0,
+        "trajectory": {
+          "tool_calls_made": 0,
+          "tool_calls_budget": 15,
+          "tool_efficiency": null,
+          "budget_compliant": true,
+          "anti_patterns": []
+        }
+      },
+      "metadata": {
+        "reference_model": true,
+        "total_tokens": null,
+        "latency_seconds": 0.0
+      }
+    },
+    {
+      "test_case_id": "FH-013",
+      "model": "distractor",
+      "mode": "text",
+      "run_index": 0,
+      "timestamp": "2026-06-02T11:11:38.741536+00:00",
+      "response": {
+        "model_name": "distractor",
+        "test_case_id": "FH-013",
+        "mode": "text",
+        "root_cause": "KIN1 cDNA rescue construct is weakly expressed",
+        "causal_chain": [
+          "KIN1 cDNA rescue construct is weakly expressed occurred",
+          "The suspected alternative caused the observed failure"
+        ],
+        "intervention": "Change or replace the factor associated with: KIN1 cDNA rescue construct is weakly expressed.",
+        "raw_response": "### Root Cause\nKIN1 cDNA rescue construct is weakly expressed\n\n### Causal Chain\n1. KIN1 cDNA rescue construct is weakly expressed occurred\n2. The suspected alternative caused the observed failure\n\n### Intervention\nChange or replace the factor associated with: KIN1 cDNA rescue construct is weakly expressed.\n",
+        "tool_calls": [],
+        "total_tokens": null,
+        "latency_seconds": null,
+        "confidence": null
+      },
+      "score": {
+        "test_case_id": "FH-013",
+        "model_name": "distractor",
+        "mode": "text",
+        "root_cause_score": {
+          "score": 0.0,
+          "weight": 0.3,
+          "weighted_score": 0.0,
+          "rationale": "Root cause not identified or completely incorrect."
+        },
+        "causal_chain_score": {
+          "score": 0.0,
+          "weight": 0.4,
+          "weighted_score": 0.0,
+          "rationale": "Causal chain does not match the expected failure mechanism."
+        },
+        "intervention_score": {
+          "score": 0.0,
+          "weight": 0.3,
+          "weighted_score": 0.0,
+          "rationale": "Intervention does not address the identified root cause."
+        },
+        "final_score": 0.0,
+        "trajectory": {
+          "tool_calls_made": 0,
+          "tool_calls_budget": 15,
+          "tool_efficiency": null,
+          "budget_compliant": true,
+          "anti_patterns": []
+        }
+      },
+      "metadata": {
+        "reference_model": true,
+        "total_tokens": null,
+        "latency_seconds": 0.0
+      }
+    },
+    {
+      "test_case_id": "IN-001",
+      "model": "distractor",
+      "mode": "text",
+      "run_index": 0,
+      "timestamp": "2026-06-02T11:11:38.741717+00:00",
+      "response": {
+        "model_name": "distractor",
+        "test_case_id": "IN-001",
+        "mode": "text",
+        "root_cause": "DNA sample is contaminated with protein or phenol",
+        "causal_chain": [
+          "DNA sample is contaminated with protein or phenol occurred",
+          "The suspected alternative caused the observed failure"
+        ],
+        "intervention": "Change or replace the factor associated with: DNA sample is contaminated with protein or phenol.",
+        "raw_response": "### Root Cause\nDNA sample is contaminated with protein or phenol\n\n### Causal Chain\n1. DNA sample is contaminated with protein or phenol occurred\n2. The suspected alternative caused the observed failure\n\n### Intervention\nChange or replace the factor associated with: DNA sample is contaminated with protein or phenol.\n",
+        "tool_calls": [],
+        "total_tokens": null,
+        "latency_seconds": null,
+        "confidence": null
+      },
+      "score": {
+        "test_case_id": "IN-001",
+        "model_name": "distractor",
+        "mode": "text",
+        "root_cause_score": {
+          "score": 0.0,
+          "weight": 0.3,
+          "weighted_score": 0.0,
+          "rationale": "Root cause not identified or completely incorrect."
+        },
+        "causal_chain_score": {
+          "score": 0.0,
+          "weight": 0.4,
+          "weighted_score": 0.0,
+          "rationale": "Causal chain does not match the expected failure mechanism."
+        },
+        "intervention_score": {
+          "score": 0.0,
+          "weight": 0.3,
+          "weighted_score": 0.0,
+          "rationale": "Intervention does not address the identified root cause."
+        },
+        "final_score": 0.0,
+        "trajectory": {
+          "tool_calls_made": 0,
+          "tool_calls_budget": 10,
+          "tool_efficiency": null,
+          "budget_compliant": true,
+          "anti_patterns": []
+        }
+      },
+      "metadata": {
+        "reference_model": true,
+        "total_tokens": null,
+        "latency_seconds": 0.0
+      }
+    },
+    {
+      "test_case_id": "IN-005",
+      "model": "distractor",
+      "mode": "text",
+      "run_index": 0,
+      "timestamp": "2026-06-02T11:11:38.741977+00:00",
+      "response": {
+        "model_name": "distractor",
+        "test_case_id": "IN-005",
+        "mode": "text",
+        "root_cause": "Oscillator circuit malfunction producing 5 MHz instead of 45 MHz",
+        "causal_chain": [
+          "Oscillator circuit malfunction producing 5 MHz instead of 45 MHz occurred",
+          "The suspected alternative caused the observed failure"
+        ],
+        "intervention": "Change or replace the factor associated with: Oscillator circuit malfunction producing 5 MHz instead of 45 MHz.",
+        "raw_response": "### Root Cause\nOscillator circuit malfunction producing 5 MHz instead of 45 MHz\n\n### Causal Chain\n1. Oscillator circuit malfunction producing 5 MHz instead of 45 MHz occurred\n2. The suspected alternative caused the observed failure\n\n### Intervention\nChange or replace the factor associated with: Oscillator circuit malfunction producing 5 MHz instead of 45 MHz.\n",
+        "tool_calls": [],
+        "total_tokens": null,
+        "latency_seconds": null,
+        "confidence": null
+      },
+      "score": {
+        "test_case_id": "IN-005",
+        "model_name": "distractor",
+        "mode": "text",
+        "root_cause_score": {
+          "score": 0.0,
+          "weight": 0.3,
+          "weighted_score": 0.0,
+          "rationale": "Root cause not identified or completely incorrect."
+        },
+        "causal_chain_score": {
+          "score": 0.0,
+          "weight": 0.4,
+          "weighted_score": 0.0,
+          "rationale": "Causal chain does not match the expected failure mechanism."
+        },
+        "intervention_score": {
+          "score": 0.0,
+          "weight": 0.3,
+          "weighted_score": 0.0,
+          "rationale": "Intervention does not address the identified root cause."
+        },
+        "final_score": 0.0,
+        "trajectory": {
+          "tool_calls_made": 0,
+          "tool_calls_budget": 20,
+          "tool_efficiency": null,
+          "budget_compliant": true,
+          "anti_patterns": []
+        }
+      },
+      "metadata": {
+        "reference_model": true,
+        "total_tokens": null,
+        "latency_seconds": 0.0
+      }
+    },
+    {
+      "test_case_id": "IN-007",
+      "model": "distractor",
+      "mode": "text",
+      "run_index": 0,
+      "timestamp": "2026-06-02T11:11:38.742252+00:00",
+      "response": {
+        "model_name": "distractor",
+        "test_case_id": "IN-007",
+        "mode": "text",
+        "root_cause": "Two biologically distinct GFP-expressing cell populations (e.g., from plasmid copy number variation)",
+        "causal_chain": [
+          "Two biologically distinct GFP-expressing cell populations (e.g., from plasmid copy number variation) occurred",
+          "The suspected alternative caused the observed failure"
+        ],
+        "intervention": "Change or replace the factor associated with: Two biologically distinct GFP-expressing cell populations (e.g., from plasmid copy number variation).",
+        "raw_response": "### Root Cause\nTwo biologically distinct GFP-expressing cell populations (e.g., from plasmid copy number variation)\n\n### Causal Chain\n1. Two biologically distinct GFP-expressing cell populations (e.g., from plasmid copy number variation) occurred\n2. The suspected alternative caused the observed failure\n\n### Intervention\nChange or replace the factor associated with: Two biologically distinct GFP-expressing cell populations (e.g., from plasmid copy number variation).\n",
+        "tool_calls": [],
+        "total_tokens": null,
+        "latency_seconds": null,
+        "confidence": null
+      },
+      "score": {
+        "test_case_id": "IN-007",
+        "model_name": "distractor",
+        "mode": "text",
+        "root_cause_score": {
+          "score": 0.0,
+          "weight": 0.3,
+          "weighted_score": 0.0,
+          "rationale": "Root cause not identified or completely incorrect."
+        },
+        "causal_chain_score": {
+          "score": 0.0,
+          "weight": 0.4,
+          "weighted_score": 0.0,
+          "rationale": "Causal chain does not match the expected failure mechanism."
+        },
+        "intervention_score": {
+          "score": 0.0,
+          "weight": 0.3,
+          "weighted_score": 0.0,
+          "rationale": "Intervention does not address the identified root cause."
+        },
+        "final_score": 0.0,
+        "trajectory": {
+          "tool_calls_made": 0,
+          "tool_calls_budget": 15,
+          "tool_efficiency": null,
+          "budget_compliant": true,
+          "anti_patterns": []
+        }
+      },
+      "metadata": {
+        "reference_model": true,
+        "total_tokens": null,
+        "latency_seconds": 0.0
+      }
+    },
+    {
+      "test_case_id": "IN-009",
+      "model": "distractor",
+      "mode": "text",
+      "run_index": 0,
+      "timestamp": "2026-06-02T11:11:38.742433+00:00",
+      "response": {
+        "model_name": "distractor",
+        "test_case_id": "IN-009",
+        "mode": "text",
+        "root_cause": "Checkout v2.8.1 introduced a real slow code path",
+        "causal_chain": [
+          "Checkout v2.8.1 introduced a real slow code path occurred",
+          "The suspected alternative caused the observed failure"
+        ],
+        "intervention": "Change or replace the factor associated with: Checkout v2.8.1 introduced a real slow code path.",
+        "raw_response": "### Root Cause\nCheckout v2.8.1 introduced a real slow code path\n\n### Causal Chain\n1. Checkout v2.8.1 introduced a real slow code path occurred\n2. The suspected alternative caused the observed failure\n\n### Intervention\nChange or replace the factor associated with: Checkout v2.8.1 introduced a real slow code path.\n",
+        "tool_calls": [],
+        "total_tokens": null,
+        "latency_seconds": null,
+        "confidence": null
+      },
+      "score": {
+        "test_case_id": "IN-009",
+        "model_name": "distractor",
+        "mode": "text",
+        "root_cause_score": {
+          "score": 0.0,
+          "weight": 0.3,
+          "weighted_score": 0.0,
+          "rationale": "Root cause not identified or completely incorrect."
+        },
+        "causal_chain_score": {
+          "score": 0.0,
+          "weight": 0.4,
+          "weighted_score": 0.0,
+          "rationale": "Causal chain does not match the expected failure mechanism."
+        },
+        "intervention_score": {
+          "score": 0.0,
+          "weight": 0.3,
+          "weighted_score": 0.0,
+          "rationale": "Intervention does not address the identified root cause."
+        },
+        "final_score": 0.0,
+        "trajectory": {
+          "tool_calls_made": 0,
+          "tool_calls_budget": 12,
+          "tool_efficiency": null,
+          "budget_compliant": true,
+          "anti_patterns": []
+        }
+      },
+      "metadata": {
+        "reference_model": true,
+        "total_tokens": null,
+        "latency_seconds": 0.0
+      }
+    },
+    {
+      "test_case_id": "IN-011",
+      "model": "distractor",
+      "mode": "text",
+      "run_index": 0,
+      "timestamp": "2026-06-02T11:11:38.742569+00:00",
+      "response": {
+        "model_name": "distractor",
+        "test_case_id": "IN-011",
+        "mode": "text",
+        "root_cause": "Furnace controller failed",
+        "causal_chain": [
+          "Furnace controller failed occurred",
+          "The suspected alternative caused the observed failure"
+        ],
+        "intervention": "Change or replace the factor associated with: Furnace controller failed.",
+        "raw_response": "### Root Cause\nFurnace controller failed\n\n### Causal Chain\n1. Furnace controller failed occurred\n2. The suspected alternative caused the observed failure\n\n### Intervention\nChange or replace the factor associated with: Furnace controller failed.\n",
+        "tool_calls": [],
+        "total_tokens": null,
+        "latency_seconds": null,
+        "confidence": null
+      },
+      "score": {
+        "test_case_id": "IN-011",
+        "model_name": "distractor",
+        "mode": "text",
+        "root_cause_score": {
+          "score": 0.0,
+          "weight": 0.3,
+          "weighted_score": 0.0,
+          "rationale": "Root cause not identified or completely incorrect."
+        },
+        "causal_chain_score": {
+          "score": 0.0,
+          "weight": 0.4,
+          "weighted_score": 0.0,
+          "rationale": "Causal chain does not match the expected failure mechanism."
+        },
+        "intervention_score": {
+          "score": 0.0,
+          "weight": 0.3,
+          "weighted_score": 0.0,
+          "rationale": "Intervention does not address the identified root cause."
+        },
+        "final_score": 0.0,
+        "trajectory": {
+          "tool_calls_made": 0,
+          "tool_calls_budget": 12,
+          "tool_efficiency": null,
+          "budget_compliant": true,
+          "anti_patterns": []
+        }
+      },
+      "metadata": {
+        "reference_model": true,
+        "total_tokens": null,
+        "latency_seconds": 0.0
+      }
+    },
+    {
+      "test_case_id": "IN-012",
+      "model": "distractor",
+      "mode": "text",
+      "run_index": 0,
+      "timestamp": "2026-06-02T11:11:38.742707+00:00",
+      "response": {
+        "model_name": "distractor",
+        "test_case_id": "IN-012",
+        "mode": "text",
+        "root_cause": "Actual compressor efficiency degradation",
+        "causal_chain": [
+          "Actual compressor efficiency degradation occurred",
+          "The suspected alternative caused the observed failure"
+        ],
+        "intervention": "Change or replace the factor associated with: Actual compressor efficiency degradation.",
+        "raw_response": "### Root Cause\nActual compressor efficiency degradation\n\n### Causal Chain\n1. Actual compressor efficiency degradation occurred\n2. The suspected alternative caused the observed failure\n\n### Intervention\nChange or replace the factor associated with: Actual compressor efficiency degradation.\n",
+        "tool_calls": [],
+        "total_tokens": null,
+        "latency_seconds": null,
+        "confidence": null
+      },
+      "score": {
+        "test_case_id": "IN-012",
+        "model_name": "distractor",
+        "mode": "text",
+        "root_cause_score": {
+          "score": 0.5,
+          "weight": 0.3,
+          "weighted_score": 0.15,
+          "rationale": "Contributing factor mentioned but not the primary root cause."
+        },
+        "causal_chain_score": {
+          "score": 0.0,
+          "weight": 0.4,
+          "weighted_score": 0.0,
+          "rationale": "Causal chain does not match the expected failure mechanism."
+        },
+        "intervention_score": {
+          "score": 0.0,
+          "weight": 0.3,
+          "weighted_score": 0.0,
+          "rationale": "Intervention does not address the identified root cause."
+        },
+        "final_score": 0.15,
+        "trajectory": {
+          "tool_calls_made": 0,
+          "tool_calls_budget": 15,
+          "tool_efficiency": null,
+          "budget_compliant": true,
+          "anti_patterns": []
+        }
+      },
+      "metadata": {
+        "reference_model": true,
+        "total_tokens": null,
+        "latency_seconds": 0.0
+      }
+    },
+    {
+      "test_case_id": "IN-013",
+      "model": "distractor",
+      "mode": "text",
+      "run_index": 0,
+      "timestamp": "2026-06-02T11:11:38.742847+00:00",
+      "response": {
+        "model_name": "distractor",
+        "test_case_id": "IN-013",
+        "mode": "text",
+        "root_cause": "True low-level biomarker is present in blanks",
+        "causal_chain": [
+          "True low-level biomarker is present in blanks occurred",
+          "The suspected alternative caused the observed failure"
+        ],
+        "intervention": "Change or replace the factor associated with: True low-level biomarker is present in blanks.",
+        "raw_response": "### Root Cause\nTrue low-level biomarker is present in blanks\n\n### Causal Chain\n1. True low-level biomarker is present in blanks occurred\n2. The suspected alternative caused the observed failure\n\n### Intervention\nChange or replace the factor associated with: True low-level biomarker is present in blanks.\n",
+        "tool_calls": [],
+        "total_tokens": null,
+        "latency_seconds": null,
+        "confidence": null
+      },
+      "score": {
+        "test_case_id": "IN-013",
+        "model_name": "distractor",
+        "mode": "text",
+        "root_cause_score": {
+          "score": 0.25,
+          "weight": 0.3,
+          "weighted_score": 0.075,
+          "rationale": "Related concept mentioned but root cause not identified."
+        },
+        "causal_chain_score": {
+          "score": 0.0,
+          "weight": 0.4,
+          "weighted_score": 0.0,
+          "rationale": "Causal chain does not match the expected failure mechanism."
+        },
+        "intervention_score": {
+          "score": 0.0,
+          "weight": 0.3,
+          "weighted_score": 0.0,
+          "rationale": "Intervention does not address the identified root cause."
+        },
+        "final_score": 0.075,
+        "trajectory": {
+          "tool_calls_made": 0,
+          "tool_calls_budget": 10,
+          "tool_efficiency": null,
+          "budget_compliant": true,
+          "anti_patterns": []
+        }
+      },
+      "metadata": {
+        "reference_model": true,
+        "total_tokens": null,
+        "latency_seconds": 0.0
+      }
+    },
+    {
+      "test_case_id": "IN-014",
+      "model": "distractor",
+      "mode": "text",
+      "run_index": 0,
+      "timestamp": "2026-06-02T11:11:38.743051+00:00",
+      "response": {
+        "model_name": "distractor",
+        "test_case_id": "IN-014",
+        "mode": "text",
+        "root_cause": "Construction runoff event",
+        "causal_chain": [
+          "Construction runoff event occurred",
+          "The suspected alternative caused the observed failure"
+        ],
+        "intervention": "Change or replace the factor associated with: Construction runoff event.",
+        "raw_response": "### Root Cause\nConstruction runoff event\n\n### Causal Chain\n1. Construction runoff event occurred\n2. The suspected alternative caused the observed failure\n\n### Intervention\nChange or replace the factor associated with: Construction runoff event.\n",
+        "tool_calls": [],
+        "total_tokens": null,
+        "latency_seconds": null,
+        "confidence": null
+      },
+      "score": {
+        "test_case_id": "IN-014",
+        "model_name": "distractor",
+        "mode": "text",
+        "root_cause_score": {
+          "score": 0.25,
+          "weight": 0.3,
+          "weighted_score": 0.075,
+          "rationale": "Related concept mentioned but root cause not identified."
+        },
+        "causal_chain_score": {
+          "score": 0.0,
+          "weight": 0.4,
+          "weighted_score": 0.0,
+          "rationale": "Causal chain does not match the expected failure mechanism."
+        },
+        "intervention_score": {
+          "score": 0.0,
+          "weight": 0.3,
+          "weighted_score": 0.0,
+          "rationale": "Intervention does not address the identified root cause."
+        },
+        "final_score": 0.075,
+        "trajectory": {
+          "tool_calls_made": 0,
+          "tool_calls_budget": 8,
+          "tool_efficiency": null,
+          "budget_compliant": true,
+          "anti_patterns": []
+        }
+      },
+      "metadata": {
+        "reference_model": true,
+        "total_tokens": null,
+        "latency_seconds": 0.0
+      }
+    },
+    {
+      "test_case_id": "PL-001",
+      "model": "distractor",
+      "mode": "text",
+      "run_index": 0,
+      "timestamp": "2026-06-02T11:11:38.743427+00:00",
+      "response": {
+        "model_name": "distractor",
+        "test_case_id": "PL-001",
+        "mode": "text",
+        "root_cause": "Glycerol stock is dead \u2014 no viable cells",
+        "causal_chain": [
+          "Glycerol stock is dead \u2014 no viable cells occurred",
+          "The suspected alternative caused the observed failure"
+        ],
+        "intervention": "Change or replace the factor associated with: Glycerol stock is dead \u2014 no viable cells.",
+        "raw_response": "### Root Cause\nGlycerol stock is dead \u2014 no viable cells\n\n### Causal Chain\n1. Glycerol stock is dead \u2014 no viable cells occurred\n2. The suspected alternative caused the observed failure\n\n### Intervention\nChange or replace the factor associated with: Glycerol stock is dead \u2014 no viable cells.\n",
+        "tool_calls": [],
+        "total_tokens": null,
+        "latency_seconds": null,
+        "confidence": null
+      },
+      "score": {
+        "test_case_id": "PL-001",
+        "model_name": "distractor",
+        "mode": "text",
+        "root_cause_score": {
+          "score": 0.25,
+          "weight": 0.3,
+          "weighted_score": 0.075,
+          "rationale": "Related concept mentioned but root cause not identified."
+        },
+        "causal_chain_score": {
+          "score": 0.0,
+          "weight": 0.4,
+          "weighted_score": 0.0,
+          "rationale": "Causal chain does not match the expected failure mechanism."
+        },
+        "intervention_score": {
+          "score": 0.0,
+          "weight": 0.3,
+          "weighted_score": 0.0,
+          "rationale": "Intervention does not address the identified root cause."
+        },
+        "final_score": 0.075,
+        "trajectory": {
+          "tool_calls_made": 0,
+          "tool_calls_budget": 12,
+          "tool_efficiency": null,
+          "budget_compliant": true,
+          "anti_patterns": []
+        }
+      },
+      "metadata": {
+        "reference_model": true,
+        "total_tokens": null,
+        "latency_seconds": 0.0
+      }
+    },
+    {
+      "test_case_id": "PL-004",
+      "model": "distractor",
+      "mode": "text",
+      "run_index": 0,
+      "timestamp": "2026-06-02T11:11:38.743675+00:00",
+      "response": {
+        "model_name": "distractor",
+        "test_case_id": "PL-004",
+        "mode": "text",
+        "root_cause": "Catalyst batch was pre-decomposed or improperly stored",
+        "causal_chain": [
+          "Catalyst batch was pre-decomposed or improperly stored occurred",
+          "The suspected alternative caused the observed failure"
+        ],
+        "intervention": "Change or replace the factor associated with: Catalyst batch was pre-decomposed or improperly stored.",
+        "raw_response": "### Root Cause\nCatalyst batch was pre-decomposed or improperly stored\n\n### Causal Chain\n1. Catalyst batch was pre-decomposed or improperly stored occurred\n2. The suspected alternative caused the observed failure\n\n### Intervention\nChange or replace the factor associated with: Catalyst batch was pre-decomposed or improperly stored.\n",
+        "tool_calls": [],
+        "total_tokens": null,
+        "latency_seconds": null,
+        "confidence": null
+      },
+      "score": {
+        "test_case_id": "PL-004",
+        "model_name": "distractor",
+        "mode": "text",
+        "root_cause_score": {
+          "score": 0.0,
+          "weight": 0.3,
+          "weighted_score": 0.0,
+          "rationale": "Root cause not identified or completely incorrect."
+        },
+        "causal_chain_score": {
+          "score": 0.0,
+          "weight": 0.4,
+          "weighted_score": 0.0,
+          "rationale": "Causal chain does not match the expected failure mechanism."
+        },
+        "intervention_score": {
+          "score": 0.0,
+          "weight": 0.3,
+          "weighted_score": 0.0,
+          "rationale": "Intervention does not address the identified root cause."
+        },
+        "final_score": 0.0,
+        "trajectory": {
+          "tool_calls_made": 0,
+          "tool_calls_budget": 20,
+          "tool_efficiency": null,
+          "budget_compliant": true,
+          "anti_patterns": []
+        }
+      },
+      "metadata": {
+        "reference_model": true,
+        "total_tokens": null,
+        "latency_seconds": 0.0
+      }
+    },
+    {
+      "test_case_id": "PL-006",
+      "model": "distractor",
+      "mode": "text",
+      "run_index": 0,
+      "timestamp": "2026-06-02T11:11:38.743808+00:00",
+      "response": {
+        "model_name": "distractor",
+        "test_case_id": "PL-006",
+        "mode": "text",
+        "root_cause": "Column is degraded",
+        "causal_chain": [
+          "Column is degraded occurred",
+          "The suspected alternative caused the observed failure"
+        ],
+        "intervention": "Change or replace the factor associated with: Column is degraded.",
+        "raw_response": "### Root Cause\nColumn is degraded\n\n### Causal Chain\n1. Column is degraded occurred\n2. The suspected alternative caused the observed failure\n\n### Intervention\nChange or replace the factor associated with: Column is degraded.\n",
+        "tool_calls": [],
+        "total_tokens": null,
+        "latency_seconds": null,
+        "confidence": null
+      },
+      "score": {
+        "test_case_id": "PL-006",
+        "model_name": "distractor",
+        "mode": "text",
+        "root_cause_score": {
+          "score": 0.5,
+          "weight": 0.3,
+          "weighted_score": 0.15,
+          "rationale": "Contributing factor mentioned but not the primary root cause."
+        },
+        "causal_chain_score": {
+          "score": 0.0,
+          "weight": 0.4,
+          "weighted_score": 0.0,
+          "rationale": "Causal chain does not match the expected failure mechanism."
+        },
+        "intervention_score": {
+          "score": 0.0,
+          "weight": 0.3,
+          "weighted_score": 0.0,
+          "rationale": "Intervention does not address the identified root cause."
+        },
+        "final_score": 0.15,
+        "trajectory": {
+          "tool_calls_made": 0,
+          "tool_calls_budget": 8,
+          "tool_efficiency": null,
+          "budget_compliant": true,
+          "anti_patterns": []
+        }
+      },
+      "metadata": {
+        "reference_model": true,
+        "total_tokens": null,
+        "latency_seconds": 0.0
+      }
+    },
+    {
+      "test_case_id": "PL-007",
+      "model": "distractor",
+      "mode": "text",
+      "run_index": 0,
+      "timestamp": "2026-06-02T11:11:38.743944+00:00",
+      "response": {
+        "model_name": "distractor",
+        "test_case_id": "PL-007",
+        "mode": "text",
+        "root_cause": "Drone camera calibration failed",
+        "causal_chain": [
+          "Drone camera calibration failed occurred",
+          "The suspected alternative caused the observed failure"
+        ],
+        "intervention": "Change or replace the factor associated with: Drone camera calibration failed.",
+        "raw_response": "### Root Cause\nDrone camera calibration failed\n\n### Causal Chain\n1. Drone camera calibration failed occurred\n2. The suspected alternative caused the observed failure\n\n### Intervention\nChange or replace the factor associated with: Drone camera calibration failed.\n",
+        "tool_calls": [],
+        "total_tokens": null,
+        "latency_seconds": null,
+        "confidence": null
+      },
+      "score": {
+        "test_case_id": "PL-007",
+        "model_name": "distractor",
+        "mode": "text",
+        "root_cause_score": {
+          "score": 0.0,
+          "weight": 0.3,
+          "weighted_score": 0.0,
+          "rationale": "Root cause not identified or completely incorrect."
+        },
+        "causal_chain_score": {
+          "score": 0.0,
+          "weight": 0.4,
+          "weighted_score": 0.0,
+          "rationale": "Causal chain does not match the expected failure mechanism."
+        },
+        "intervention_score": {
+          "score": 0.0,
+          "weight": 0.3,
+          "weighted_score": 0.0,
+          "rationale": "Intervention does not address the identified root cause."
+        },
+        "final_score": 0.0,
+        "trajectory": {
+          "tool_calls_made": 0,
+          "tool_calls_budget": 12,
+          "tool_efficiency": null,
+          "budget_compliant": true,
+          "anti_patterns": []
+        }
+      },
+      "metadata": {
+        "reference_model": true,
+        "total_tokens": null,
+        "latency_seconds": 0.0
+      }
+    },
+    {
+      "test_case_id": "PL-008",
+      "model": "distractor",
+      "mode": "text",
+      "run_index": 0,
+      "timestamp": "2026-06-02T11:11:38.744069+00:00",
+      "response": {
+        "model_name": "distractor",
+        "test_case_id": "PL-008",
+        "mode": "text",
+        "root_cause": "Plate washer clogged",
+        "causal_chain": [
+          "Plate washer clogged occurred",
+          "The suspected alternative caused the observed failure"
+        ],
+        "intervention": "Change or replace the factor associated with: Plate washer clogged.",
+        "raw_response": "### Root Cause\nPlate washer clogged\n\n### Causal Chain\n1. Plate washer clogged occurred\n2. The suspected alternative caused the observed failure\n\n### Intervention\nChange or replace the factor associated with: Plate washer clogged.\n",
+        "tool_calls": [],
+        "total_tokens": null,
+        "latency_seconds": null,
+        "confidence": null
+      },
+      "score": {
+        "test_case_id": "PL-008",
+        "model_name": "distractor",
+        "mode": "text",
+        "root_cause_score": {
+          "score": 0.0,
+          "weight": 0.3,
+          "weighted_score": 0.0,
+          "rationale": "Root cause not identified or completely incorrect."
+        },
+        "causal_chain_score": {
+          "score": 0.0,
+          "weight": 0.4,
+          "weighted_score": 0.0,
+          "rationale": "Causal chain does not match the expected failure mechanism."
+        },
+        "intervention_score": {
+          "score": 0.0,
+          "weight": 0.3,
+          "weighted_score": 0.0,
+          "rationale": "Intervention does not address the identified root cause."
+        },
+        "final_score": 0.0,
+        "trajectory": {
+          "tool_calls_made": 0,
+          "tool_calls_budget": 10,
+          "tool_efficiency": null,
+          "budget_compliant": true,
+          "anti_patterns": []
+        }
+      },
+      "metadata": {
+        "reference_model": true,
+        "total_tokens": null,
+        "latency_seconds": 0.0
+      }
+    },
+    {
+      "test_case_id": "PL-009",
+      "model": "distractor",
+      "mode": "text",
+      "run_index": 0,
+      "timestamp": "2026-06-02T11:11:38.744188+00:00",
+      "response": {
+        "model_name": "distractor",
+        "test_case_id": "PL-009",
+        "mode": "text",
+        "root_cause": "Defective gasket",
+        "causal_chain": [
+          "Defective gasket occurred",
+          "The suspected alternative caused the observed failure"
+        ],
+        "intervention": "Change or replace the factor associated with: Defective gasket.",
+        "raw_response": "### Root Cause\nDefective gasket\n\n### Causal Chain\n1. Defective gasket occurred\n2. The suspected alternative caused the observed failure\n\n### Intervention\nChange or replace the factor associated with: Defective gasket.\n",
+        "tool_calls": [],
+        "total_tokens": null,
+        "latency_seconds": null,
+        "confidence": null
+      },
+      "score": {
+        "test_case_id": "PL-009",
+        "model_name": "distractor",
+        "mode": "text",
+        "root_cause_score": {
+          "score": 0.5,
+          "weight": 0.3,
+          "weighted_score": 0.15,
+          "rationale": "Contributing factor mentioned but not the primary root cause."
+        },
+        "causal_chain_score": {
+          "score": 0.0,
+          "weight": 0.4,
+          "weighted_score": 0.0,
+          "rationale": "Causal chain does not match the expected failure mechanism."
+        },
+        "intervention_score": {
+          "score": 0.0,
+          "weight": 0.3,
+          "weighted_score": 0.0,
+          "rationale": "Intervention does not address the identified root cause."
+        },
+        "final_score": 0.15,
+        "trajectory": {
+          "tool_calls_made": 0,
+          "tool_calls_budget": 10,
+          "tool_efficiency": null,
+          "budget_compliant": true,
+          "anti_patterns": []
+        }
+      },
+      "metadata": {
+        "reference_model": true,
+        "total_tokens": null,
+        "latency_seconds": 0.0
+      }
+    },
+    {
+      "test_case_id": "RF-001",
+      "model": "distractor",
+      "mode": "text",
+      "run_index": 0,
+      "timestamp": "2026-06-02T11:11:38.744476+00:00",
+      "response": {
+        "model_name": "distractor",
+        "test_case_id": "RF-001",
+        "mode": "text",
+        "root_cause": "IPTG induction failure \u2014 protein not expressed",
+        "causal_chain": [
+          "IPTG induction failure \u2014 protein not expressed occurred",
+          "The suspected alternative caused the observed failure"
+        ],
+        "intervention": "Change or replace the factor associated with: IPTG induction failure \u2014 protein not expressed.",
+        "raw_response": "### Root Cause\nIPTG induction failure \u2014 protein not expressed\n\n### Causal Chain\n1. IPTG induction failure \u2014 protein not expressed occurred\n2. The suspected alternative caused the observed failure\n\n### Intervention\nChange or replace the factor associated with: IPTG induction failure \u2014 protein not expressed.\n",
+        "tool_calls": [],
+        "total_tokens": null,
+        "latency_seconds": null,
+        "confidence": null
+      },
+      "score": {
+        "test_case_id": "RF-001",
+        "model_name": "distractor",
+        "mode": "text",
+        "root_cause_score": {
+          "score": 0.0,
+          "weight": 0.3,
+          "weighted_score": 0.0,
+          "rationale": "Root cause not identified or completely incorrect."
+        },
+        "causal_chain_score": {
+          "score": 0.0,
+          "weight": 0.4,
+          "weighted_score": 0.0,
+          "rationale": "Causal chain does not match the expected failure mechanism."
+        },
+        "intervention_score": {
+          "score": 0.0,
+          "weight": 0.3,
+          "weighted_score": 0.0,
+          "rationale": "Intervention does not address the identified root cause."
+        },
+        "final_score": 0.0,
+        "trajectory": {
+          "tool_calls_made": 0,
+          "tool_calls_budget": 15,
+          "tool_efficiency": null,
+          "budget_compliant": true,
+          "anti_patterns": []
+        }
+      },
+      "metadata": {
+        "reference_model": true,
+        "total_tokens": null,
+        "latency_seconds": 0.0
+      }
+    },
+    {
+      "test_case_id": "RF-002",
+      "model": "distractor",
+      "mode": "text",
+      "run_index": 0,
+      "timestamp": "2026-06-02T11:11:38.744640+00:00",
+      "response": {
+        "model_name": "distractor",
+        "test_case_id": "RF-002",
+        "mode": "text",
+        "root_cause": "Template DNA degradation",
+        "causal_chain": [
+          "Template DNA degradation occurred",
+          "The suspected alternative caused the observed failure"
+        ],
+        "intervention": "Change or replace the factor associated with: Template DNA degradation.",
+        "raw_response": "### Root Cause\nTemplate DNA degradation\n\n### Causal Chain\n1. Template DNA degradation occurred\n2. The suspected alternative caused the observed failure\n\n### Intervention\nChange or replace the factor associated with: Template DNA degradation.\n",
+        "tool_calls": [],
+        "total_tokens": null,
+        "latency_seconds": null,
+        "confidence": null
+      },
+      "score": {
+        "test_case_id": "RF-002",
+        "model_name": "distractor",
+        "mode": "text",
+        "root_cause_score": {
+          "score": 0.25,
+          "weight": 0.3,
+          "weighted_score": 0.075,
+          "rationale": "Related concept mentioned but root cause not identified."
+        },
+        "causal_chain_score": {
+          "score": 0.0,
+          "weight": 0.4,
+          "weighted_score": 0.0,
+          "rationale": "Causal chain does not match the expected failure mechanism."
+        },
+        "intervention_score": {
+          "score": 0.0,
+          "weight": 0.3,
+          "weighted_score": 0.0,
+          "rationale": "Intervention does not address the identified root cause."
+        },
+        "final_score": 0.075,
+        "trajectory": {
+          "tool_calls_made": 0,
+          "tool_calls_budget": 10,
+          "tool_efficiency": null,
+          "budget_compliant": true,
+          "anti_patterns": []
+        }
+      },
+      "metadata": {
+        "reference_model": true,
+        "total_tokens": null,
+        "latency_seconds": 0.0
+      }
+    },
+    {
+      "test_case_id": "RF-004",
+      "model": "distractor",
+      "mode": "text",
+      "run_index": 0,
+      "timestamp": "2026-06-02T11:11:38.744866+00:00",
+      "response": {
+        "model_name": "distractor",
+        "test_case_id": "RF-004",
+        "mode": "text",
+        "root_cause": "Magnesium turnings passivated by surface oxide layer",
+        "causal_chain": [
+          "Magnesium turnings passivated by surface oxide layer occurred",
+          "The suspected alternative caused the observed failure"
+        ],
+        "intervention": "Change or replace the factor associated with: Magnesium turnings passivated by surface oxide layer.",
+        "raw_response": "### Root Cause\nMagnesium turnings passivated by surface oxide layer\n\n### Causal Chain\n1. Magnesium turnings passivated by surface oxide layer occurred\n2. The suspected alternative caused the observed failure\n\n### Intervention\nChange or replace the factor associated with: Magnesium turnings passivated by surface oxide layer.\n",
+        "tool_calls": [],
+        "total_tokens": null,
+        "latency_seconds": null,
+        "confidence": null
+      },
+      "score": {
+        "test_case_id": "RF-004",
+        "model_name": "distractor",
+        "mode": "text",
+        "root_cause_score": {
+          "score": 0.0,
+          "weight": 0.3,
+          "weighted_score": 0.0,
+          "rationale": "Root cause not identified or completely incorrect."
+        },
+        "causal_chain_score": {
+          "score": 0.0,
+          "weight": 0.4,
+          "weighted_score": 0.0,
+          "rationale": "Causal chain does not match the expected failure mechanism."
+        },
+        "intervention_score": {
+          "score": 0.0,
+          "weight": 0.3,
+          "weighted_score": 0.0,
+          "rationale": "Intervention does not address the identified root cause."
+        },
+        "final_score": 0.0,
+        "trajectory": {
+          "tool_calls_made": 0,
+          "tool_calls_budget": 20,
+          "tool_efficiency": null,
+          "budget_compliant": true,
+          "anti_patterns": []
+        }
+      },
+      "metadata": {
+        "reference_model": true,
+        "total_tokens": null,
+        "latency_seconds": 0.0
+      }
+    },
+    {
+      "test_case_id": "RF-009",
+      "model": "distractor",
+      "mode": "text",
+      "run_index": 0,
+      "timestamp": "2026-06-02T11:11:38.745037+00:00",
+      "response": {
+        "model_name": "distractor",
+        "test_case_id": "RF-009",
+        "mode": "text",
+        "root_cause": "Material stock hardness was out of specification",
+        "causal_chain": [
+          "Material stock hardness was out of specification occurred",
+          "The suspected alternative caused the observed failure"
+        ],
+        "intervention": "Change or replace the factor associated with: Material stock hardness was out of specification.",
+        "raw_response": "### Root Cause\nMaterial stock hardness was out of specification\n\n### Causal Chain\n1. Material stock hardness was out of specification occurred\n2. The suspected alternative caused the observed failure\n\n### Intervention\nChange or replace the factor associated with: Material stock hardness was out of specification.\n",
+        "tool_calls": [],
+        "total_tokens": null,
+        "latency_seconds": null,
+        "confidence": null
+      },
+      "score": {
+        "test_case_id": "RF-009",
+        "model_name": "distractor",
+        "mode": "text",
+        "root_cause_score": {
+          "score": 0.0,
+          "weight": 0.3,
+          "weighted_score": 0.0,
+          "rationale": "Root cause not identified or completely incorrect."
+        },
+        "causal_chain_score": {
+          "score": 0.0,
+          "weight": 0.4,
+          "weighted_score": 0.0,
+          "rationale": "Causal chain does not match the expected failure mechanism."
+        },
+        "intervention_score": {
+          "score": 0.0,
+          "weight": 0.3,
+          "weighted_score": 0.0,
+          "rationale": "Intervention does not address the identified root cause."
+        },
+        "final_score": 0.0,
+        "trajectory": {
+          "tool_calls_made": 0,
+          "tool_calls_budget": 12,
+          "tool_efficiency": null,
+          "budget_compliant": true,
+          "anti_patterns": []
+        }
+      },
+      "metadata": {
+        "reference_model": true,
+        "total_tokens": null,
+        "latency_seconds": 0.0
+      }
+    },
+    {
+      "test_case_id": "RF-010",
+      "model": "distractor",
+      "mode": "text",
+      "run_index": 0,
+      "timestamp": "2026-06-02T11:11:38.745191+00:00",
+      "response": {
+        "model_name": "distractor",
+        "test_case_id": "RF-010",
+        "mode": "text",
+        "root_cause": "The investigational drug caused true hyperkalemia",
+        "causal_chain": [
+          "The investigational drug caused true hyperkalemia occurred",
+          "The suspected alternative caused the observed failure"
+        ],
+        "intervention": "Change or replace the factor associated with: The investigational drug caused true hyperkalemia.",
+        "raw_response": "### Root Cause\nThe investigational drug caused true hyperkalemia\n\n### Causal Chain\n1. The investigational drug caused true hyperkalemia occurred\n2. The suspected alternative caused the observed failure\n\n### Intervention\nChange or replace the factor associated with: The investigational drug caused true hyperkalemia.\n",
+        "tool_calls": [],
+        "total_tokens": null,
+        "latency_seconds": null,
+        "confidence": null
+      },
+      "score": {
+        "test_case_id": "RF-010",
+        "model_name": "distractor",
+        "mode": "text",
+        "root_cause_score": {
+          "score": 0.0,
+          "weight": 0.3,
+          "weighted_score": 0.0,
+          "rationale": "Root cause not identified or completely incorrect."
+        },
+        "causal_chain_score": {
+          "score": 0.0,
+          "weight": 0.4,
+          "weighted_score": 0.0,
+          "rationale": "Causal chain does not match the expected failure mechanism."
+        },
+        "intervention_score": {
+          "score": 0.0,
+          "weight": 0.3,
+          "weighted_score": 0.0,
+          "rationale": "Intervention does not address the identified root cause."
+        },
+        "final_score": 0.0,
+        "trajectory": {
+          "tool_calls_made": 0,
+          "tool_calls_budget": 10,
+          "tool_efficiency": null,
+          "budget_compliant": true,
+          "anti_patterns": []
+        }
+      },
+      "metadata": {
+        "reference_model": true,
+        "total_tokens": null,
+        "latency_seconds": 0.0
+      }
+    },
+    {
+      "test_case_id": "RF-011",
+      "model": "distractor",
+      "mode": "text",
+      "run_index": 0,
+      "timestamp": "2026-06-02T11:11:38.745321+00:00",
+      "response": {
+        "model_name": "distractor",
+        "test_case_id": "RF-011",
+        "mode": "text",
+        "root_cause": "Tool wear failure",
+        "causal_chain": [
+          "Tool wear failure occurred",
+          "The suspected alternative caused the observed failure"
+        ],
+        "intervention": "Change or replace the factor associated with: Tool wear failure.",
+        "raw_response": "### Root Cause\nTool wear failure\n\n### Causal Chain\n1. Tool wear failure occurred\n2. The suspected alternative caused the observed failure\n\n### Intervention\nChange or replace the factor associated with: Tool wear failure.\n",
+        "tool_calls": [],
+        "total_tokens": null,
+        "latency_seconds": null,
+        "confidence": null
+      },
+      "score": {
+        "test_case_id": "RF-011",
+        "model_name": "distractor",
+        "mode": "text",
+        "root_cause_score": {
+          "score": 0.5,
+          "weight": 0.3,
+          "weighted_score": 0.15,
+          "rationale": "Contributing factor mentioned but not the primary root cause."
+        },
+        "causal_chain_score": {
+          "score": 0.0,
+          "weight": 0.4,
+          "weighted_score": 0.0,
+          "rationale": "Causal chain does not match the expected failure mechanism."
+        },
+        "intervention_score": {
+          "score": 0.0,
+          "weight": 0.3,
+          "weighted_score": 0.0,
+          "rationale": "Intervention does not address the identified root cause."
+        },
+        "final_score": 0.15,
+        "trajectory": {
+          "tool_calls_made": 0,
+          "tool_calls_budget": 12,
+          "tool_efficiency": null,
+          "budget_compliant": true,
+          "anti_patterns": []
+        }
+      },
+      "metadata": {
+        "reference_model": true,
+        "total_tokens": null,
+        "latency_seconds": 0.0
+      }
+    },
+    {
+      "test_case_id": "RF-012",
+      "model": "distractor",
+      "mode": "text",
+      "run_index": 0,
+      "timestamp": "2026-06-02T11:11:38.745462+00:00",
+      "response": {
+        "model_name": "distractor",
+        "test_case_id": "RF-012",
+        "mode": "text",
+        "root_cause": "The new formation protocol is too aggressive",
+        "causal_chain": [
+          "The new formation protocol is too aggressive occurred",
+          "The suspected alternative caused the observed failure"
+        ],
+        "intervention": "Change or replace the factor associated with: The new formation protocol is too aggressive.",
+        "raw_response": "### Root Cause\nThe new formation protocol is too aggressive\n\n### Causal Chain\n1. The new formation protocol is too aggressive occurred\n2. The suspected alternative caused the observed failure\n\n### Intervention\nChange or replace the factor associated with: The new formation protocol is too aggressive.\n",
+        "tool_calls": [],
+        "total_tokens": null,
+        "latency_seconds": null,
+        "confidence": null
+      },
+      "score": {
+        "test_case_id": "RF-012",
+        "model_name": "distractor",
+        "mode": "text",
+        "root_cause_score": {
+          "score": 0.5,
+          "weight": 0.3,
+          "weighted_score": 0.15,
+          "rationale": "Contributing factor mentioned but not the primary root cause."
+        },
+        "causal_chain_score": {
+          "score": 0.0,
+          "weight": 0.4,
+          "weighted_score": 0.0,
+          "rationale": "Causal chain does not match the expected failure mechanism."
+        },
+        "intervention_score": {
+          "score": 0.0,
+          "weight": 0.3,
+          "weighted_score": 0.0,
+          "rationale": "Intervention does not address the identified root cause."
+        },
+        "final_score": 0.15,
+        "trajectory": {
+          "tool_calls_made": 0,
+          "tool_calls_budget": 12,
+          "tool_efficiency": null,
+          "budget_compliant": true,
+          "anti_patterns": []
+        }
+      },
+      "metadata": {
+        "reference_model": true,
+        "total_tokens": null,
+        "latency_seconds": 0.0
+      }
+    },
+    {
+      "test_case_id": "RF-013",
+      "model": "distractor",
+      "mode": "text",
+      "run_index": 0,
+      "timestamp": "2026-06-02T11:11:38.745588+00:00",
+      "response": {
+        "model_name": "distractor",
+        "test_case_id": "RF-013",
+        "mode": "text",
+        "root_cause": "Nanoparticles are inflammatory",
+        "causal_chain": [
+          "Nanoparticles are inflammatory occurred",
+          "The suspected alternative caused the observed failure"
+        ],
+        "intervention": "Change or replace the factor associated with: Nanoparticles are inflammatory.",
+        "raw_response": "### Root Cause\nNanoparticles are inflammatory\n\n### Causal Chain\n1. Nanoparticles are inflammatory occurred\n2. The suspected alternative caused the observed failure\n\n### Intervention\nChange or replace the factor associated with: Nanoparticles are inflammatory.\n",
+        "tool_calls": [],
+        "total_tokens": null,
+        "latency_seconds": null,
+        "confidence": null
+      },
+      "score": {
+        "test_case_id": "RF-013",
+        "model_name": "distractor",
+        "mode": "text",
+        "root_cause_score": {
+          "score": 0.0,
+          "weight": 0.3,
+          "weighted_score": 0.0,
+          "rationale": "Root cause not identified or completely incorrect."
+        },
+        "causal_chain_score": {
+          "score": 0.0,
+          "weight": 0.4,
+          "weighted_score": 0.0,
+          "rationale": "Causal chain does not match the expected failure mechanism."
+        },
+        "intervention_score": {
+          "score": 0.0,
+          "weight": 0.3,
+          "weighted_score": 0.0,
+          "rationale": "Intervention does not address the identified root cause."
+        },
+        "final_score": 0.0,
+        "trajectory": {
+          "tool_calls_made": 0,
+          "tool_calls_budget": 10,
+          "tool_efficiency": null,
+          "budget_compliant": true,
+          "anti_patterns": []
+        }
+      },
+      "metadata": {
+        "reference_model": true,
+        "total_tokens": null,
+        "latency_seconds": 0.0
+      }
+    },
+    {
+      "test_case_id": "RF-014",
+      "model": "distractor",
+      "mode": "text",
+      "run_index": 0,
+      "timestamp": "2026-06-02T11:11:38.745712+00:00",
+      "response": {
+        "model_name": "distractor",
+        "test_case_id": "RF-014",
+        "mode": "text",
+        "root_cause": "Citric acid passivation bath was exhausted",
+        "causal_chain": [
+          "Citric acid passivation bath was exhausted occurred",
+          "The suspected alternative caused the observed failure"
+        ],
+        "intervention": "Change or replace the factor associated with: Citric acid passivation bath was exhausted.",
+        "raw_response": "### Root Cause\nCitric acid passivation bath was exhausted\n\n### Causal Chain\n1. Citric acid passivation bath was exhausted occurred\n2. The suspected alternative caused the observed failure\n\n### Intervention\nChange or replace the factor associated with: Citric acid passivation bath was exhausted.\n",
+        "tool_calls": [],
+        "total_tokens": null,
+        "latency_seconds": null,
+        "confidence": null
+      },
+      "score": {
+        "test_case_id": "RF-014",
+        "model_name": "distractor",
+        "mode": "text",
+        "root_cause_score": {
+          "score": 0.0,
+          "weight": 0.3,
+          "weighted_score": 0.0,
+          "rationale": "Root cause not identified or completely incorrect."
+        },
+        "causal_chain_score": {
+          "score": 0.0,
+          "weight": 0.4,
+          "weighted_score": 0.0,
+          "rationale": "Causal chain does not match the expected failure mechanism."
+        },
+        "intervention_score": {
+          "score": 0.0,
+          "weight": 0.3,
+          "weighted_score": 0.0,
+          "rationale": "Intervention does not address the identified root cause."
+        },
+        "final_score": 0.0,
+        "trajectory": {
+          "tool_calls_made": 0,
+          "tool_calls_budget": 10,
+          "tool_efficiency": null,
+          "budget_compliant": true,
+          "anti_patterns": []
+        }
+      },
+      "metadata": {
+        "reference_model": true,
+        "total_tokens": null,
+        "latency_seconds": 0.0
+      }
+    }
+  ]
+}
