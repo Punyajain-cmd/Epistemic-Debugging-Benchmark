@@ -1,0 +1,164 @@
+id: "IN-023"
+title: "Noisy Cavity Decay: Apparent Q Collapse from a Saturated Photodiode"
+version: "1.0"
+
+domain: "physics"
+subdomain: "optical_metrology"
+failure_category: "instrumentation_artifact"
+difficulty: "hard"
+information_regime: "noisy"
+split: "development"
+
+objective: >
+  Measure the ring-down time of a high-finesse optical cavity and report Q
+  above 1.2e8. After swapping in a 'higher-sensitivity' photodiode, fitted Q
+  fell to 4e7 with a large scatter across supposedly identical shots.
+
+protocol:
+  - step: 1
+    action: "Align 1064 nm light into the cavity and trip the AOM for ring-down"
+    details: "Incident power was raised from 0.8 mW to 4.6 mW to 'help the new diode'."
+    notes: "The new InGaAs diode has a 1.1 mW saturation spec at this gain; that sheet was not on the bench."
+
+  - step: 2
+    action: "Fit a single exponential to the photodiode trace"
+    details: "Fits use 0-200 us; reduced chi-square is 6-11 on many shots."
+    notes: "Several traces show a flat top for 12-18 us before decaying."
+
+  - step: 3
+    action: "Compare to a pickoff on a calibrated thermal power meter"
+    details: "Transmitted CW power is 1.9 mW, above the diode saturation."
+
+telemetry:
+  fitted_q:
+    description: "Fitted Q on 10 consecutive shots"
+    data_type: "numeric"
+    values: [3.8e7, 5.1e7, 2.9e7, 6.4e7, 4.2e7, 8.8e7, 3.3e7, 4.7e7, 9.9e7, 3.1e7]
+    units: "dimensionless"
+    expected_range:
+      min: 1.2e8
+      max: 1.6e8
+    observations:
+      - "Q scatter is far larger than the historical 4% repeatability."
+      - "Higher-looking Q shots are the ones with less incident power after a loose alignment."
+
+  traces:
+    description: "Qualitative ring-down shapes"
+    data_type: "text"
+    observations:
+      - "Many traces are clipped flat for 12-18 us, then fall."
+      - "A single-exponential fit through a clipped start underestimates lifetime."
+      - "Scope vertical scale was left at 50 mV/div; the clipped shots hit the +5 V rail of the TIA."
+
+  power:
+    description: "Optical power at the diode"
+    data_type: "table"
+    values:
+      incident_mW: 4.6
+      transmitted_cw_mW: 1.91
+      diode_sat_mW: 1.1
+      old_diode_sat_mW: 6.0
+    observations:
+      - "Transmitted CW power exceeds the new diode's saturation."
+    note: "The saturation current / power row was not copied into the lab notebook excerpt shown to the model."
+
+  cavity_aux:
+    description: "Independent cavity health"
+    data_type: "text"
+    observations:
+      - "Transmission peaks are still TEM00 with 11% contrast."
+      - "Pound-Drever-Hall error RMS is unchanged from last week."
+      - "No pressure burst on the vacuum gauge."
+
+contextual_clues:
+  - "The previous diode was a large-area unit with a 6 mW saturation power."
+  - "Students increased launch power 'to use the new sensitivity'."
+  - "A nearby ion pump was serviced yesterday, so the first story was contamination of the mirrors."
+  - "The scope 20 MHz bandwidth limit is on, which cannot create a 15 us flat top."
+
+hidden_fields:
+  - "telemetry.power"
+
+red_herrings:
+  - "The ion-pump magnet was remounted yesterday."
+  - "A new bottle of acetone was used to wipe a pickoff."
+
+ground_truth:
+  root_cause: >
+    The new photodiode was driven into saturation and the transimpedance
+    amplifier railed. Clipped ring-downs fitted as single exponentials yield
+    a low, scattered Q. The cavity itself is unchanged; the withheld power
+    table shows transmitted light above the diode saturation spec.
+  root_cause_category: "instrumentation_artifact"
+  causal_chain:
+    - "A smaller, more sensitive photodiode replaced a 6 mW-class unit"
+    - "Launch power was raised to 4.6 mW, putting 1.9 mW on the diode"
+    - "The diode and TIA railed, flattening the first 12-18 us of the decay"
+    - "A single-exponential fit through the clip underestimates lifetime"
+    - "Fitted Q scattered between 3e7 and 1e8"
+    - "PDH and mode shape show the cavity is still healthy"
+  intervention: >
+    Attenuate the transmission to 0.3-0.5 mW, drop TIA gain, and confirm the
+    trace never rails. Refit Q. If Q returns above 1.2e8 with 4% scatter
+    while PDH stays the same, the saturation diagnosis is confirmed. Do not
+    vent the cavity first.
+  key_evidence:
+    - "Flat-top traces and TIA rail"
+    - "Q scatter and better Q on low-power misaligned shots"
+    - "PDH and TEM00 unchanged"
+    - "Withheld: transmitted power 1.91 mW versus 1.1 mW saturation"
+  alternative_diagnoses:
+    - "Mirror contamination after the ion-pump work"
+    - "Cavity misalignment to a higher-loss mode"
+    - "AOM extinction is incomplete"
+    - "Scope bandwidth is too low"
+  why_alternatives_fail:
+    "Mirror contamination after the ion-pump work": "PDH RMS and TEM00 contrast are unchanged; contamination would not create a voltage rail."
+    "Cavity misalignment to a higher-loss mode": "The camera still shows TEM00."
+    "AOM extinction is incomplete": "Would add a floor, not a clipped ceiling."
+    "Scope bandwidth is too low": "20 MHz cannot invent a 15 us flat top."
+  difficulty_justification: >
+    Hard and noisy: Q values scatter and the saturation spec is withheld. The
+    solver must read clipped traces as a detector problem, not a cavity-loss
+    problem.
+
+scoring:
+  weights:
+    root_cause: 0.30
+    causal_chain: 0.40
+    intervention: 0.30
+  root_cause_keywords:
+    - "saturat"
+    - "photodiode"
+    - "clip"
+    - "rail"
+    - "detector"
+    - "Q"
+  partial_credit_causes:
+    "detector overload": 0.85
+    "bad fit to clipped data": 0.7
+    "mirror loss": 0.2
+  evidence_keywords:
+    - "flat"
+    - "TIA"
+    - "PDH"
+
+available_tools:
+  - "oscilloscope_analyzer"
+  - "spectrum_analyzer"
+  - "calibration_checker"
+  - "statistical_analyzer"
+max_tool_calls: 12
+
+source: >
+  Synthetic composite inspired by public optical-cavity ring-down and NIST-
+  style detector-saturation instrumentation pitfalls. No proprietary lab
+  notebook copied.
+source_url: "https://www.nist.gov/pml"
+expert_validated: false
+tags:
+  - "physics"
+  - "optics"
+  - "photodiode"
+  - "noisy"
+author: "EpiDebug Team"

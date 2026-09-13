@@ -1,0 +1,147 @@
+id: "RF-021"
+title: "Pouch-Cell Gas and Low CE from a High-Moisture Graphite Anode Lot"
+version: "1.0"
+
+domain: "energy"
+subdomain: "li_ion_electrodes"
+failure_category: "reagent_material_flaw"
+difficulty: "medium"
+information_regime: "complete"
+split: "held_out"
+
+objective: >
+  Build graphite/NMC pouch cells with a new anode coating lot. First-cycle
+  coulombic efficiency should exceed 90% and formation swell should stay
+  below 6% thickness.
+
+protocol:
+  - step: 1
+    action: "Coat and calender anode lot AN-228 on copper foil"
+    details: "The slurry sat 36 hours in an open mixing can after a dehumidifier fault."
+    notes: "Cathode lot and electrolyte bottle are the same ones used in last week's passing build."
+
+  - step: 2
+    action: "Dry electrodes at 80 C for 8 hours, then assemble pouches in the glovebox"
+    details: "SOP dry is 120 C under vacuum for 12 hours; the oven controller was left at the cathode recipe."
+    notes: "Karl Fischer on leftover anode powder was requested after formation gassing."
+
+  - step: 3
+    action: "Form at C/20 and measure CE, impedance, and pouch thickness"
+    details: "Three AN-228 pouches versus two pouches from archived dry anode AN-214."
+
+telemetry:
+  formation:
+    description: "First-cycle efficiency and swell"
+    data_type: "table"
+    values:
+      cell: ["AN228_a", "AN228_b", "AN228_c", "AN214_ctrl_a", "AN214_ctrl_b"]
+      ce_percent: [81.2, 79.8, 82.4, 91.6, 91.1]
+      swell_percent: [14.8, 16.1, 13.9, 4.2, 4.6]
+      gas_pouch: [true, true, true, false, false]
+    observations:
+      - "Only the new anode lot gasses and misses the 90% CE gate."
+      - "Cathode, electrolyte, and formation protocol are shared with the passing controls."
+
+  karl_fischer:
+    description: "Electrode moisture after the 80 C dry"
+    data_type: "table"
+    values:
+      sample: ["AN228_after_80C", "AN214_archive", "AN228_redried_120C"]
+      water_ppm: [842, 97, 118]
+    observations:
+      - "AN-228 retains 842 ppm water after the 80 C dry."
+      - "A 120 C vacuum re-dry of leftover AN-228 foil drops water to 118 ppm."
+
+  impedance:
+    description: "Post-formation EIS"
+    data_type: "table"
+    values:
+      cell: ["AN228_mean", "AN214_mean"]
+      r_sei_ohm: [64, 18]
+      r_ct_ohm: [141, 52]
+    observations:
+      - "SEI and charge-transfer resistances are elevated only on AN-228."
+
+contextual_clues:
+  - "The slurry can was open during a 36-hour dehumidifier outage."
+  - "The dry oven was left on the cathode 80 C recipe instead of 120 C vacuum."
+  - "Electrolyte Karl Fischer is 21 ppm, well below the 50 ppm lab limit."
+  - "A glovebox water sensor stayed under 0.4 ppm during assembly."
+
+ground_truth:
+  root_cause: >
+    Anode lot AN-228 entered assembly wet because the slurry absorbed moisture
+    during a dehumidifier outage and was then under-dried at 80 C. Residual
+    water reacted during formation, thickening the SEI, generating gas, and
+    collapsing first-cycle efficiency. Electrolyte and glovebox dryness are
+    not the failure.
+  root_cause_category: "reagent_material_flaw"
+  causal_chain:
+    - "Open slurry sat through a dehumidifier fault and absorbed water"
+    - "The electrode dry stayed at 80 C instead of 120 C vacuum"
+    - "AN-228 retained about 842 ppm water"
+    - "Water decomposed during C/20 formation and grew a resistive SEI"
+    - "Pouches gassed, swelled 14-16%, and CE fell to about 80%"
+    - "Archived dry AN-214 on the same cathode and electrolyte passes"
+  intervention: >
+    Re-dry AN-228 foil at 120 C under vacuum to below 150 ppm water, build
+    matched pouches against AN-214, and keep electrolyte and formation fixed.
+    If CE recovers above 90% and swell returns below 6%, the anode-moisture
+    diagnosis is confirmed.
+  key_evidence:
+    - "Failure is lot-specific to AN-228"
+    - "Karl Fischer 842 ppm versus 97 ppm on the archive lot"
+    - "Electrolyte water is 21 ppm"
+    - "Re-dry of leftover AN-228 reaches 118 ppm"
+  alternative_diagnoses:
+    - "Electrolyte bottle water contamination"
+    - "The new formation C/20 is too fast"
+    - "NMC cathode lot is gassing"
+    - "Glovebox oxygen poisoned the cells"
+  why_alternatives_fail:
+    "Electrolyte bottle water contamination": "The same bottle builds passing AN-214 cells and KF is 21 ppm."
+    "The new formation C/20 is too fast": "Controls use the same C/20 and pass."
+    "NMC cathode lot is gassing": "The cathode is shared with passing controls."
+    "Glovebox oxygen poisoned the cells": "Oxygen/water sensors are in family and the archive anodes assembled in the same box pass."
+  difficulty_justification: >
+    Medium: controls isolate the anode lot, but the solver must connect the
+    dehumidifier outage and 80 C dry to residual water rather than blaming
+    electrolyte, a recurring lab story.
+
+scoring:
+  weights:
+    root_cause: 0.30
+    causal_chain: 0.40
+    intervention: 0.30
+  root_cause_keywords:
+    - "moisture"
+    - "water"
+    - "anode"
+    - "dry"
+    - "graphite"
+    - "SEI"
+  partial_credit_causes:
+    "wet electrode": 0.85
+    "under-dried anode": 0.8
+    "wet electrolyte": 0.25
+  evidence_keywords:
+    - "Karl Fischer"
+    - "AN-228"
+    - "swell"
+
+available_tools:
+  - "statistical_analyzer"
+  - "material_properties"
+max_tool_calls: 12
+
+source: >
+  Synthetic composite inspired by NASA/CALCE battery moisture and formation-
+  gassing patterns. No proprietary cell data copied.
+source_url: "https://www.nasa.gov/intelligent-systems-division/discovery-and-systems-health/pcoe/pcoe-data-set-repository/"
+expert_validated: false
+tags:
+  - "battery"
+  - "anode"
+  - "moisture"
+  - "formation"
+author: "EpiDebug Team"

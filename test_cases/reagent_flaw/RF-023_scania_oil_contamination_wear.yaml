@@ -1,0 +1,143 @@
+id: "RF-023"
+title: "Air-Drier Cartridge Collapse from Silicon-Contaminated Compressor Oil"
+version: "1.0"
+
+domain: "manufacturing"
+subdomain: "pneumatic_powertrain"
+failure_category: "reagent_material_flaw"
+difficulty: "medium"
+information_regime: "complete"
+split: "held_out"
+
+objective: >
+  Keep a research-lab truck air-drier cartridge above 80% remaining life over
+  a 200-hour compressor endurance run, with dew point below -20 C at the
+  service reservoir.
+
+protocol:
+  - step: 1
+    action: "Fill the reciprocating compressor with the specified mineral oil"
+    details: "The night shift topped the crankcase from a drum that had held silicone-based assembly lube."
+    notes: "Oil appearance was slightly hazy; the lab did not run ICP-OES until after the dew-point fail."
+
+  - step: 2
+    action: "Run 200 hours at the SCANIA-like duty cycle (idle, load, unload)"
+    details: "Discharge pressure 12.5 bar; drier purge interval as specified."
+    notes: "Dew point climbed after hour 80; cartridge differential pressure rose."
+
+  - step: 3
+    action: "Tear down the drier and analyze used oil"
+    details: "Desiccant is glazed; ICP shows silicon 340 ppm versus 8 ppm on a control fill."
+
+telemetry:
+  dewpoint:
+    description: "Service-tank dew point versus hours"
+    data_type: "timeseries"
+    values: [-28.4, -26.1, -18.2, -9.4, 2.1, 6.8]
+    units: "C at 40-hour marks"
+    expected_range:
+      min: -40
+      max: -20
+    observations:
+      - "Dew point leaves spec after about 80 hours."
+
+  oil_icp:
+    description: "Used-oil metals after 200 hours"
+    data_type: "table"
+    values:
+      element: ["Si", "Fe", "Cu", "Na"]
+      suspect_ppm: [340, 42, 11, 18]
+      control_ppm: [8, 38, 9, 15]
+    observations:
+      - "Silicon is the only metal far outside the control fill."
+      - "Iron is in-family, so this is not classic bearing wear debris."
+
+  cartridge:
+    description: "Drier cartridge inspection"
+    data_type: "text"
+    observations:
+      - "Desiccant beads are glazed and oily to the touch."
+      - "Purge valve cycles; the heater circuit is intact."
+      - "A sister compressor on clean oil holds -27 C dew point at 200 hours."
+
+contextual_clues:
+  - "The makeup-oil drum previously held silicone assembly lube and was 'visually empty' when refilled with compressor oil."
+  - "SCANIA-style component-X / air-system endurance logs often separate oil chemistry from mechanical wear."
+  - "Ambient humidity was 38%, not a monsoon test."
+  - "A technician first blamed a stuck purge valve."
+
+ground_truth:
+  root_cause: >
+    Silicone-contaminated compressor oil coated and glazed the air-drier
+    desiccant, so the cartridge stopped drying. Mechanical wear metals are
+    in-family; a clean-oil sister unit holds dew point.
+  root_cause_category: "reagent_material_flaw"
+  causal_chain:
+    - "Makeup oil was poured from a drum that still held silicone lube"
+    - "Silicon in the used oil rose to 340 ppm"
+    - "Oil mist carried silicone onto the desiccant bed"
+    - "Beads glazed and lost water capacity"
+    - "Service-tank dew point climbed above -20 C after hour 80"
+    - "A clean-oil sister compressor does not fail"
+  intervention: >
+    Drain, flush, and refill with certified oil, replace the cartridge, and
+    rerun 50 hours. If dew point returns below -20 C and silicon stays near
+    the control, the oil-contamination diagnosis is confirmed.
+  key_evidence:
+    - "Si 340 ppm versus 8 ppm control"
+    - "Glazed, oily desiccant"
+    - "Sister unit on clean oil passes"
+    - "Iron wear metals are in-family"
+  alternative_diagnoses:
+    - "Stuck purge valve"
+    - "Classic bearing wear dumping metal into the oil"
+    - "Ambient humidity overload"
+    - "Heater circuit open"
+  why_alternatives_fail:
+    "Stuck purge valve": "The valve cycles and a heater check passes; glaze is chemical."
+    "Classic bearing wear dumping metal into the oil": "Fe and Cu match the control fill."
+    "Ambient humidity overload": "38% RH and the sister unit in the same room pass."
+    "Heater circuit open": "Heater is intact."
+  difficulty_justification: >
+    Medium: dew-point failure looks like a purge-valve problem until oil ICP
+    isolates silicone as the reagent.
+
+scoring:
+  weights:
+    root_cause: 0.30
+    causal_chain: 0.40
+    intervention: 0.30
+  root_cause_keywords:
+    - "silicon"
+    - "oil"
+    - "desiccant"
+    - "contaminat"
+    - "cartridge"
+    - "dew"
+  partial_credit_causes:
+    "contaminated oil": 0.85
+    "drier poisoning": 0.75
+    "purge valve": 0.25
+  evidence_keywords:
+    - "340"
+    - "glazed"
+    - "sister"
+
+available_tools:
+  - "machine_failure_analyzer"
+  - "statistical_analyzer"
+  - "material_properties"
+max_tool_calls: 12
+
+source: >
+  Synthetic composite inspired by the SCANIA Component X predictive-maintenance
+  pattern family (oil chemistry versus mechanical wear) and public air-drier
+  poisoning cases. No dataset rows or paper text copied.
+source_url: "https://doi.org/10.5878/jvb5-d390"
+expert_validated: false
+tags:
+  - "manufacturing"
+  - "compressor"
+  - "oil"
+  - "scania_pattern"
+author: "EpiDebug Team"

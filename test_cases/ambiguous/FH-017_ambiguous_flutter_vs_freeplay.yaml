@@ -1,0 +1,147 @@
+id: "FH-017"
+title: "Ambiguous Tail Buzz: Linear Flutter Model versus Actuator Freeplay"
+version: "1.0"
+
+domain: "aerospace"
+subdomain: "aeroelasticity"
+failure_category: "flawed_hypothesis"
+difficulty: "expert"
+information_regime: "ambiguous"
+split: "development"
+
+objective: >
+  Clear a research empennage for a 250 KEAS dive. A linear flutter analysis
+  predicted a 310 KEAS margin. In a ground vibration / wind-on test the
+  rudder buzzed at 228 KEAS.
+
+protocol:
+  - step: 1
+    action: "Run a linear PK flutter analysis with clamped actuator stiffness"
+    details: "Model uses nominal hydraulic stiffness and zero freeplay."
+    notes: "A 0.15 deg freeplay was later measured on the test actuator but is within a disputed spec."
+
+  - step: 2
+    action: "Perform a wind-on sweep on the empennage in a low-speed tunnel"
+    details: "Limit-cycle oscillation of the rudder appears at 228 KEAS, amplitude 0.4-0.6 deg."
+    notes: "Amplitude saturates rather than diverging — more LCO than classical explosive flutter."
+
+  - step: 3
+    action: "Inspect the actuator and repeat one point with a stiffer backup unit"
+    details: "The backup unit has 0.03 deg freeplay; buzz onset moves to 261 KEAS but does not disappear."
+    notes: "No strain-survey of the fin torsion mode was completed."
+
+telemetry:
+  onset:
+    description: "Buzz / LCO onset versus analysis"
+    data_type: "table"
+    values:
+      case: ["linear_PK", "test_flightlike_actuator", "test_stiff_actuator"]
+      keas: [310, 228, 261]
+      amplitude_deg: [0, 0.52, 0.21]
+    observations:
+      - "Onset is 80 KEAS below the linear prediction with the flightlike actuator."
+      - "A stiffer actuator raises onset but does not restore 310 KEAS."
+
+  spectrum:
+    description: "Rudder accelerometer during the 228 KEAS dwell"
+    data_type: "text"
+    observations:
+      - "A narrow peak at 18.4 Hz, near the fin torsion / rudder rotation coupling."
+      - "Amplitude saturates; no runaway growth over 20 s."
+      - "A small 0.15 deg deadband is visible in actuator LVDT versus command at low rate."
+
+  structure:
+    description: "Limited structural evidence"
+    data_type: "text"
+    observations:
+      - "No cracked hinge lugs."
+      - "Fin torsion frequency in GVT is 3% below the FEM, within model uncertainty."
+      - "Mass-balance weights match the drawing."
+
+contextual_clues:
+  - "Linear flutter theory assumes no freeplay and constant actuator stiffness."
+  - "Freeplay-induced LCO can look like 'flutter' on a cockpit card."
+  - "The FEM torsion frequency is slightly low, so a stiffness-error story is also live."
+  - "The backup actuator still buzzes at 261 KEAS, so freeplay is not the whole story."
+
+ground_truth:
+  root_cause: >
+    The linear, zero-freeplay flutter hypothesis is the primary scientific
+    error: it cannot represent the observed saturated LCO 80 KEAS early. Actuator
+    freeplay is a demonstrated contributor (onset moves 33 KEAS when freeplay
+    drops), but residual buzz at 261 KEAS means fin-torsion stiffness error
+    may also be in play. The case is intentionally ambiguous until a
+    freeplay-aware analysis and a torsion-stiffness survey are both done.
+    Scoring treats the flawed linear hypothesis as the intended root cause.
+  root_cause_category: "flawed_hypothesis"
+  causal_chain:
+    - "Clearance used a linear PK model with clamped, zero-freeplay actuators"
+    - "The test actuator has 0.15 deg freeplay and amplitude-dependent stiffness"
+    - "Wind-on excitation produced a saturated 18.4 Hz LCO at 228 KEAS"
+    - "Reducing freeplay raised onset to 261 KEAS but did not eliminate buzz"
+    - "FEM torsion frequency is 3% low, so a structural-stiffness error remains live"
+    - "A discriminating campaign must vary freeplay and torsion stiffness independently"
+  intervention: >
+    Run a freeplay-aware (describing-function or time-domain) analysis and a
+    two-factor test: (A) flightlike freeplay with a torsion-stiffness shimming
+    of the fin, (B) near-zero freeplay on the baseline fin. If only A still
+    buzzes near 228 KEAS, structure dominates. If only B clears past 300
+    KEAS, freeplay dominates. If both move, report a coupled cause and do not
+    pick one.
+  key_evidence:
+    - "Saturated LCO, not divergent flutter"
+    - "80 KEAS miss versus linear PK"
+    - "Onset moves with actuator freeplay but does not vanish"
+    - "FEM torsion is 3% low"
+  alternative_diagnoses:
+    - "Classical linear flutter from an underestimated fin torsion stiffness alone"
+    - "Mass-balance error"
+    - "Tunnel turbulence, not a true aeroelastic mode"
+  why_alternatives_fail:
+    "Classical linear flutter from an underestimated fin torsion stiffness alone": "Possible contributor — that is why the case is ambiguous — but saturation and the 33 KEAS shift with freeplay are not explained by a linear stiffness error alone."
+    "Mass-balance error": "Weights match the drawing and GVT frequencies are close."
+    "Tunnel turbulence, not a true aeroelastic mode": "The peak is narrow, repeatable, and moves with actuator change."
+  difficulty_justification: >
+    Expert/ambiguous: freeplay LCO and a slightly soft FEM are both serious.
+    A good diagnosis refuses a single-cause commit and designs a two-factor
+    discriminator.
+
+scoring:
+  weights:
+    root_cause: 0.30
+    causal_chain: 0.40
+    intervention: 0.30
+  root_cause_keywords:
+    - "flutter"
+    - "freeplay"
+    - "LCO"
+    - "linear"
+    - "actuator"
+    - "ambiguous"
+  partial_credit_causes:
+    "actuator freeplay": 0.75
+    "wrong flutter model": 0.8
+    "fin stiffness only": 0.65
+  evidence_keywords:
+    - "228"
+    - "saturat"
+    - "0.15"
+
+available_tools:
+  - "statistical_analyzer"
+  - "material_properties"
+  - "calibration_checker"
+max_tool_calls: 15
+
+source: >
+  Synthetic composite inspired by NASA aeroelasticity lessons and public
+  freeplay-LCO versus linear-flutter patterns. No aircraft program data
+  copied.
+source_url: "https://www.nasa.gov/nasa-lessons-learned/"
+expert_validated: false
+tags:
+  - "aerospace"
+  - "flutter"
+  - "freeplay"
+  - "ambiguous"
+author: "EpiDebug Team"

@@ -104,8 +104,8 @@ available_tools:
   - "statistical_analyzer"
 max_tool_calls: 15
 
-source: "Synthetic composite inspired by NASA PCoE turbofan prognostics datasets"
-source_url: "https://www.nasa.gov/intelligent-systems-division/discovery-and-systems-health/pcoe/pcoe-data-set-repository/"
+source: "Synthetic composite inspired by NASA PCoE / C-MAPSS turbofan prognostics datasets; no raw run files copied"
+source_url: "https://data.nasa.gov/dataset/cmapss-jet-engine-simulated-data"
 expert_validated: false
 tags: ["turbofan", "prognostics", "sensor_bias", "RUL", "aerospace"]
 author: "EpiDebug Team"

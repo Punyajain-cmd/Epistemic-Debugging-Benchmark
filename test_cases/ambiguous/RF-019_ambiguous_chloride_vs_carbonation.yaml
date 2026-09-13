@@ -1,0 +1,159 @@
+id: "RF-019"
+title: "Ambiguous Deck Staining: Mix-Water Chloride versus Early Carbonation"
+version: "1.0"
+
+domain: "civil_engineering"
+subdomain: "reinforced_concrete"
+failure_category: "reagent_material_flaw"
+difficulty: "expert"
+information_regime: "ambiguous"
+split: "development"
+
+objective: >
+  Cast a 150 mm research slab for a parking-deck overlay trial. Target 28-day
+  compressive strength 35 MPa, no surface rust staining at 14 days, and half-cell
+  potentials more positive than -200 mV CSE on the instrumented rebar mat.
+
+protocol:
+  - step: 1
+    action: "Batch a C35 mix with 20 mm cover over #5 epoxy-coated bars"
+    details: "The batch ticket lists potable city water. A nearby well was used when the hydrant was locked for the afternoon pour."
+    notes: "Well-water conductivity was not recorded. A spare cylinder from the morning hydrant batch later tested 37 MPa."
+
+  - step: 2
+    action: "Cure under plastic for 3 days, then air-dry in the lab"
+    details: "Lab air is 23 C and 35% RH with a strong HVAC supply over the slab."
+    notes: "Plastic was pulled a day early to free the form table."
+
+  - step: 3
+    action: "Inspect at 14 days and run half-cell and phenolphthalein surveys"
+    details: "Orange staining appeared along two bar shadows. Phenolphthalein is colorless in the outer 4-6 mm."
+    notes: "No SEM/EDS of the stain or pore solution has been run."
+
+telemetry:
+  strength_and_cover:
+    description: "Companion cylinders and cover meter"
+    data_type: "table"
+    values:
+      afternoon_f_c_MPa: 33.8
+      morning_control_f_c_MPa: 37.1
+      specified_MPa: 35.0
+      cover_mm_min: 18.4
+      cover_mm_mean: 20.1
+    observations:
+      - "Afternoon cylinders are slightly below spec; the morning hydrant batch is fine."
+      - "Cover is close to the 20 mm target, not a 10 mm placement miss."
+
+  corrosion_survey:
+    description: "Half-cell potentials and visual stain"
+    data_type: "table"
+    values:
+      location: ["bar_A_mid", "bar_A_end", "bar_B_mid", "sound_area"]
+      half_cell_mV_CSE: [-318, -241, -296, -142]
+      rust_stain: [true, false, true, false]
+    observations:
+      - "Stained bar shadows are more negative than -250 mV CSE."
+      - "Sound areas remain near -140 mV."
+
+  surface_chemistry:
+    description: "Limited wet-chemistry on powdered paste"
+    data_type: "table"
+    values:
+      water_soluble_Cl_percent: 0.09
+      ACI_limit_percent: 0.08
+      carbonation_depth_mm: 5.2
+      expected_14d_carbonation_mm: 1.0
+    observations:
+      - "Water-soluble chloride is just over the usual 0.08% limit for reinforced concrete."
+      - "Carbonation depth is unusually large for 14 days, consistent with dry HVAC air after early plastic removal."
+    note: "No split-sample well-water analysis exists."
+
+contextual_clues:
+  - "The afternoon hydrant was locked, so the crew used an irrigation well that historically runs 180-250 mg/L chloride."
+  - "Plastic curing was removed a day early and the slab sat under a dry HVAC jet."
+  - "Epoxy-coated bars had a few holiday marks from a damaged lift."
+  - "The morning hydrant batch, same cement and bars, has no staining at 14 days."
+  - "A phenolphthalein front of 5 mm can depassivate shallow cover even without chloride."
+
+ground_truth:
+  root_cause: >
+    The intended root cause is chloride-bearing well water in the afternoon
+    batch, which pushed water-soluble chloride just over the 0.08% limit and
+    started rust at epoxy holidays. Early drying also drove 5 mm of carbonation
+    that can independently depassivate shallow cover, so the case is
+    intentionally ambiguous until pore-solution and well-water analyses are
+    obtained. Scoring treats the mix-water chloride as the primary reagent
+    flaw because the morning hydrant batch did not stain, but a carbonation-only
+    story is not fully ruled out.
+  root_cause_category: "reagent_material_flaw"
+  causal_chain:
+    - "The afternoon pour used irrigation-well water instead of potable hydrant water"
+    - "Well water likely added chloride that shows up as 0.09% water-soluble Cl in the paste"
+    - "Epoxy holidays exposed bare steel at 20 mm cover"
+    - "Half-cell potentials at stained shadows dropped below -250 mV CSE"
+    - "Early plastic removal and dry HVAC air also carbonated the outer 5 mm, a live alternate depassivation path"
+    - "The morning hydrant batch of the same mix did not stain, favoring the water source, but carbonation remains unseparated"
+  intervention: >
+    Cast three companion slabs from the same cement and bars: (A) documented
+    potable water and full 3-day wet cure, (B) the suspect well water and full
+    wet cure, (C) potable water with the same early dry-out. If only B stains
+    and exceeds 0.08% Cl, mix-water chloride is confirmed. If C also stains
+    with deep carbonation and low Cl, carbonation dominates. Analyze the well
+    and run EDS on the stain.
+  key_evidence:
+    - "Afternoon batch stains; morning hydrant batch does not"
+    - "Water-soluble chloride 0.09% versus 0.08% limit"
+    - "Carbonation depth 5.2 mm after early dry-out"
+    - "No well-water or EDS confirmation yet"
+  alternative_diagnoses:
+    - "Early carbonation alone depassivated the bars"
+    - "Cover was placed far too low"
+    - "The cement lot is high-alkali and caused staining unrelated to steel"
+  why_alternatives_fail:
+    "Early carbonation alone depassivated the bars": "Possible and not ruled out — that is why the case is ambiguous. The unstained morning batch still points to the well water, but 5 mm carbonation keeps this live."
+    "Cover was placed far too low": "Mean cover is 20.1 mm and the minimum is 18.4 mm, not a 10 mm miss."
+    "The cement lot is high-alkali and caused staining unrelated to steel": "The morning slab used the same cement without staining, and half-cells track the rust shadows."
+  difficulty_justification: >
+    Expert/ambiguous: two chemically serious depassivation paths are consistent
+    with the 14-day evidence. A good diagnosis keeps both live and proposes a
+    three-slab discriminator rather than committing to chloride only.
+
+scoring:
+  weights:
+    root_cause: 0.30
+    causal_chain: 0.40
+    intervention: 0.30
+  root_cause_keywords:
+    - "chloride"
+    - "well"
+    - "mix water"
+    - "carbonation"
+    - "ambiguous"
+    - "rebar"
+  partial_credit_causes:
+    "chloride contamination": 0.8
+    "carbonation": 0.7
+    "low cover": 0.3
+  evidence_keywords:
+    - "half-cell"
+    - "well"
+    - "phenolphthalein"
+
+available_tools:
+  - "material_properties"
+  - "statistical_analyzer"
+  - "calibration_checker"
+max_tool_calls: 15
+
+source: >
+  Synthetic composite inspired by ACI chloride limits, SDNET-style inspection
+  ambiguity, and public parking-deck durability patterns. No proprietary mix
+  ticket copied.
+source_url: "https://www.kaggle.com/datasets/atharv0919/sdnet2018-a-concrete-crack-image-dataset"
+expert_validated: false
+tags:
+  - "civil_engineering"
+  - "chloride"
+  - "carbonation"
+  - "ambiguous"
+author: "EpiDebug Team"

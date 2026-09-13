@@ -1,0 +1,144 @@
+id: "PL-011"
+title: "Soft Cores from a Heat-Treat Load Packed Too Densely"
+version: "1.0"
+
+domain: "manufacturing"
+subdomain: "heat_treatment"
+failure_category: "protocol_human_loophole"
+difficulty: "medium"
+information_regime: "complete"
+split: "development"
+
+objective: >
+  Through-harden 4340 coupon blocks to 50-53 HRC with a 845 C soak and oil
+  quench. Surface and mid-thickness hardness should agree within 2 HRC.
+
+protocol:
+  - step: 1
+    action: "Load 48 blocks into a batch furnace basket"
+    details: "SOP allows 24 blocks with 15 mm spacing. The night shift double-stacked to finish the order."
+    notes: "The furnace air thermocouple reached 845 C in 38 minutes; no part-core thermocouple was used."
+
+  - step: 2
+    action: "Soak 40 minutes from the air-TC set-point, then oil quench"
+    details: "SOP soak is 40 minutes after the heaviest part is within 10 C of set-point."
+    notes: "The operator started the soak clock when the air TC first hit 845 C."
+
+  - step: 3
+    action: "Temper 200 C / 2 h and hardness-map six blocks from edge, middle, and center of the basket"
+    details: "Edge blocks pass; center blocks are 42-46 HRC in the core."
+
+telemetry:
+  hardness:
+    description: "HRC after temper, surface versus mid-plane"
+    data_type: "table"
+    values:
+      location: ["edge_s", "edge_c", "mid_s", "mid_c", "center_s", "center_c"]
+      HRC: [51.8, 51.2, 50.4, 46.1, 49.6, 43.3]
+    observations:
+      - "Basket-edge parts are through-hard."
+      - "Basket-center cores are 6-8 HRC soft."
+
+  furnace:
+    description: "Air thermocouple and a reconstructed load estimate"
+    data_type: "table"
+    values:
+      air_set_C: 845
+      time_air_at_set_min: 40
+      estimated_center_part_peak_C: 801
+      quench_oil_C: 62
+    observations:
+      - "Oil temperature is in family."
+      - "A later instrumented dummy in the same packing peaks at 801 C when the air TC is already at 845 C."
+
+  microstructure:
+    description: "Nital etch of a center-core coupon"
+    data_type: "text"
+    observations:
+      - "Mixed martensite plus fine pearlite/bainite in the core."
+      - "Edge coupons are nearly full martensite."
+      - "No decarburization deeper than 0.04 mm."
+
+contextual_clues:
+  - "The SOP sketch shows a single layer with 15 mm gaps."
+  - "The same 4340 heat through-hardened last week in a 24-piece load."
+  - "Quench oil was analyzed last month and is within water and soot limits."
+  - "A new temper furnace was commissioned, so some blamed temper color."
+
+ground_truth:
+  root_cause: >
+    The operator double-stacked 48 blocks and started the 40-minute soak when
+    the air thermocouple hit set-point, not when the heaviest part did. Center
+    cores never reached austenitize temperature, so they formed mixed
+    bainite/pearlite and finished soft. Oil, alloy, and temper are secondary.
+  root_cause_category: "protocol_human_loophole"
+  causal_chain:
+    - "The night shift packed twice the SOP load density"
+    - "The soak clock started on the air thermocouple, not a part thermocouple"
+    - "Center parts peaked near 801 C instead of 845 C"
+    - "Cores did not fully austenitize"
+    - "Oil quench produced mixed transformation products"
+    - "Center cores tempered out at 43-46 HRC while edges met 50-53 HRC"
+  intervention: >
+    Reload 24 blocks with SOP spacing, embed a core thermocouple in a dummy,
+    start the soak only after the dummy is within 10 C of 845 C, and map
+    hardness again. If center cores rise to 50-53 HRC, the packing/soak-clock
+    diagnosis is confirmed.
+  key_evidence:
+    - "Hardness depends on basket position, not heat number"
+    - "Center cores show mixed transformation, not over-temper"
+    - "Same heat passed in a 24-piece load"
+    - "Instrumented dummy in the dense pack peaks at 801 C"
+  alternative_diagnoses:
+    - "Quench oil was too hot or watery"
+    - "The 4340 heat is off-chemistry"
+    - "Temper overshot and softened everything"
+    - "Severe decarburization"
+  why_alternatives_fail:
+    "Quench oil was too hot or watery": "Oil is 62 C and in spec; edge parts through-harden in the same quench."
+    "The 4340 heat is off-chemistry": "Last week's 24-piece load from the same heat passed."
+    "Temper overshot and softened everything": "Edge parts are 51-52 HRC after the same temper."
+    "Severe decarburization": "Decarb is 0.04 mm; the soft reading is mid-plane."
+  difficulty_justification: >
+    Medium: the air TC looks perfect, so the solver must treat soak-start and
+    load density as the unwritten protocol steps that actually failed.
+
+scoring:
+  weights:
+    root_cause: 0.30
+    causal_chain: 0.40
+    intervention: 0.30
+  root_cause_keywords:
+    - "soak"
+    - "packing"
+    - "density"
+    - "core"
+    - "thermocouple"
+    - "austenit"
+  partial_credit_causes:
+    "under-soaked load": 0.8
+    "dense basket": 0.75
+    "bad quench oil": 0.25
+  evidence_keywords:
+    - "center"
+    - "801"
+    - "basket"
+
+available_tools:
+  - "material_properties"
+  - "statistical_analyzer"
+  - "calibration_checker"
+max_tool_calls: 12
+
+source: >
+  Synthetic composite inspired by public heat-treat load-density and soak-
+  clock loopholes and AI4I-style process telemetry. No proprietary traveler
+  copied.
+source_url: "https://archive.ics.uci.edu/dataset/601/ai4i"
+expert_validated: false
+tags:
+  - "manufacturing"
+  - "heat_treat"
+  - "soak"
+  - "protocol"
+author: "EpiDebug Team"

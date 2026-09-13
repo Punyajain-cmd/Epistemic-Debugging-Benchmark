@@ -1,0 +1,152 @@
+id: "FH-018"
+title: "Distractor-Heavy Tail Latency: GC Blamed for DNS-TTL Connection Storms"
+version: "1.0"
+
+domain: "software_systems"
+subdomain: "jvm_networking"
+failure_category: "flawed_hypothesis"
+difficulty: "hard"
+information_regime: "distractor_heavy"
+split: "development"
+
+objective: >
+  Keep payments-api p99 latency under 250 ms at 700 rps. After a 'GC tuning'
+  week, p99 still spiked to 1.6-2.1 s every 60-70 seconds. The team kept
+  shrinking the heap.
+
+protocol:
+  - step: 1
+    action: "Interpret every tail spike as a G1 pause and cut the heap from 8 G to 4 G"
+    details: "GC logs show p99 pause 24-31 ms — not seconds."
+    notes: "The hypothesis 'stop-the-world is the tail' was not checked against DNS or pool metrics."
+
+  - step: 2
+    action: "Capture traces during a spike"
+    details: "Spikes align with DNS TTL expiry of payments-db.internal (60 s)."
+    notes: "Each expiry opens hundreds of new TCP connections because the pool evicts on any InetAddress change."
+
+  - step: 3
+    action: "Compare JVM safepoint logs, DNS, and pool after enabling a longer TTL cache"
+    details: "Setting networkaddress.cache.ttl=30 and disabling pool evict-on-resolve removed the 60 s cadence."
+
+telemetry:
+  latency:
+    description: "p99 latency and GC pause versus time"
+    data_type: "table"
+    values:
+      second: [10, 70, 130, 190, 250]
+      p99_ms: [180, 1840, 2105, 1690, 1922]
+      gc_pause_ms: [22, 28, 24, 31, 26]
+      new_tcp_conns: [4, 640, 710, 655, 690]
+    observations:
+      - "p99 spikes are ~2 s; GC pauses are ~30 ms."
+      - "New TCP connections jump in the same seconds as the spikes."
+
+  dns:
+    description: "DNS and pool behavior"
+    data_type: "text"
+    observations:
+      - "payments-db.internal TTL is 60 s and the record is stable (same IPs)."
+      - "The pool treats a re-resolve as a full invalidate even when IPs match."
+      - "During a spike, 600+ threads block in connect() / TLS handshake."
+
+  gc_log:
+    description: "G1 summary the team treated as causal"
+    data_type: "table"
+    values:
+      heap_after_tune_G: 4
+      pause_p99_ms: 31
+      allocation_rate_MBs: 420
+    observations:
+      - "GC is busier after the heap cut, but pauses never reach 100 ms."
+
+contextual_clues:
+  - "A blog post titled 'Your p99 is GC' was circulating on the team chat."
+  - "The database VIP IPs have not changed in 90 days."
+  - "A one-box experiment with networkaddress.cache.ttl=30 and no evict-on-resolve flattened p99 to 210 ms."
+  - "CPU steal on the node is 2%."
+
+red_herrings:
+  - "A 38 ms safepoint was circled in red on the incident whiteboard."
+  - "The node AMI was rebuilt with a newer kernel that week."
+  - "Someone mentioned 'maybe we need ZGC'."
+  - "A sidecar CPU chart looks spiky because of scrape aliasing from another case's folklore."
+  - "The DB team's on-call mentioned a vacuum on an unrelated replica."
+  - "Checkout-canary-3 clock skew from an older story was retold in the war room."
+
+ground_truth:
+  root_cause: >
+    The GC-pause hypothesis is false. Every 60 s the JVM re-resolves a stable
+    DNS name and the connection pool tears down live connections, causing a
+    connect/TLS storm and ~2 s tails. GC pauses are 30 ms and get worse when
+    the heap is shrunk to 'fix' the wrong cause.
+  root_cause_category: "flawed_hypothesis"
+  causal_chain:
+    - "The team assumed multi-second tails must be stop-the-world GC"
+    - "Heap cuts did not remove the 60-70 s cadence"
+    - "DNS TTL of the DB name is 60 s"
+    - "The pool invalidates connections on every re-resolve even when IPs are unchanged"
+    - "Hundreds of threads block in TCP/TLS setup and p99 hits ~2 s"
+    - "Caching the lookup and stopping evict-on-resolve removes the cadence"
+  intervention: >
+    Hold GC settings fixed. Raise JVM DNS cache above the TTL or stop
+    evicting connections when the resolved IP set is unchanged, then rerun
+    700 rps. If the 60 s spikes vanish while GC pauses stay ~30 ms, the GC
+    hypothesis is rejected.
+  key_evidence:
+    - "p99 is seconds; GC is tens of milliseconds"
+    - "Spikes phase-lock to 60 s DNS TTL"
+    - "New TCP connection bursts at the same instants"
+    - "A DNS/pool one-box fix works without a GC change"
+  alternative_diagnoses:
+    - "G1 pauses of multiple seconds"
+    - "Database vacuum / lock storms"
+    - "CPU steal from neighbors"
+    - "A kernel regression on the new AMI"
+  why_alternatives_fail:
+    "G1 pauses of multiple seconds": "Safepoint logs show 24-31 ms."
+    "Database vacuum / lock storms": "The vacuum is on another replica; the stall is in client connect()."
+    "CPU steal from neighbors": "Steal is 2%."
+    "A kernel regression on the new AMI": "The one-box DNS/pool change on the same AMI removes the spike."
+  difficulty_justification: >
+    Hard and distractor-heavy: GC folklore is loud and the team already
+    'acted' on it. The solver must compare magnitudes and the 60 s phase.
+
+scoring:
+  weights:
+    root_cause: 0.30
+    causal_chain: 0.40
+    intervention: 0.30
+  root_cause_keywords:
+    - "DNS"
+    - "TTL"
+    - "connection"
+    - "pool"
+    - "GC"
+    - "resolve"
+  partial_credit_causes:
+    "connection storm": 0.8
+    "DNS cache": 0.85
+    "long GC pause": 0.15
+  evidence_keywords:
+    - "60"
+    - "TCP"
+    - "31 ms"
+
+available_tools:
+  - "trace_log_analyzer"
+  - "statistical_analyzer"
+max_tool_calls: 12
+
+source: >
+  Synthetic composite inspired by TaskFlow / Chaos Mesh DNS-chaos patterns
+  and a flawed GC-pause evaluation frame (NASA MDP-style misfame). No lab
+  runbook or proprietary GC log copied.
+source_url: "https://github.com/OnyiGlobal2025/taskflow-incident-lab"
+expert_validated: false
+tags:
+  - "software_systems"
+  - "dns"
+  - "gc"
+  - "distractor_heavy"
+author: "EpiDebug Team"
