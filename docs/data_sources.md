@@ -126,7 +126,7 @@ until domain review.
 | NASA lessons learned | RF-018, PL-013, FH-017 |
 | EuRoC MAV / Kalibr | RF-017, IN-018, FH-015 |
 | Coroot rca-lab / Chaos Mesh / TaskFlow incident lab | IN-020, IN-021, PL-014, FH-018 |
-| NASA MDP / PROMISE (evaluation misfame) | FH-018 |
+| NASA MDP / PROMISE (secondary frame on FH-018) | FH-010 (existing), FH-018 |
 | USGS / EPA CWA methods | RF-022, PL-016 |
 | SDNET-style civil field campaigns | RF-019, IN-022, FH-019 (plus existing FH-009, PL-007) |
 | ASM failure-analysis patterns | RF-020, PL-015, FH-020 |
