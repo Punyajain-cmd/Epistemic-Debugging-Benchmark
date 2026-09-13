@@ -1,0 +1,96 @@
+id: "PL-009"
+title: "Pressure-Test Leak from Skipped Star-Pattern Torque Sequence"
+version: "1.0"
+
+domain: "engineering"
+subdomain: "pressure_systems"
+failure_category: "protocol_human_loophole"
+difficulty: "medium"
+
+objective: >
+  Assemble a gasketed flange on a pressure test rig that must hold 12 bar nitrogen
+  for 30 minutes with pressure loss below 0.1 bar.
+
+protocol:
+  - step: 1
+    action: "Install new PTFE gasket and eight M10 flange bolts"
+    details: "Gasket, flange faces, and bolts are correct parts."
+  - step: 2
+    action: "Torque bolts to 42 Nm"
+    details: "SOP requires three passes in star pattern: 30%, 60%, then 100% torque."
+  - step: 3
+    action: "Perform pressure hold and leak spray test"
+    details: "A trainee tightened bolts clockwise in one full-torque pass."
+
+telemetry:
+  pressure_test:
+    description: "Pressure hold result"
+    data_type: "table"
+    values:
+      test: ["failed_initial", "after_retorque_star_pattern"]
+      start_pressure_bar: [12.0, 12.0]
+      pressure_after_30_min_bar: [10.9, 11.98]
+      leak_bubbles_observed: [true, false]
+    observations:
+      - "Leak disappears after loosening and retorquing with the proper sequence."
+  bolt_loads:
+    description: "Ultrasonic bolt load estimates after initial assembly"
+    data_type: "table"
+    values:
+      bolt: [1, 2, 3, 4, 5, 6, 7, 8]
+      clamp_load_kN: [31, 28, 24, 19, 15, 14, 18, 25]
+    observations:
+      - "Clamp load is uneven around the flange."
+
+contextual_clues:
+  - "The gasket material and dimensions match the drawing."
+  - "Flange faces pass flatness inspection."
+  - "The torque wrench calibration sticker is current."
+  - "The trainee thought final torque mattered more than tightening order."
+
+ground_truth:
+  root_cause: >
+    The flange leaked because the bolts were tightened clockwise in one pass instead
+    of gradually in a star pattern. Uneven gasket compression left a low-clamp sector
+    that leaked during pressure hold.
+  root_cause_category: "protocol_human_loophole"
+  causal_chain:
+    - "The trainee skipped the staged star-pattern torque sequence"
+    - "Clockwise full-torque tightening progressively distorted gasket compression"
+    - "Bolt clamp load became uneven around the flange"
+    - "One sector had insufficient gasket seating stress"
+    - "Nitrogen leaked through the low-clamp sector"
+    - "Retorquing in the required sequence equalized clamp load and stopped the leak"
+  intervention: >
+    Disassemble or relax the flange, inspect the gasket, then retorque in three
+    star-pattern passes with bolt-load verification. Repeat the pressure hold.
+  key_evidence:
+    - "Uneven bolt load pattern"
+    - "Correct parts and flatness"
+    - "Current torque wrench calibration"
+    - "Retorque sequence fixes the leak"
+  alternative_diagnoses:
+    - "Defective gasket"
+    - "Warped flange face"
+    - "Bad torque wrench calibration"
+  why_alternatives_fail:
+    "Defective gasket": "The same gasket seals after correct retorque."
+    "Warped flange face": "Flatness inspection passes."
+    "Bad torque wrench calibration": "Calibration is current and bolt-load pattern shows sequence error."
+  difficulty_justification: "Requires recognizing an unwritten-seeming craft step as causal despite correct final torque."
+
+scoring:
+  root_cause_keywords: ["torque sequence", "star pattern", "bolt", "clamp load", "gasket", "uneven"]
+  partial_credit_causes:
+    "uneven gasket compression": 0.75
+    "bad flange assembly": 0.6
+    "defective gasket": 0.25
+
+available_tools:
+  - "statistical_analyzer"
+max_tool_calls: 10
+
+source: "Synthetic composite based on pressure-system assembly troubleshooting"
+expert_validated: false
+tags: ["flange", "torque_sequence", "gasket", "pressure_test", "protocol"]
+author: "EpiDebug Team"

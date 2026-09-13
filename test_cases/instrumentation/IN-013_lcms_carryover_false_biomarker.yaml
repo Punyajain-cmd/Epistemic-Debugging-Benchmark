@@ -1,0 +1,98 @@
+id: "IN-013"
+title: "LC-MS Carryover Creates False Low-Level Biomarker Positives"
+version: "1.0"
+
+domain: "clinical"
+subdomain: "mass_spectrometry"
+failure_category: "instrumentation_artifact"
+difficulty: "medium"
+
+objective: >
+  Quantify a low-abundance drug metabolite in plasma samples by LC-MS/MS. Blank
+  samples should be below the lower limit of quantification.
+
+protocol:
+  - step: 1
+    action: "Inject calibration standards from high to low concentration"
+    details: "Highest standard is 5000 ng/mL, followed by blanks and study samples."
+  - step: 2
+    action: "Run the study batch with the validated gradient"
+    details: "Autosampler needle wash uses 50% methanol."
+  - step: 3
+    action: "Review blanks and reinject after stronger needle wash"
+    details: "A 90% acetonitrile/isopropanol wash is tested after unexpected positives."
+
+telemetry:
+  batch_sequence:
+    description: "Metabolite peak areas by injection position"
+    data_type: "table"
+    values:
+      injection: ["high_std", "blank_1", "blank_2", "sample_A", "blank_3", "sample_B"]
+      peak_area: [980000, 9200, 4700, 6100, 3900, 5200]
+    observations:
+      - "Blank peak area decays after the high standard."
+      - "Low-positive samples are near the carryover tail."
+  wash_test:
+    description: "Carryover after needle-wash change"
+    data_type: "table"
+    values:
+      wash: ["50_percent_methanol", "strong_organic"]
+      blank_after_high_std_peak_area: [9200, 220]
+      LLOQ_peak_area: [3000, 3000]
+    observations:
+      - "Strong organic wash pushes blank signal below LLOQ."
+
+contextual_clues:
+  - "The suspected biomarker is sticky and hydrophobic."
+  - "The high standard was injected before blanks rather than after blanks."
+  - "Retention time and product-ion ratio in blanks match the high standard."
+  - "Patient samples with positives cluster after high-concentration injections."
+
+ground_truth:
+  root_cause: >
+    The LC-MS/MS method has autosampler/needle carryover after high-concentration
+    standards. Residual analyte from the high standard appears in subsequent blanks
+    and nearby samples, creating false low-level biomarker positives.
+  root_cause_category: "instrumentation_artifact"
+  causal_chain:
+    - "A high-concentration standard was injected before blanks and study samples"
+    - "The sticky analyte remained in the needle or injection path"
+    - "The 50% methanol wash did not remove all residual analyte"
+    - "Residual analyte eluted in subsequent blank and sample injections"
+    - "Blank signal decayed with injection order and exceeded LLOQ"
+    - "Low-level study positives were artifacts of carryover"
+  intervention: >
+    Reorder the batch with blanks before high standards, use a strong organic
+    needle wash, and require blank-after-high-standard carryover below 20% of LLOQ.
+    Reinject affected samples after clean blanks to confirm true positives.
+  key_evidence:
+    - "Blank signal decays after high standard"
+    - "Strong wash eliminates blank signal"
+    - "False positives cluster after high injections"
+    - "Retention time and ion ratio match residual standard"
+  alternative_diagnoses:
+    - "True low-level biomarker is present in blanks"
+    - "Matrix effect suppresses internal standard"
+    - "Calibration curve is nonlinear"
+  why_alternatives_fail:
+    "True low-level biomarker is present in blanks": "Blank signal depends on injection order after high standards."
+    "Matrix effect suppresses internal standard": "The artifact appears in solvent blanks as well as samples."
+    "Calibration curve is nonlinear": "Changing needle wash removes the blank peaks without changing calibration model."
+  difficulty_justification: "Requires interpreting sequence-position effects rather than single-sample values."
+
+scoring:
+  root_cause_keywords: ["carryover", "LC-MS", "autosampler", "needle wash", "blank", "high standard"]
+  partial_credit_causes:
+    "sample carryover": 0.9
+    "contaminated blanks": 0.55
+    "calibration issue": 0.3
+
+available_tools:
+  - "spectrum_analyzer"
+  - "statistical_analyzer"
+max_tool_calls: 10
+
+source: "Synthetic composite based on LC-MS/MS bioanalytical validation failure modes"
+expert_validated: false
+tags: ["LCMS", "carryover", "clinical", "biomarker", "autosampler"]
+author: "EpiDebug Team"

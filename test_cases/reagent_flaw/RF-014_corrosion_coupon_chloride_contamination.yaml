@@ -1,0 +1,98 @@
+id: "RF-014"
+title: "Stainless Corrosion Coupons Fail from Chloride-Contaminated Rinse Water"
+version: "1.0"
+
+domain: "materials_science"
+subdomain: "corrosion_testing"
+failure_category: "reagent_material_flaw"
+difficulty: "medium"
+
+objective: >
+  Compare pitting resistance of 304 stainless coupons after passivation. Coupons
+  should show no visible pits after a 24-hour neutral salt-free humidity exposure.
+
+protocol:
+  - step: 1
+    action: "Passivate 304 stainless coupons in citric acid bath"
+    details: "Bath pH and concentration match the validated process."
+  - step: 2
+    action: "Rinse coupons in DI water and dry with filtered nitrogen"
+    details: "The DI skid had a resin cartridge replaced two days earlier."
+  - step: 3
+    action: "Expose coupons in humidity chamber for 24 hours"
+    details: "Chamber humidity is 85% RH at 35 degC."
+
+telemetry:
+  coupon_results:
+    description: "Post-exposure coupon observations"
+    data_type: "table"
+    values:
+      coupon_set: ["before_resin_change", "after_resin_change"]
+      visible_pits_per_coupon_mean: [0.2, 18.6]
+      surface_chloride_ug_cm2: [0.4, 12.8]
+    observations:
+      - "Pitting appears only after the DI resin cartridge change."
+      - "Failed coupons have high residual surface chloride."
+  water_qc:
+    description: "Rinse-water chemistry"
+    data_type: "table"
+    values:
+      sample: ["DI_before_change", "DI_after_change", "fresh_lab_DI"]
+      resistivity_Mohm_cm: [18.1, 17.9, 18.2]
+      chloride_ppm: [0.03, 4.6, 0.02]
+    observations:
+      - "Resistivity looks acceptable but chloride is high after the cartridge change."
+
+contextual_clues:
+  - "A mixed-bed DI cartridge was installed backwards after maintenance."
+  - "304 stainless is vulnerable to chloride-induced pitting."
+  - "The passivation bath titration and humidity chamber calibration both passed."
+  - "Coupons rinsed with fresh lab DI water do not pit."
+
+ground_truth:
+  root_cause: >
+    The DI rinse water was contaminated with chloride after a resin cartridge was
+    installed incorrectly. Chloride residue remained on passivated 304 stainless
+    coupons and drove localized pitting during humid exposure.
+  root_cause_category: "reagent_material_flaw"
+  causal_chain:
+    - "DI resin maintenance introduced chloride leakage into the rinse stream"
+    - "Coupons were rinsed in chloride-contaminated water"
+    - "Chloride residue remained on the stainless surface after drying"
+    - "In humid exposure, chloride broke down the passive film locally"
+    - "Localized corrosion pits formed despite correct passivation bath chemistry"
+  intervention: >
+    Re-rinse matched coupons with verified low-chloride DI water and with the
+    suspect rinse stream, then repeat humidity exposure. Confirm by ion
+    chromatography of rinse water and surface chloride swabs.
+  key_evidence:
+    - "Pitting starts only after DI maintenance"
+    - "Surface chloride is high on failed coupons"
+    - "Rinse resistivity is misleadingly normal while chloride is elevated"
+    - "Passivation bath and chamber checks pass"
+  alternative_diagnoses:
+    - "Citric acid passivation bath was exhausted"
+    - "Humidity chamber temperature was too high"
+    - "Wrong stainless alloy was supplied"
+  why_alternatives_fail:
+    "Citric acid passivation bath was exhausted": "Bath titration passed and failures track rinse-water change, not bath age."
+    "Humidity chamber temperature was too high": "Chamber calibration passed and clean-rinse coupons survive."
+    "Wrong stainless alloy was supplied": "All coupons come from the same certified 304 lot."
+  difficulty_justification: "Requires seeing that high resistivity does not rule out a specific chloride contamination failure."
+
+scoring:
+  root_cause_keywords: ["chloride", "DI water", "rinse", "contamination", "pitting", "resin"]
+  partial_credit_causes:
+    "contaminated rinse water": 0.85
+    "chloride pitting": 0.8
+    "bad passivation": 0.35
+
+available_tools:
+  - "material_properties"
+  - "statistical_analyzer"
+max_tool_calls: 10
+
+source: "Synthetic composite based on corrosion testing and passivation troubleshooting patterns"
+expert_validated: false
+tags: ["corrosion", "chloride", "stainless_steel", "DI_water", "pitting"]
+author: "EpiDebug Team"

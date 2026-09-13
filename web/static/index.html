@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>EpiDebug — dump the experiment</title>
+  <link rel="stylesheet" href="/assets/styles.css?v=3" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <p class="eyebrow">Epistemic debugging</p>
+      <h1>EpiDebug</h1>
+    </div>
+    <p class="lede">Put in everything you have from the lab or the shop. The engine keeps competing causes alive until the evidence decides.</p>
+    <div class="status" id="status">Loading…</div>
+  </header>
+
+  <main class="layout">
+    <section class="dossier" aria-label="Experiment dossier">
+      <h2>Your experiment</h2>
+      <p class="hint">Notes, photos, CAD, sensor files, logs, datasheets — whatever was produced while running the work.</p>
+
+      <label>What went wrong
+        <textarea id="unexpected" rows="4" placeholder="The CNC part is 0.18 mm undersize on the bore, the surface is smeared, and the last three batteries in the pack vented during 2C charge."></textarea>
+      </label>
+      <label>What you were trying to do
+        <textarea id="objective" rows="2" placeholder="Machine 6082-T6 housings to drawing REV C, then assemble a 6S2P pack for the rover."></textarea>
+      </label>
+
+      <div class="row2">
+        <label>Title
+          <input id="title" placeholder="Housing bore drift / pack venting" />
+        </label>
+        <label>Domain
+          <select id="domain">
+            <option value="">Not sure / mixed</option>
+            <option>machining</option>
+            <option>robotics</option>
+            <option>batteries / energy</option>
+            <option>aerospace</option>
+            <option>molecular_biology</option>
+            <option>chemistry</option>
+            <option>electronics</option>
+            <option>materials_science</option>
+            <option>civil_engineering</option>
+            <option>software_systems</option>
+            <option>other</option>
+          </select>
+        </label>
+      </div>
+
+      <label>Materials in play
+        <textarea id="materials" rows="2" placeholder="One item per line. Alloy, lot, resin, cell chemistry, fasteners, coolant…"></textarea>
+      </label>
+      <label>How it was processed / protocol
+        <textarea id="processing" rows="3" placeholder="Feeds and speeds, cure cycle, charge protocol, pipette steps, torque sequence…"></textarea>
+      </label>
+      <label>Setup — rig, CAD intent, environment
+        <textarea id="setup" rows="3" placeholder="Describe the physical setup, fixture, sensors, CAD revision, room conditions."></textarea>
+      </label>
+      <label>Sensor readings or observations you can type
+        <textarea id="telemetry" rows="3" placeholder="Paste numbers, error messages, or what you saw. Files below are better for long logs."></textarea>
+      </label>
+      <label>Anything else in the background
+        <textarea id="context" rows="2" placeholder="New operator, humidity, reused tool, leftover electrolyte bottle…"></textarea>
+      </label>
+
+      <div id="dropzone" class="dropzone" tabindex="0">
+        <strong>Drop files here</strong>
+        <span>or <label class="filepick">browse<input id="fileInput" type="file" multiple /></label></span>
+        <small>Photos, CAD (STEP/STL/DXF), CSV/JSON sensors, logs, PDFs, notebooks. 25 MB each.</small>
+      </div>
+      <div id="fileList" class="file-list"></div>
+
+      <div class="actions">
+        <button id="diagnoseBtn" class="primary" type="button">Run epistemic debugging</button>
+        <p class="error" id="formError" hidden></p>
+      </div>
+
+      <details class="examples">
+        <summary>Or start from a benchmark case</summary>
+        <div class="example-row">
+          <select id="caseSelect"></select>
+          <button id="diagnoseCase" type="button" class="ghost">Load and diagnose</button>
+        </div>
+      </details>
+    </section>
+
+    <section class="workspace" aria-live="polite">
+      <div id="emptyState" class="empty">
+        <h2>Nothing is diagnosed yet</h2>
+        <p>Fill in as much as you can on the left. Competing hypotheses, evidence for and against, and a follow-up experiment will appear here.</p>
+        <ul class="accepts" id="accepts"></ul>
+      </div>
+
+      <div id="busy" class="busy" hidden>Reading the dossier and ranking hypotheses…</div>
+
+      <div id="result" hidden>
+        <div class="hero">
+          <div>
+            <p class="eyebrow" id="caseMeta"></p>
+            <h2 id="leadTitle"></h2>
+            <p id="leadCause"></p>
+          </div>
+          <div class="confidence">
+            <span>Confidence in the lead</span>
+            <strong id="confidenceValue">—</strong>
+            <small id="uncertaintyNote"></small>
+          </div>
+        </div>
+
+        <article>
+          <h3>What was ingested</h3>
+          <div id="ingested" class="chips"></div>
+        </article>
+
+        <div class="grid">
+          <article>
+            <h3>Anomalies</h3>
+            <ul id="anomalies"></ul>
+          </article>
+          <article>
+            <h3>Still missing</h3>
+            <ul id="missing"></ul>
+          </article>
+        </div>
+
+        <article>
+          <h3>Competing hypotheses</h3>
+          <div id="hypotheses"></div>
+        </article>
+
+        <article>
+          <h3>Causal chain</h3>
+          <ol id="chain"></ol>
+        </article>
+
+        <article>
+          <h3>Discriminating follow-up</h3>
+          <p id="intervention"></p>
+          <p class="muted" id="interventionPred"></p>
+        </article>
+
+        <article class="hitl">
+          <h3>Stay in the loop</h3>
+          <div class="hitl-grid">
+            <div>
+              <label>Reject a hypothesis
+                <select id="rejectSelect"></select>
+              </label>
+              <label>Why <input id="rejectReason" placeholder="Does not match the green pellet / the CAD revision" /></label>
+              <button type="button" id="rejectBtn" class="ghost">Reject and re-rank</button>
+            </div>
+            <div>
+              <label>Add a measurement or note
+                <textarea id="addInfo" rows="3" placeholder="Bore gauge 11.82 mm; drawing says 12.00"></textarea>
+              </label>
+              <button type="button" id="addInfoBtn" class="ghost">Incorporate</button>
+            </div>
+            <div>
+              <label>Attach more files
+                <input id="moreFiles" type="file" multiple />
+              </label>
+              <button type="button" id="moreFilesBtn" class="ghost">Add to this diagnosis</button>
+              <label>Follow-up you ran <input id="fuIntervention" /></label>
+              <label>What happened <input id="fuOutcome" /></label>
+              <button type="button" id="followupBtn" class="ghost">Feed the outcome back</button>
+            </div>
+          </div>
+        </article>
+      </div>
+    </section>
+  </main>
+  <script src="/assets/app.js?v=3"></script>
+</body>
+</html>

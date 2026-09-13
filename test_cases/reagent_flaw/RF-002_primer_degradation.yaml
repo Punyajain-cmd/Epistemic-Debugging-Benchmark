@@ -1,0 +1,119 @@
+id: "RF-002"
+title: "PCR Primer Degradation from Improper Storage"
+version: "1.0"
+domain: "molecular_biology"
+subdomain: "PCR"
+failure_category: "reagent_material_flaw"
+difficulty: "easy"
+
+objective: |
+  Amplify an 850 bp fragment of the human BRCA1 gene exon 11 from genomic DNA
+  using PCR for subsequent cloning into pGEM-T Easy vector. Expected: strong single
+  band at 850 bp on agarose gel.
+
+protocol:
+  - step: 1
+    action: "Prepare PCR master mix on ice"
+    details: "1× Taq buffer, 1.5 mM MgCl2, 200 µM each dNTP, 0.5 µM each primer, 1U Taq polymerase, 50 ng genomic DNA template"
+  - step: 2
+    action: "Use forward and reverse primers from working stock"
+    details: "Working stocks (10 µM) prepared 4 months ago, stored at 4°C. Stock has been freeze-thawed ~15 times."
+  - step: 3
+    action: "Set up 3 reactions: sample, positive control (fresh primers), negative control (no template)"
+  - step: 4
+    action: "Run PCR: 95°C/3min → 35 cycles of (95°C/30s, 58°C/30s, 72°C/1min) → 72°C/5min"
+  - step: 5
+    action: "Run 5 µL of each reaction on 1.5% agarose gel with SYBR Safe"
+    details: "1× TAE buffer, 100V for 45 minutes"
+  - step: 6
+    action: "Image gel under UV transilluminator"
+
+telemetry:
+  gel_image:
+    description: "1.5% agarose gel electrophoresis results"
+    data_type: "text"
+    observations:
+      - "Lane M: 1 kb DNA ladder — all bands sharp and clear"
+      - "Lane 1 (Sample, old primers): NO visible bands at all"
+      - "Lane 2 (Sample repeat, old primers): NO visible bands"
+      - "Lane 3 (Positive control, fresh primers): Strong single band at ~850 bp"
+      - "Lane 4 (No-template control): Clean, no bands"
+    note: "Fresh primers amplify perfectly; old primers completely fail"
+  nanodrop_template:
+    description: "Template DNA quality check"
+    data_type: "numeric"
+    observations:
+      - "Concentration: 125 ng/µL"
+      - "A260/280 = 1.87 (good quality)"
+      - "A260/230 = 2.1 (no contaminants)"
+    values: [125.0, 1.87, 2.1]
+    units: "ng/µL, ratio, ratio"
+  thermocycler_log:
+    description: "PCR machine performance log"
+    data_type: "text"
+    observations:
+      - "All temperature targets reached within ±0.1°C"
+      - "Lid temperature maintained at 105°C"
+      - "Run completed without errors"
+      - "Machine serviced and calibrated 2 weeks ago"
+
+contextual_clues:
+  - "Primer working stocks (10 µM in TE) were prepared 4 months ago and stored at 4°C, not -20°C"
+  - "The primer tubes have been freeze-thawed approximately 15 times"
+  - "A lab mate recently used the same genomic DNA template successfully with different primers"
+  - "The Taq polymerase is from a new lot, received last week"
+  - "The PCR machine was recently serviced and recalibrated"
+
+ground_truth:
+  root_cause: "PCR primers degraded due to improper storage — diluted working stocks (10 µM) stored at 4°C for 4 months with ~15 freeze-thaw cycles. Oligonucleotide primers at low concentration in aqueous solution degrade via depurination and hydrolysis at 4°C over months."
+  root_cause_category: "reagent_material_flaw"
+  causal_chain:
+    - "Primer working stocks (10 µM) were stored at 4°C instead of -20°C"
+    - "At 4°C, dilute oligonucleotides undergo slow depurination and phosphodiester hydrolysis"
+    - "Multiple freeze-thaw cycles (~15) further accelerated degradation"
+    - "After 4 months, primers are substantially degraded — shortened fragments and modified bases"
+    - "Degraded primers cannot anneal specifically to template at the annealing temperature"
+    - "No amplification occurs — blank gel lanes"
+    - "Fresh primers from concentrated frozen stock work perfectly, confirming primer-specific failure"
+  intervention: "Order fresh primers or prepare new working stocks from the concentrated frozen master stock (-20°C). Rerun PCR with fresh working stocks. If amplification succeeds, primer degradation is confirmed."
+  key_evidence:
+    - "Fresh primers work perfectly (positive control) — template, polymerase, and machine are fine"
+    - "No-template control is clean — no contamination issues"
+    - "Old primer storage conditions (4°C, 4 months, 15 freeze-thaws) are known to cause degradation"
+  alternative_diagnoses:
+    - "Template DNA degradation"
+    - "Taq polymerase inactive"
+    - "PCR machine malfunction"
+    - "Primer design error (wrong Tm, non-specific binding)"
+  why_alternatives_fail:
+    "Template DNA degradation": "Same template works with fresh primers. Nanodrop shows good quality (A260/280=1.87)."
+    "Taq polymerase inactive": "Positive control with fresh primers amplified successfully using the same master mix."
+    "PCR machine malfunction": "Temperature log shows all targets reached. Machine recently calibrated."
+    "Primer design error (wrong Tm, non-specific binding)": "Primers worked previously with this same protocol. Design is validated."
+  difficulty_justification: "Straightforward once the positive control result is noticed — the differential diagnosis between old primers and fresh primers makes the root cause obvious. Rated easy because the control experiment directly isolates the variable."
+
+scoring:
+  weights:
+    root_cause: 0.30
+    causal_chain: 0.40
+    intervention: 0.30
+  root_cause_keywords:
+    - "primer"
+    - "degradation"
+    - "storage"
+    - "freeze-thaw"
+  partial_credit_causes:
+    "primer quality issue": 0.75
+    "old primers": 0.75
+    "reagent degradation": 0.5
+
+available_tools:
+  - "pcr_thermocycler"
+  - "gel_imager"
+  - "spectrophotometer"
+max_tool_calls: 10
+
+source: "Common PCR troubleshooting scenario documented in molecular biology manuals and primer manufacturer guidelines"
+expert_validated: false
+tags: ["PCR", "primers", "degradation", "storage", "molecular_biology"]
+author: "EpiDebug Team"

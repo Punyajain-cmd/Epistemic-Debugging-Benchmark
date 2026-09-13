@@ -1,0 +1,87 @@
+{
+  "benchmark": "epidebug",
+  "version": "0.1.0",
+  "model": "oracle",
+  "mode": "text",
+  "timestamp": "2026-09-10T17:22:41.535701+00:00",
+  "total_cases": 1,
+  "reference_model": true,
+  "results": [
+    {
+      "test_case_id": "RF-001",
+      "model": "oracle",
+      "mode": "text",
+      "run_index": 0,
+      "timestamp": "2026-09-10T17:22:41.535634+00:00",
+      "response": {
+        "model_name": "oracle",
+        "test_case_id": "RF-001",
+        "mode": "text",
+        "root_cause": "Lysis buffer pH drifted from 8.0 to approximately 6.5 due to CO2 absorption from the nearby incubator over 3 weeks of storage at room temperature. At pH 6.5, the histidine residues in the 6xHis-tag become protonated and cannot coordinate Ni2+ ions, causing the protein to flow through the column.",
+        "causal_chain": [
+          "Tris-HCl lysis buffer was prepared and left at room temperature for 3 weeks",
+          "The nearby CO2 incubator vented CO2 into the ambient air on the bench",
+          "Atmospheric CO2 dissolved into the buffer: CO2 + H2O \u00e2\u2020\u2019 H2CO3 (carbonic acid)",
+          "Carbonic acid overwhelmed the Tris buffering capacity, lowering pH from 8.0 to ~6.5",
+          "At pH 6.5, the imidazole side chains of the 6xHis-tag become protonated (pKa ~6.0)",
+          "Protonated histidine residues cannot coordinate Ni2+ ions on the NTA resin",
+          "The His-tagged protein flowed through the column without binding",
+          "Result: very low yield (0.3 mg vs expected 5+ mg) and poor purity in elution fractions"
+        ],
+        "intervention": "Re-prepare fresh lysis buffer from stock solutions, verify pH = 8.0 with a freshly calibrated pH meter immediately before use. Rerun the entire purification with the fresh buffer. If yield recovers to >5 mg/L at >90% purity, the diagnosis is confirmed.",
+        "raw_response": "### Root Cause\nLysis buffer pH drifted from 8.0 to approximately 6.5 due to CO2 absorption from the nearby incubator over 3 weeks of storage at room temperature. At pH 6.5, the histidine residues in the 6xHis-tag become protonated and cannot coordinate Ni2+ ions, causing the protein to flow through the column.\n\n### Causal Chain\n1. Tris-HCl lysis buffer was prepared and left at room temperature for 3 weeks\n2. The nearby CO2 incubator vented CO2 into the ambient air on the bench\n3. Atmospheric CO2 dissolved into the buffer: CO2 + H2O \u00e2\u2020\u2019 H2CO3 (carbonic acid)\n4. Carbonic acid overwhelmed the Tris buffering capacity, lowering pH from 8.0 to ~6.5\n5. At pH 6.5, the imidazole side chains of the 6xHis-tag become protonated (pKa ~6.0)\n6. Protonated histidine residues cannot coordinate Ni2+ ions on the NTA resin\n7. The His-tagged protein flowed through the column without binding\n8. Result: very low yield (0.3 mg vs expected 5+ mg) and poor purity in elution fractions\n\n### Intervention\nRe-prepare fresh lysis buffer from stock solutions, verify pH = 8.0 with a freshly calibrated pH meter immediately before use. Rerun the entire purification with the fresh buffer. If yield recovers to >5 mg/L at >90% purity, the diagnosis is confirmed.\n",
+        "tool_calls": [],
+        "total_tokens": null,
+        "latency_seconds": null,
+        "confidence": null,
+        "competing_hypotheses": [],
+        "supporting_evidence": [],
+        "contradictory_evidence": [],
+        "missing_information": []
+      },
+      "score": {
+        "test_case_id": "RF-001",
+        "model_name": "oracle",
+        "mode": "text",
+        "root_cause_score": {
+          "score": 1.0,
+          "weight": 0.3,
+          "weighted_score": 0.3,
+          "rationale": "Root cause correctly identified \u2014 key terms match ground truth."
+        },
+        "causal_chain_score": {
+          "score": 1.0,
+          "weight": 0.4,
+          "weighted_score": 0.4,
+          "rationale": "Causal chain covers most key mechanistic steps."
+        },
+        "intervention_score": {
+          "score": 1.0,
+          "weight": 0.3,
+          "weighted_score": 0.3,
+          "rationale": "Intervention targets the correct variable and would test the diagnosis."
+        },
+        "final_score": 1.0,
+        "trajectory": {
+          "tool_calls_made": 0,
+          "tool_calls_budget": 15,
+          "tool_efficiency": null,
+          "budget_compliant": true,
+          "anti_patterns": []
+        },
+        "epistemic": {
+          "evidence_grounding": 0.085,
+          "calibration_error": 0.0,
+          "confirmation_bias": 0.8,
+          "hypothesis_diversity": 0.333,
+          "missing_info_quality": 1.0
+        }
+      },
+      "metadata": {
+        "reference_model": true,
+        "total_tokens": null,
+        "latency_seconds": 0.0
+      }
+    }
+  ]
+}

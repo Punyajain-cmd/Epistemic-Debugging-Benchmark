@@ -1,0 +1,100 @@
+id: "FH-010"
+title: "Software Defect Predictor Fails After Release Because Random Split Leaked Time"
+version: "1.0"
+
+domain: "software_systems"
+subdomain: "software_defect_prediction"
+failure_category: "flawed_hypothesis"
+difficulty: "hard"
+
+objective: >
+  Train a module-level defect predictor from static code metrics so QA can
+  prioritize files likely to contain post-release bugs in the next software release.
+
+protocol:
+  - step: 1
+    action: "Collect static metrics and defect labels from eight historical releases"
+    details: "Metrics include complexity, churn, prior defects, and size."
+  - step: 2
+    action: "Randomly split all module-release rows into train and test sets"
+    details: "Rows from the same module in later releases can appear in training while earlier releases appear in test."
+  - step: 3
+    action: "Deploy model to release 9"
+    details: "Offline random-split AUC is 0.91, but release-9 AUC is 0.58."
+
+telemetry:
+  model_performance:
+    description: "Performance by evaluation design"
+    data_type: "table"
+    values:
+      evaluation: ["random_row_split", "release_time_split", "future_release_9"]
+      AUC: [0.91, 0.64, 0.58]
+      precision_at_20_percent: [0.72, 0.34, 0.29]
+    observations:
+      - "Performance collapses when evaluated on future releases."
+  leakage_audit:
+    description: "Temporal leakage audit"
+    data_type: "table"
+    values:
+      test_rows_with_same_module_future_training_row_percent: 46
+      features_computed_after_label_window: ["prior_defects_rolling", "post_release_churn"]
+      duplicated_module_ids_across_splits_percent: 83
+    observations:
+      - "Random split lets module identity and future information leak into training."
+
+contextual_clues:
+  - "The team assumed IID rows, but the real deployment is chronological."
+  - "Several features were computed from the full repository history rather than only past history."
+  - "Release 9 introduced a new subsystem with little historical data."
+  - "NASA/PROMISE-style module metrics inspired the feature set, but not the deployment split."
+
+ground_truth:
+  root_cause: >
+    The evaluation hypothesis was flawed: a random row split estimated interpolation
+    over leaked module/time information, not prediction of future defects. Temporal
+    leakage and module duplication inflated offline performance, so the model failed
+    on the next release.
+  root_cause_category: "flawed_hypothesis"
+  causal_chain:
+    - "The actual task is predicting defects in future releases"
+    - "Rows were randomly split across releases instead of split chronologically"
+    - "The same module appeared in both train and test across nearby releases"
+    - "Some features used information from after the label window"
+    - "The model learned module identity and future-correlated leakage"
+    - "Random-split AUC was inflated"
+    - "Release-9 deployment removed the leakage and performance collapsed"
+  intervention: >
+    Recompute features using only information available before each release, evaluate
+    with rolling-origin time splits, and report release-held-out metrics. Use this
+    protocol before comparing models or deploying triage thresholds.
+  key_evidence:
+    - "Random split AUC is high but chronological and future-release AUC are poor"
+    - "46% of test rows have same-module future rows in training"
+    - "Some features are computed after the label window"
+    - "Real deployment is chronological"
+  alternative_diagnoses:
+    - "The classifier family is too weak"
+    - "Static code metrics are useless"
+    - "Release 9 labels are wrong"
+  why_alternatives_fail:
+    "The classifier family is too weak": "The main performance gap tracks evaluation design, not model family."
+    "Static code metrics are useless": "They may help modestly under time splits; the issue is inflated random-split claims."
+    "Release 9 labels are wrong": "Chronological validation before release 9 already shows collapse."
+  difficulty_justification: "Hard because the reported metric looks excellent unless the deployment target is examined."
+
+scoring:
+  root_cause_keywords: ["temporal leakage", "random split", "future", "defect", "release", "module"]
+  partial_credit_causes:
+    "data leakage": 0.85
+    "invalid evaluation split": 0.8
+    "domain shift": 0.45
+
+available_tools:
+  - "statistical_analyzer"
+max_tool_calls: 12
+
+source: "Synthetic composite inspired by NASA MDP/PROMISE software defect prediction datasets"
+source_url: "https://github.com/klainfo/NASADefectDataset"
+expert_validated: false
+tags: ["software_defect_prediction", "temporal_leakage", "evaluation", "PROMISE"]
+author: "EpiDebug Team"

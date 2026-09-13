@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EpiDebug Benchmark Report</title>
+    <style>
+        :root {
+            --bg-primary: #0f0f1a;
+            --bg-secondary: #1a1a2e;
+            --bg-card: #16213e;
+            --accent: #00d4ff;
+            --accent-secondary: #7b2ff7;
+            --text-primary: #e0e0ff;
+            --text-secondary: #8888aa;
+            --success: #00e676;
+            --warning: #ffab00;
+            --error: #ff5252;
+            --border: rgba(255, 255, 255, 0.08);
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+        }
+
+        .container { max-width: 1200px; margin: 0 auto; padding: 2rem; }
+
+        header {
+            text-align: center;
+            padding: 3rem 2rem;
+            background: linear-gradient(135deg, var(--bg-secondary), var(--bg-card));
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 2rem;
+        }
+
+        header h1 {
+            font-size: 2.5rem;
+            background: linear-gradient(135deg, var(--accent), var(--accent-secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 0.5rem;
+        }
+
+        header .subtitle { color: var(--text-secondary); font-size: 1.1rem; }
+
+        .meta-bar {
+            display: flex;
+            gap: 2rem;
+            justify-content: center;
+            margin-top: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        .meta-item {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 0.5rem 1.2rem;
+            border-radius: 8px;
+            font-size: 0.9rem;
+        }
+
+        .meta-item span { color: var(--accent); font-weight: 600; }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1.5rem;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 212, 255, 0.1);
+        }
+
+        .card h3 {
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-secondary);
+            margin-bottom: 0.5rem;
+        }
+
+        .card .value {
+            font-size: 2.5rem;
+            font-weight: 700;
+        }
+
+        .score-good { color: var(--success); }
+        .score-mid { color: var(--warning); }
+        .score-low { color: var(--error); }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1.5rem 0;
+            background: var(--bg-card);
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        th {
+            background: var(--bg-secondary);
+            padding: 1rem;
+            text-align: left;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-secondary);
+        }
+
+        td {
+            padding: 0.8rem 1rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        tr:last-child td { border-bottom: none; }
+        tr:hover td { background: rgba(255, 255, 255, 0.02); }
+
+        .bar-container {
+            width: 100%;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .bar {
+            height: 100%;
+            border-radius: 4px;
+            transition: width 0.3s ease;
+        }
+
+        .category-section {
+            margin: 2rem 0;
+            padding: 1.5rem;
+            background: var(--bg-card);
+            border-radius: 12px;
+            border: 1px solid var(--border);
+        }
+
+        .category-section h2 {
+            font-size: 1.3rem;
+            margin-bottom: 1rem;
+            color: var(--accent);
+        }
+
+        .category-bar {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin: 0.8rem 0;
+        }
+
+        .category-bar .label {
+            min-width: 180px;
+            font-size: 0.9rem;
+        }
+
+        .category-bar .bar-container { flex: 1; }
+        .category-bar .score-value { min-width: 50px; text-align: right; font-weight: 600; }
+
+        footer {
+            text-align: center;
+            padding: 2rem;
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            border-top: 1px solid var(--border);
+            margin-top: 3rem;
+        }
+
+        @media (max-width: 768px) {
+            .container { padding: 1rem; }
+            header h1 { font-size: 1.8rem; }
+            .grid { grid-template-columns: 1fr; }
+        }
+    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <header>
+        <h1>🔬 EpiDebug Benchmark Report</h1>
+        <p class="subtitle">Epistemic Debugging — Can AI diagnose why experiments fail?</p>
+        <div class="meta-bar">
+            <div class="meta-item">Model: <span>epidebug-engine</span></div><div class="meta-item">Mode: <span>text</span></div><div class="meta-item">Cases: <span>19</span></div><div class="meta-item">Avg Score: <span>0.18</span></div>
+        </div>
+    </header>
+
+    <div class="container">
+        <!-- Overview Cards -->
+        <div class="grid">
+            
+        <div class="card">
+            <h3>Overall Score</h3>
+            <div class="value score-low">0.18</div>
+        </div>
+        <div class="card">
+            <h3>Root Cause ID (30%)</h3>
+            <div class="value score-mid">0.51</div>
+        </div>
+        <div class="card">
+            <h3>Causal Chain (40%)</h3>
+            <div class="value score-low">0.04</div>
+        </div>
+        <div class="card">
+            <h3>Intervention (30%)</h3>
+            <div class="value score-low">0.03</div>
+        </div>
+    
+        </div>
+
+        <!-- Category Breakdown -->
+        <div class="category-section">
+            <h2>📊 Performance by Failure Category</h2>
+            
+        <div class="category-bar">
+            <div class="label">Flawed Hypothesis</div>
+            <div class="bar-container">
+                <div class="bar" style="width: 15.0%; background: linear-gradient(90deg, #ff5252, #d50000);"></div>
+            </div>
+            <div class="score-value score-low">0.15</div>
+        </div>
+        
+        <div class="category-bar">
+            <div class="label">Instrumentation Artifact</div>
+            <div class="bar-container">
+                <div class="bar" style="width: 17.5%; background: linear-gradient(90deg, #ff5252, #d50000);"></div>
+            </div>
+            <div class="score-value score-low">0.17</div>
+        </div>
+        
+        <div class="category-bar">
+            <div class="label">Protocol/Human Loophole</div>
+            <div class="bar-container">
+                <div class="bar" style="width: 15.5%; background: linear-gradient(90deg, #ff5252, #d50000);"></div>
+            </div>
+            <div class="score-value score-low">0.15</div>
+        </div>
+        
+        <div class="category-bar">
+            <div class="label">Reagent/Material Flaw</div>
+            <div class="bar-container">
+                <div class="bar" style="width: 23.000000000000004%; background: linear-gradient(90deg, #ff5252, #d50000);"></div>
+            </div>
+            <div class="score-value score-low">0.23</div>
+        </div>
+        
+        </div>
+
+        <!-- Detailed Results Table -->
+        <div class="category-section">
+            <h2>📋 Detailed Results</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Case ID</th>
+                        <th>Title</th>
+                        <th>Category</th>
+                        <th>Root Cause</th>
+                        <th>Causal Chain</th>
+                        <th>Intervention</th>
+                        <th>Final Score</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    
+        <tr>
+            <td><strong>FH-003</strong></td>
+            <td>FH-003</td>
+            <td>FH</td>
+            <td class="score-good">0.75</td>
+            <td class="score-low">0.00</td>
+            <td class="score-low">0.00</td>
+            <td class="score-low"><strong>0.23</strong></td>
+        </tr>
+        
+        <tr>
+            <td><strong>FH-005</strong></td>
+            <td>FH-005</td>
+            <td>FH</td>
+            <td class="score-low">0.25</td>
+            <td class="score-low">0.00</td>
+            <td class="score-low">0.00</td>
+            <td class="score-low"><strong>0.07</strong></td>
+        </tr>
+        
+        <tr>
+            <td><strong>FH-009</strong></td>
+            <td>FH-009</td>
+            <td>FH</td>
+            <td class="score-mid">0.50</td>
+            <td class="score-low">0.00</td>
+            <td class="score-low">0.00</td>
+            <td class="score-low"><strong>0.15</strong></td>
+        </tr>
+        
+        <tr>
+            <td><strong>FH-010</strong></td>
+            <td>FH-010</td>
+            <td>FH</td>
+            <td class="score-mid">0.50</td>
+            <td class="score-low">0.00</td>
+            <td class="score-low">0.00</td>
+            <td class="score-low"><strong>0.15</strong></td>
+        </tr>
+        
+        <tr>
+            <td><strong>FH-011</strong></td>
+            <td>FH-011</td>
+            <td>FH</td>
+            <td class="score-mid">0.50</td>
+            <td class="score-low">0.00</td>
+            <td class="score-low">0.00</td>
+            <td class="score-low"><strong>0.15</strong></td>
+        </tr>
+        
+        <tr>
+            <td><strong>IN-001</strong></td>
+            <td>IN-001</td>
+            <td>IN</td>
+            <td class="score-mid">0.50</td>
+            <td class="score-low">0.25</td>
+            <td class="score-low">0.00</td>
+            <td class="score-low"><strong>0.25</strong></td>
+        </tr>
+        
+        <tr>
+            <td><strong>IN-005</strong></td>
+            <td>IN-005</td>
+            <td>IN</td>
+            <td class="score-mid">0.50</td>
+            <td class="score-low">0.00</td>
+            <td class="score-low">0.00</td>
+            <td class="score-low"><strong>0.15</strong></td>
+        </tr>
+        
+        <tr>
+            <td><strong>IN-007</strong></td>
+            <td>IN-007</td>
+            <td>IN</td>
+            <td class="score-mid">0.50</td>
+            <td class="score-low">0.00</td>
+            <td class="score-low">0.00</td>
+            <td class="score-low"><strong>0.15</strong></td>
+        </tr>
+        
+        <tr>
+            <td><strong>IN-009</strong></td>
+            <td>IN-009</td>
+            <td>IN</td>
+            <td class="score-mid">0.50</td>
+            <td class="score-low">0.00</td>
+            <td class="score-low">0.00</td>
+            <td class="score-low"><strong>0.15</strong></td>
+        </tr>
+        
+        <tr>
+            <td><strong>PL-001</strong></td>
+            <td>PL-001</td>
+            <td>PL</td>
+            <td class="score-good">0.75</td>
+            <td class="score-low">0.00</td>
+            <td class="score-low">0.00</td>
+            <td class="score-low"><strong>0.23</strong></td>
+        </tr>
+        
+        <tr>
+            <td><strong>PL-004</strong></td>
+            <td>PL-004</td>
+            <td>PL</td>
+            <td class="score-mid">0.50</td>
+            <td class="score-low">0.00</td>
+            <td class="score-low">0.00</td>
+            <td class="score-low"><strong>0.15</strong></td>
+        </tr>
+        
+        <tr>
+            <td><strong>PL-006</strong></td>
+            <td>PL-006</td>
+            <td>PL</td>
+            <td class="score-mid">0.50</td>
+            <td class="score-low">0.25</td>
+            <td class="score-low">0.00</td>
+            <td class="score-low"><strong>0.25</strong></td>
+        </tr>
+        
+        <tr>
+            <td><strong>PL-007</strong></td>
+            <td>PL-007</td>
+            <td>PL</td>
+            <td class="score-low">0.25</td>
+            <td class="score-low">0.00</td>
+            <td class="score-low">0.00</td>
+            <td class="score-low"><strong>0.07</strong></td>
+        </tr>
+        
+        <tr>
+            <td><strong>PL-008</strong></td>
+            <td>PL-008</td>
+            <td>PL</td>
+            <td class="score-low">0.25</td>
+            <td class="score-low">0.00</td>
+            <td class="score-low">0.00</td>
+            <td class="score-low"><strong>0.07</strong></td>
+        </tr>
+        
+        <tr>
+            <td><strong>RF-001</strong></td>
+            <td>RF-001</td>
+            <td>RF</td>
+            <td class="score-good">0.75</td>
+            <td class="score-low">0.25</td>
+            <td class="score-low">0.25</td>
+            <td class="score-mid"><strong>0.40</strong></td>
+        </tr>
+        
+        <tr>
+            <td><strong>RF-002</strong></td>
+            <td>RF-002</td>
+            <td>RF</td>
+            <td class="score-mid">0.50</td>
+            <td class="score-low">0.00</td>
+            <td class="score-low">0.25</td>
+            <td class="score-low"><strong>0.23</strong></td>
+        </tr>
+        
+        <tr>
+            <td><strong>RF-004</strong></td>
+            <td>RF-004</td>
+            <td>RF</td>
+            <td class="score-good">0.75</td>
+            <td class="score-low">0.00</td>
+            <td class="score-low">0.00</td>
+            <td class="score-low"><strong>0.23</strong></td>
+        </tr>
+        
+        <tr>
+            <td><strong>RF-009</strong></td>
+            <td>RF-009</td>
+            <td>RF</td>
+            <td class="score-low">0.25</td>
+            <td class="score-low">0.00</td>
+            <td class="score-low">0.00</td>
+            <td class="score-low"><strong>0.07</strong></td>
+        </tr>
+        
+        <tr>
+            <td><strong>RF-010</strong></td>
+            <td>RF-010</td>
+            <td>RF</td>
+            <td class="score-good">0.75</td>
+            <td class="score-low">0.00</td>
+            <td class="score-low">0.00</td>
+            <td class="score-low"><strong>0.23</strong></td>
+        </tr>
+        
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Component Score Breakdown -->
+        <div class="category-section">
+            <h2>🎯 Component Score Distribution</h2>
+            
+        <div class="category-bar">
+            <div class="label">Root Cause Identification</div>
+            <div class="bar-container">
+                <div class="bar" style="width: 51.31578947368421%; background: linear-gradient(90deg, #ffab00, #ff9100);"></div>
+            </div>
+            <div class="score-value score-mid">0.51</div>
+        </div>
+        
+        <div class="category-bar">
+            <div class="label">Causal Chain Reasoning</div>
+            <div class="bar-container">
+                <div class="bar" style="width: 3.9473684210526314%; background: linear-gradient(90deg, #ff5252, #d50000);"></div>
+            </div>
+            <div class="score-value score-low">0.04</div>
+        </div>
+        
+        <div class="category-bar">
+            <div class="label">Intervention Strategy</div>
+            <div class="bar-container">
+                <div class="bar" style="width: 2.631578947368421%; background: linear-gradient(90deg, #ff5252, #d50000);"></div>
+            </div>
+            <div class="score-value score-low">0.03</div>
+        </div>
+        
+        </div>
+    </div>
+
+    <footer>
+        <p>Generated by EpiDebug v0.1.0 on 2026-09-10 22:53:12</p>
+    </footer>
+</body>
+</html>

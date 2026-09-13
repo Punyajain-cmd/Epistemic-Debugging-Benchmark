@@ -1,0 +1,183 @@
+id: PL-010
+title: Distractor-Heavy Overnight Culture Failure
+version: '1.0'
+domain: molecular_biology
+subdomain: protein_expression
+failure_category: protocol_human_loophole
+difficulty: hard
+objective: 'Express recombinant T7-tagged protease (48 kDa) in E. coli BL21(DE3) for
+
+  enzymatic activity assays. Need at least 2 mg purified protein from 500 mL culture.
+
+  Overnight starter culture should reach OD600 > 2.0.
+
+  '
+protocol:
+- step: 1
+  action: Retrieve glycerol stock from -80°C freezer
+  details: 'Tube label: BL21(DE3)/pET-protease, made 2022-03-15'
+- step: 2
+  action: Inoculate 5 mL LB + 100 µg/mL ampicillin with glycerol stock
+  details: Used a sterile pipette tip to scrape the TOP of the frozen glycerol stock
+    and dropped tip into media
+  notes: Glycerol stock was not vortexed or mixed before sampling
+- step: 3
+  action: Incubate overnight at 37°C, 220 rpm
+- step: 4
+  action: Check OD600 of overnight culture next morning
+- step: 5
+  action: Inoculate 500 mL LB + ampicillin at 1:100 dilution from overnight culture
+  details: Added 5 mL of overnight culture to 500 mL fresh media
+- step: 6
+  action: Grow at 37°C, 220 rpm, monitoring OD600 every 30 minutes
+- step: 7
+  action: Wait for OD600 = 0.6 for IPTG induction
+- step: 8
+  action: After 8 hours, OD600 still only 0.08 — decided to induce anyway
+  details: Added 0.5 mM IPTG
+- step: 9
+  action: Continued incubation for 4 more hours
+- step: 10
+  action: Harvested cells — very small pellet
+telemetry:
+  overnight_od:
+    description: OD600 of overnight starter culture
+    data_type: numeric
+    values:
+    - 0.12
+    units: AU
+    note: Expected OD600 > 2.0 for saturated overnight culture. Measured 0.12 — culture
+      barely grew.
+    expected_range:
+      min: 2.0
+      max: 5.0
+  growth_curve:
+    description: OD600 readings of 500 mL main culture over time
+    data_type: timeseries
+    values:
+    - 0.001
+    - 0.003
+    - 0.005
+    - 0.008
+    - 0.012
+    - 0.018
+    - 0.025
+    - 0.035
+    - 0.045
+    - 0.06
+    - 0.08
+    units: AU (readings every 30 min for 5.5 hours)
+    note: Extremely slow growth. Expected to reach OD 0.6 by hour 3-4.
+    expected_range:
+      min: 0.0
+      max: 0.6
+  sds_page:
+    description: SDS-PAGE of induced culture
+    data_type: text
+    observations:
+    - 'Lane 1 (Uninduced): Barely visible protein bands — too few cells'
+    - 'Lane 2 (Induced, 4h): Barely visible bands, no obvious overexpressed band at
+      48 kDa'
+    - 'Lane 3 (Positive control from previous prep): Clear overexpressed band at 48
+      kDa'
+  media_sterility:
+    description: LB media sterility check
+    data_type: text
+    observations:
+    - Uninoculated LB control remained clear after 24h at 37°C
+    - Media pH was 7.0 ± 0.1
+    - Ampicillin was from freshly thawed aliquot, stored at -20°C
+contextual_clues:
+- The glycerol stock was NOT vortexed before sampling — researcher scraped from the
+  top of the frozen stock
+- Glycerol stocks are 25% glycerol in LB — glycerol is denser and settles, cells concentrate
+  at the bottom when frozen
+- The same glycerol stock was used successfully 6 months ago (by a different lab member
+  who vortexed it)
+- Ampicillin was verified active — a control plate showed expected colony sizes
+- The incubator temperature was verified at 37.0°C
+ground_truth:
+  root_cause: The researcher did not vortex the glycerol stock before inoculating.
+    In a bacterial glycerol stock, cells settle to the bottom during freezing because
+    glycerol (density ~1.26 g/mL) is denser than LB. Sampling from the top of the
+    frozen stock transferred mostly glycerol with very few bacterial cells, resulting
+    in an extremely low starting inoculum.
+  root_cause_category: protocol_human_loophole
+  causal_chain:
+  - Glycerol stock was retrieved from -80°C without vortexing or mixing
+  - In frozen glycerol stocks, cells sediment to the bottom; top layer is mostly glycerol
+  - Researcher scraped from the top, transferring mostly glycerol with very few cells
+  - Extremely low starting inoculum in 5 mL overnight culture
+  - Overnight culture reached only OD 0.12 instead of expected >2.0
+  - 1:100 dilution into 500 mL gave starting OD of ~0.001
+  - Main culture grew extremely slowly — only reached OD 0.08 after 8 hours
+  - Induction at OD 0.08 produced negligible protein — too few cells
+  intervention: Thaw a new aliquot of the same glycerol stock, vortex thoroughly for
+    10-15 seconds to fully resuspend cells, then inoculate a fresh overnight culture.
+    If overnight culture reaches OD > 2.0 and subsequent expression yields the expected
+    protein, the diagnosis is confirmed.
+  key_evidence:
+  - Overnight culture OD was only 0.12 (expected >2.0) — inoculation problem
+  - Cells that DID grow were viable (viability >85%) — not a toxicity/antibiotic issue
+  - Same glycerol stock worked before (when vortexed)
+  - Media and antibiotics verified OK
+  - 'Protocol step 2 notes: scraped from TOP without mixing'
+  alternative_diagnoses:
+  - Glycerol stock is dead — no viable cells
+  - Ampicillin killed the cells
+  - Contaminated media
+  - Incubator malfunction
+  why_alternatives_fail:
+    Glycerol stock is dead — no viable cells: Same stock worked 6 months ago. The
+      culture DID grow, just very slowly — some cells were transferred. Complete death
+      would show zero growth.
+    Ampicillin killed the cells: Ampicillin verified from fresh aliquot. Control plate
+      shows normal growth. Ampicillin doesn't kill cells at standard concentration
+      — it prevents growth of non-resistant cells.
+    Contaminated media: Uninoculated control stayed clear after 24h. pH was correct.
+    Incubator malfunction: Temperature verified at 37.0°C. Other lab members' cultures
+      grew normally in the same incubator.
+  difficulty_justification: The true clue (scraping the top of an unmixed glycerol
+    stock) is still in the protocol, but many vivid distractors compete for attention.
+scoring:
+  weights:
+    root_cause: 0.3
+    causal_chain: 0.4
+    intervention: 0.3
+  root_cause_keywords:
+  - vortex
+  - glycerol
+  - mixing
+  - top
+  - sedimentation
+  - inoculum
+  partial_credit_causes:
+    low inoculum: 0.5
+    inoculation error: 0.75
+    too few cells transferred: 0.75
+available_tools:
+- cell_counter
+- gel_imager
+- spectrophotometer
+max_tool_calls: 12
+source: Common lab technique error documented in microbiology best practices guides
+expert_validated: false
+tags:
+- glycerol_stock
+- inoculation
+- E_coli
+- protein_expression
+- technique_error
+- distractor_heavy
+author: EpiDebug Team
+information_regime: distractor_heavy
+split: development
+red_herrings:
+- A new brand of baffled flasks was used for the 500 mL culture
+- The lab autoclave had a failed cycle two days earlier on a different load
+- Someone mentioned a possible mycoplasma scare in a neighboring mammalian-cell room
+- The OD600 spectrophotometer lamp hours are at 85 percent of rated life
+- The building HVAC was serviced the same morning, briefly changing room temperature
+  by 2 C
+- Ampicillin powder was from a bottle opened last quarter, but a fresh aliquot was
+  used

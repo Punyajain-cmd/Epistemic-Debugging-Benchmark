@@ -1,0 +1,109 @@
+id: "RF-012"
+title: "Lithium-Ion Coin Cell Capacity Fade from Water-Contaminated Electrolyte"
+version: "1.0"
+
+domain: "energy"
+subdomain: "battery_testing"
+failure_category: "reagent_material_flaw"
+difficulty: "hard"
+
+objective: >
+  Build graphite/NMC coin cells to compare a new formation protocol against the
+  lab baseline. Expected first-cycle coulombic efficiency is above 88% and capacity
+  retention should remain above 95% after 20 cycles.
+
+protocol:
+  - step: 1
+    action: "Assemble CR2032 coin cells in an argon glovebox"
+    details: "Electrolyte: 1 M LiPF6 in EC:DEC, opened bottle from the shared battery lab."
+  - step: 2
+    action: "Run formation at C/20 for two cycles, then cycle at C/2"
+    details: "Cells from the previous electrolyte bottle passed the same protocol."
+  - step: 3
+    action: "Measure impedance and inspect electrolyte bottle history"
+    details: "Glovebox oxygen remains below 0.5 ppm; water sensor logged a short 18 ppm excursion during bottle transfer."
+
+telemetry:
+  cycling_results:
+    description: "Coin-cell cycling summary"
+    data_type: "table"
+    values:
+      cell: ["new_protocol_1", "new_protocol_2", "baseline_control"]
+      first_cycle_efficiency_percent: [72.4, 74.1, 73.6]
+      capacity_retention_cycle20_percent: [81.2, 79.8, 80.5]
+      gas_pouch_observed: [true, true, true]
+    observations:
+      - "Both new-protocol and baseline-control cells fail, so the protocol change is not unique to the failure."
+  impedance:
+    description: "Electrochemical impedance after formation"
+    data_type: "table"
+    values:
+      cell: ["failed_batch_mean", "historical_good_mean"]
+      interfacial_resistance_ohm: [186, 42]
+      charge_transfer_resistance_ohm: [310, 98]
+    observations:
+      - "Failed cells show high interfacial resistance immediately after formation."
+  reagent_log:
+    description: "Electrolyte and glovebox history"
+    data_type: "text"
+    observations:
+      - "Electrolyte bottle was opened 11 times over 6 weeks."
+      - "Karl Fischer titration of remaining electrolyte reads 143 ppm water."
+      - "Fresh unopened electrolyte from the same supplier reads 18 ppm water."
+
+contextual_clues:
+  - "LiPF6 electrolyte hydrolyzes in the presence of water and can form HF."
+  - "The glovebox water sensor excursion happened only during transfer of the shared electrolyte bottle."
+  - "Fresh electrolyte assembled under the same protocol later recovers normal first-cycle efficiency."
+  - "Separator, electrodes, coin-cell hardware, and crimper settings are unchanged."
+
+ground_truth:
+  root_cause: >
+    The shared LiPF6 electrolyte bottle was water-contaminated. Moisture hydrolyzed
+    LiPF6 and produced acidic decomposition products, degrading the SEI and increasing
+    interfacial resistance. This caused gas generation, poor first-cycle efficiency,
+    and rapid capacity fade across both baseline and new-protocol cells.
+  root_cause_category: "reagent_material_flaw"
+  causal_chain:
+    - "The electrolyte bottle was repeatedly opened and exposed during transfers"
+    - "Water content rose to about 143 ppm"
+    - "Water reacted with LiPF6 to produce acidic decomposition products"
+    - "The contaminated electrolyte formed an unstable SEI on graphite"
+    - "Interfacial resistance and gas generation increased during formation"
+    - "Cells lost lithium inventory and capacity retention fell by cycle 20"
+  intervention: >
+    Assemble matched cells with freshly opened low-water electrolyte and with the
+    suspect bottle while keeping electrodes, separator, crimping, and formation
+    protocol fixed. Confirm by Karl Fischer water measurement and recovery of
+    first-cycle efficiency with fresh electrolyte.
+  key_evidence:
+    - "Baseline and new-protocol cells both fail"
+    - "Karl Fischer water is high in the suspect electrolyte"
+    - "Failed cells show high interfacial resistance and gas"
+    - "Fresh electrolyte restores normal behavior"
+  alternative_diagnoses:
+    - "The new formation protocol is too aggressive"
+    - "Electrode coating quality changed"
+    - "Glovebox oxygen poisoned the cells"
+  why_alternatives_fail:
+    "The new formation protocol is too aggressive": "Baseline-control cells using the old protocol failed in the same batch."
+    "Electrode coating quality changed": "Same electrode roll gives normal results with fresh electrolyte."
+    "Glovebox oxygen poisoned the cells": "Oxygen stayed below 0.5 ppm and the water measurement points to the electrolyte bottle."
+  difficulty_justification: "Requires connecting battery chemistry, reagent history, impedance, and controls."
+
+scoring:
+  root_cause_keywords: ["electrolyte", "water", "moisture", "LiPF6", "HF", "contamination"]
+  partial_credit_causes:
+    "wet electrolyte": 0.9
+    "moisture contamination": 0.85
+    "bad formation protocol": 0.25
+
+available_tools:
+  - "statistical_analyzer"
+max_tool_calls: 12
+
+source: "Synthetic composite inspired by NASA battery prognostics and common lithium-ion cell assembly failures"
+source_url: "https://www.nasa.gov/intelligent-systems-division/discovery-and-systems-health/pcoe/pcoe-data-set-repository/"
+expert_validated: false
+tags: ["battery", "electrolyte", "water_contamination", "LiPF6", "impedance"]
+author: "EpiDebug Team"

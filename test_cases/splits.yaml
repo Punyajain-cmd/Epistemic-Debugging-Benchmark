@@ -1,0 +1,46 @@
+version: "0.2.0"
+description: >
+  Evaluation splits for EpiDebug. Core cases are the original validated starter
+  set. Development cases add incomplete, noisy, distractor, and ambiguous
+  regimes. Held-out cases are reserved for final model comparison.
+
+core:
+  - RF-001
+  - RF-002
+  - RF-004
+  - RF-009
+  - RF-010
+  - IN-001
+  - IN-005
+  - IN-007
+  - IN-009
+  - PL-001
+  - PL-004
+  - PL-006
+  - PL-007
+  - PL-008
+  - FH-003
+  - FH-005
+  - FH-009
+  - FH-010
+  - FH-011
+
+development:
+  - RF-015
+  - IN-015
+  - PL-010
+  - FH-014
+
+held_out:
+  - RF-011
+  - RF-012
+  - RF-013
+  - RF-014
+  - IN-011
+  - IN-012
+  - IN-013
+  - IN-014
+  - IN-016
+  - PL-009
+  - FH-012
+  - FH-013

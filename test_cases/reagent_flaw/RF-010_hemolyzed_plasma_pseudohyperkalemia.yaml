@@ -1,0 +1,165 @@
+id: "RF-010"
+title: "Hemolyzed Plasma Samples Create False Hyperkalemia Signal"
+version: "1.0"
+
+domain: "clinical"
+subdomain: "blood_chemistry"
+failure_category: "reagent_material_flaw"
+difficulty: "easy"
+
+objective: >
+  Monitor serum potassium as a safety biomarker in a small clinical pharmacology
+  study. The investigational drug should not increase potassium above 5.5 mmol/L.
+  On dosing day 3, six participants appear to exceed the stopping threshold even
+  though they are asymptomatic.
+
+protocol:
+  - step: 1
+    action: "Collect venous blood into lithium-heparin plasma tubes"
+    details: "Samples collected at baseline and 4 hours after dosing."
+    notes: "The morning phlebotomy team used standard collection tubes from the same lot as prior days."
+
+  - step: 2
+    action: "Transport samples from clinic to central lab"
+    details: "Baseline samples were hand-carried. Day 3 post-dose samples were sent by pneumatic tube during a staffing shortage."
+    notes: "The pneumatic tube route has multiple bends and a long vertical drop."
+
+  - step: 3
+    action: "Centrifuge and analyze plasma chemistry panel"
+    details: "Analyzer reports potassium, LDH, AST, creatinine, and hemolysis index."
+    notes: "Several post-dose tubes waited 70-90 minutes before centrifugation."
+
+  - step: 4
+    action: "Repeat blood draw for three flagged participants"
+    details: "Repeat samples are hand-carried, processed within 25 minutes, and analyzed on the same instrument."
+    notes: "Repeat potassium values are normal and ECGs show no hyperkalemia changes."
+
+telemetry:
+  potassium_results:
+    description: "Potassium values from baseline, affected post-dose, and repeat samples"
+    data_type: "table"
+    values:
+      participant: ["P03", "P07", "P11", "P14", "P18", "P22"]
+      baseline_mmol_L: [4.1, 4.3, 4.0, 4.2, 4.4, 4.1]
+      day3_postdose_mmol_L: [6.2, 6.5, 6.8, 6.1, 6.4, 6.3]
+      repeat_handcarried_mmol_L: [4.2, 4.1, 4.3, null, null, null]
+    expected_range:
+      min: 3.5
+      max: 5.1
+    observations:
+      - "Affected post-dose potassium values are high enough to trigger the stopping rule."
+      - "Repeat hand-carried samples normalize without any clinical intervention."
+
+  specimen_quality:
+    description: "Specimen quality indicators for affected samples"
+    data_type: "table"
+    values:
+      participant: ["P03", "P07", "P11", "P14", "P18", "P22"]
+      hemolysis_index: [91, 105, 118, 96, 110, 99]
+      centrifugation_delay_minutes: [72, 81, 88, 76, 85, 79]
+      transport_method: ["pneumatic_tube", "pneumatic_tube", "pneumatic_tube", "pneumatic_tube", "pneumatic_tube", "pneumatic_tube"]
+    observations:
+      - "All affected samples have high hemolysis index values."
+      - "All affected samples were transported through the pneumatic tube system."
+      - "Processing delays were much longer than on prior days."
+
+  correlated_analytes:
+    description: "Other chemistry values that move with hemolysis"
+    data_type: "table"
+    values:
+      analyte: ["LDH_U_L", "AST_U_L", "creatinine_mg_dL", "sodium_mmol_L"]
+      baseline_mean: [154, 23, 0.82, 139]
+      affected_sample_mean: [512, 68, 0.84, 140]
+      repeat_sample_mean: [161, 24, 0.83, 139]
+    observations:
+      - "LDH and AST rise in affected samples, consistent with red-cell rupture."
+      - "Creatinine and sodium do not show a drug-like systemic shift."
+
+  clinical_check:
+    description: "Clinical status of flagged participants"
+    data_type: "text"
+    observations:
+      - "Participants are asymptomatic."
+      - "ECGs show no peaked T waves, QRS widening, or rhythm abnormalities."
+      - "No participant received potassium-lowering treatment before repeat samples normalized."
+
+contextual_clues:
+  - "Red blood cells contain much higher intracellular potassium than plasma."
+  - "The day 3 post-dose samples were sent through a pneumatic tube because the courier was unavailable."
+  - "The analyzer flags hemolysis index values above 20 as potentially interfering with potassium interpretation."
+  - "The investigational drug has no known renal potassium-handling mechanism from preclinical studies."
+  - "The same chemistry analyzer passed quality control that morning."
+
+ground_truth:
+  root_cause: >
+    The high potassium signal is caused by hemolyzed plasma specimens, not true
+    drug-induced hyperkalemia. Pneumatic tube transport and delayed centrifugation
+    ruptured red blood cells, releasing intracellular potassium into plasma. The
+    analyzer therefore reported pseudohyperkalemia in the affected samples.
+  root_cause_category: "reagent_material_flaw"
+  causal_chain:
+    - "Day 3 post-dose blood tubes were transported through a rough pneumatic tube route"
+    - "Several tubes also waited 70-90 minutes before centrifugation"
+    - "Mechanical stress and delayed processing caused red blood cell hemolysis"
+    - "Hemolyzed red cells released intracellular potassium, LDH, and AST into plasma"
+    - "The chemistry analyzer measured elevated potassium in the compromised specimens"
+    - "Participants had normal ECGs and repeat hand-carried samples normalized"
+    - "The apparent safety signal was pseudohyperkalemia from sample damage"
+  intervention: >
+    Recollect blood from affected participants using gentle venipuncture, hand-carry
+    tubes to the lab, centrifuge within 30 minutes, and reject or annotate samples
+    with hemolysis index above 20 for potassium interpretation. If potassium returns
+    to baseline while hemolysis index, LDH, and AST normalize, the diagnosis is
+    confirmed.
+  key_evidence:
+    - "All affected samples have high hemolysis index values"
+    - "Affected samples were transported by pneumatic tube and processed late"
+    - "LDH and AST rise with potassium, consistent with red-cell rupture"
+    - "Repeat hand-carried samples normalize without treatment"
+    - "ECGs and symptoms do not match severe true hyperkalemia"
+  alternative_diagnoses:
+    - "The investigational drug caused true hyperkalemia"
+    - "The chemistry analyzer calibration failed"
+    - "Participants had acute kidney injury"
+    - "The collection tube lot was contaminated with potassium"
+  why_alternatives_fail:
+    "The investigational drug caused true hyperkalemia": "Repeat potassium normalized without stopping the drug or giving treatment, and ECGs were normal."
+    "The chemistry analyzer calibration failed": "Quality control passed and repeat hand-carried samples on the same analyzer were normal."
+    "Participants had acute kidney injury": "Creatinine is unchanged from baseline."
+    "The collection tube lot was contaminated with potassium": "Baseline and repeat samples from the same tube lot were normal."
+  difficulty_justification: >
+    Easy difficulty: the hemolysis index, pneumatic tube transport, correlated LDH/AST
+    changes, and normal recollection together make a strong pre-analytical artifact
+    signal.
+
+scoring:
+  weights:
+    root_cause: 0.30
+    causal_chain: 0.40
+    intervention: 0.30
+  root_cause_keywords:
+    - "hemolysis"
+    - "hemolyzed"
+    - "potassium"
+    - "sample"
+    - "pseudohyperkalemia"
+    - "pneumatic"
+  partial_credit_causes:
+    "sample handling artifact": 0.7
+    "pre-analytical error": 0.75
+    "blood sample damaged": 0.8
+
+available_tools:
+  - "clinical_sample_checker"
+  - "statistical_analyzer"
+max_tool_calls: 10
+
+source: "Synthetic composite inspired by clinical laboratory pre-analytical sample-quality failures"
+expert_validated: false
+tags:
+  - "clinical"
+  - "sample_quality"
+  - "hemolysis"
+  - "pseudohyperkalemia"
+  - "pre_analytical_error"
+author: "EpiDebug Team"

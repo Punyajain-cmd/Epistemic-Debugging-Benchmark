@@ -1,0 +1,286 @@
+id: "PL-004"
+title: "Schlenk Line Hairline Crack Causes Suzuki Coupling Failure via Catalyst Oxidation"
+version: "1.0"
+
+domain: chemistry
+subdomain: organometallic_catalysis
+failure_category: protocol_human_loophole
+difficulty: hard
+
+objective: >
+  Perform a Suzuki-Miyaura cross-coupling reaction between 4-bromoanisole and
+  phenylboronic acid using Pd(PPh3)4 as catalyst and K2CO3 as base in a
+  THF/H2O solvent system to synthesize 4-methoxybiphenyl in >85% yield.
+
+protocol:
+  - step: 1
+    action: "Assembled Schlenk flask apparatus on dual-manifold Schlenk line"
+    details: "Used a 100 mL two-neck round-bottom flask with a magnetic stir bar, reflux condenser, and rubber septum. Connected to Schlenk line via ground-glass joint."
+    duration: "10 min"
+    notes: "Schlenk line has been in use for 3 years. Last full maintenance was 8 months ago. Stopcock grease was last refreshed 4 months ago."
+
+  - step: 2
+    action: "Performed three vacuum-nitrogen purge cycles to establish inert atmosphere"
+    details: "Evacuated flask to ~50 mTorr, then backfilled with dry N2. Repeated 3× total. Manifold pressure gauge read 50, 52, 48 mTorr on successive evacuations."
+    duration: "15 min"
+    notes: "Vacuum readings appeared normal. Researcher did not perform a static vacuum leak test (holding under vacuum with line closed and monitoring pressure rise)."
+
+  - step: 3
+    action: "Added 4-bromoanisole (1.0 mmol, 187 mg) and phenylboronic acid (1.3 mmol, 159 mg) via syringe under N2 counterflow"
+    details: "Reagents dissolved in 5 mL dry THF, transferred via oven-dried syringe through septum."
+    duration: "5 min"
+
+  - step: 4
+    action: "Added Pd(PPh3)4 catalyst (3 mol%, 35 mg) under N2 counterflow"
+    details: "Catalyst taken from a freshly opened bottle stored in glovebox. Bright yellow color confirmed catalyst quality."
+    duration: "3 min"
+    notes: "Solution turned bright yellow immediately upon catalyst addition — consistent with active Pd(0) complex."
+
+  - step: 5
+    action: "Added degassed aqueous K2CO3 solution (2.0 M, 1.5 mL, 3.0 mmol) via syringe"
+    details: "K2CO3 solution was degassed by sparging with N2 for 15 min before use."
+    duration: "3 min"
+    notes: "Solution became biphasic (THF/aqueous) as expected."
+
+  - step: 6
+    action: "Heated reaction mixture to 70°C under N2 atmosphere with stirring"
+    details: "Used an oil bath with digital temperature controller. Stirring rate: 600 rpm."
+    duration: "1 min to reach temperature"
+    notes: "Solution initially bright yellow. Maintained N2 positive pressure via Schlenk line connection."
+
+  - step: 7
+    action: "Monitored reaction progress by TLC at 1, 3, 6, 12, and 18 hours"
+    details: "TLC plates: Merck silica gel 60 F254. Eluent: 9:1 hexanes/EtOAc. Visualization: UV 254 nm."
+    duration: "10 min per timepoint"
+    notes: "Withdrew ~20 µL aliquots via syringe through septum for TLC analysis."
+
+  - step: 8
+    action: "Observed color change during reaction course"
+    details: "0h: bright yellow; 3h: yellow-orange; 6h: orange-brown; 12h: dark brown; 18h: dark brown-black with fine black precipitate visible."
+    duration: "18 h total reaction time"
+    notes: "The darkening suggests Pd catalyst decomposition. Black precipitate is likely Pd(0) nanoparticles or Pd black."
+
+  - step: 9
+    action: "Quenched reaction by cooling to room temperature and adding 10 mL water"
+    details: "Removed from oil bath, allowed to cool under N2 for 10 min."
+    duration: "15 min"
+
+  - step: 10
+    action: "Extracted product with ethyl acetate (3 × 15 mL), dried over MgSO4, filtered, concentrated"
+    details: "Combined organic layers were pale yellow. Concentrated by rotary evaporation at 40°C."
+    duration: "30 min"
+    notes: "Crude mass: 45 mg (crude yield estimation ~24% if all product)"
+
+  - step: 11
+    action: "Analyzed crude product by TLC and 1H-NMR"
+    details: "1H-NMR in CDCl3, 400 MHz Bruker spectrometer."
+    duration: "45 min"
+    notes: "NMR shows mostly starting material (4-bromoanisole) with trace product peaks"
+
+  - step: 12
+    action: "Attempted column chromatography purification"
+    details: "Silica gel column, 9:1 hexanes/EtOAc eluent. Collected 5 mL fractions."
+    duration: "1 h"
+    notes: "Isolated 8 mg of 4-methoxybiphenyl product (4.3% yield) and 152 mg recovered 4-bromoanisole (81% recovery)."
+
+telemetry:
+  tlc_timecourse:
+    description: "TLC analysis at multiple timepoints showing reaction progress"
+    data_type: table
+    values:
+      timepoint_hours: [1, 3, 6, 12, 18]
+      starting_material_rf: [0.55, 0.55, 0.55, 0.55, 0.55]
+      product_rf: [0.42, 0.42, 0.42, 0.42, 0.42]
+      sm_intensity: ["strong", "strong", "strong", "strong", "strong"]
+      product_intensity: ["not detected", "faint", "faint", "very faint", "very faint"]
+      baseline_spot: ["none", "none", "faint", "moderate", "moderate"]
+    observations:
+      - "Starting material spot remains strong throughout, indicating very little conversion"
+      - "Product spot (Rf 0.42) appears faintly at 3h but does not increase — reaction stalls"
+      - "Baseline spot appears at 6h, growing by 18h — consistent with catalyst decomposition products (Pd black, phosphine oxides)"
+      - "Expected result: starting material consumed by 6-8h with strong product spot"
+
+  reaction_color_log:
+    description: "Visual color observations of reaction mixture over time"
+    data_type: text
+    observations:
+      - "t=0h: Bright yellow, characteristic of active Pd(PPh3)4 in solution"
+      - "t=1h: Yellow, still normal"
+      - "t=3h: Yellow-orange, slight darkening beginning"
+      - "t=6h: Orange-brown, significant color change"
+      - "t=12h: Dark brown, fine suspended particles visible"
+      - "t=18h: Dark brown-black with visible black precipitate settling on flask walls"
+    note: >
+      The progressive darkening from yellow to black is diagnostic of Pd(0) catalyst
+      decomposition. In a successful reaction, the solution remains yellow to light
+      orange throughout. The black precipitate is Pd black — metallic palladium
+      aggregates that are catalytically inactive.
+
+  nmr_crude:
+    description: "1H-NMR analysis of crude product mixture (400 MHz, CDCl3)"
+    data_type: text
+    observations:
+      - "δ 7.53-7.49 (m, 2H) — trace 4-methoxybiphenyl product ArH"
+      - "δ 7.42-7.38 (m, 2H) — 4-bromoanisole ArH (major)"
+      - "δ 6.88-6.84 (m, 2H) — overlapping ArH from both SM and product"
+      - "δ 3.83 (s, 3H) — OCH3 (predominantly starting material based on integration)"
+      - "Ratio of SM to product estimated as >15:1 by integration of diagnostic peaks"
+      - "Small broad peaks at δ 7.3-7.6 suggest trace amounts of triphenylphosphine oxide (O=PPh3)"
+    note: "Triphenylphosphine oxide (O=PPh3) at δ 7.3-7.6 is a direct indicator of phosphine ligand oxidation, which occurs when Pd(PPh3)4 is exposed to oxygen"
+
+  vacuum_readings:
+    description: "Schlenk line vacuum readings during setup"
+    data_type: numeric
+    values:
+      cycle_1_mTorr: 50
+      cycle_2_mTorr: 52
+      cycle_3_mTorr: 48
+    units: "mTorr"
+    expected_range:
+      min: 10
+      max: 30
+    observations:
+      - "All three evacuation cycles reached only ~50 mTorr instead of the expected <30 mTorr for a well-sealed Schlenk line"
+      - "The consistently elevated base pressure suggests a slow leak somewhere in the vacuum system"
+      - "No static vacuum hold test was performed to confirm system integrity"
+    note: "A well-maintained Schlenk line with proper grease seals should reach 10-30 mTorr. Readings of 48-52 mTorr suggest a slow leak, likely at a stopcock or joint."
+
+  isolated_yield:
+    description: "Isolated yield of 4-methoxybiphenyl product after column chromatography"
+    data_type: numeric
+    values:
+      - 4.3
+    units: "percent"
+    expected_range:
+      min: 85
+      max: 98
+    observations:
+      - "Isolated yield of 4.3% (8 mg) is catastrophically low — expected >85%"
+      - "81% of starting material was recovered unreacted"
+      - "Mass balance: 81% SM + 4.3% product + ~15% unaccounted (likely catalyst decomposition products lost on baseline during column)"
+
+  schlenk_line_inspection:
+    description: "Post-reaction visual inspection of Schlenk line components"
+    data_type: text
+    observations:
+      - "Stopcock #3 (connected to reaction flask) shows dried/cracked grease at the bore interface"
+      - "Hairline gap visible between glass barrel and stopcock plug when transilluminated"
+      - "Other stopcocks (1, 2, 4) appear properly greased"
+      - "All ground-glass joints on the reaction flask were well-greased and showed no visible gaps"
+
+contextual_clues:
+  - "The Schlenk line was last fully serviced (stopcocks regreased, vacuum tested) 8 months ago. Lab policy recommends service every 3 months."
+  - "The same Schlenk line was used successfully for a Grignard reaction last week by a postdoc, but Grignard reactions are less sensitive to trace O2 than Pd-catalyzed cross-couplings."
+  - "The THF was freshly distilled from sodium/benzophenone still and tested dry by ketyl color (deep blue-purple). Solvent quality is not the issue."
+  - "A new cylinder of N2 (99.999% UHP grade) was installed two weeks ago. The regulator and tubing connections were pressure-tested and found leak-free."
+  - "The lab recently had HVAC maintenance that caused slight positive air pressure in the room, which could exacerbate any small leaks in the vacuum system."
+
+ground_truth:
+  root_cause: >
+    A hairline crack in the stopcock grease seal on the Schlenk line (stopcock #3,
+    connected to the reaction flask) allowed slow diffusion of atmospheric oxygen
+    into the nominally inert reaction environment. The Pd(PPh3)4 catalyst, which
+    requires strict anaerobic conditions, was progressively oxidized: first the
+    triphenylphosphine ligands were oxidized to triphenylphosphine oxide (O=PPh3),
+    stripping the ligands from Pd. The resulting unligated Pd(0) then aggregated
+    into catalytically inactive Pd black nanoparticles.
+  root_cause_category: protocol_human_loophole
+  causal_chain:
+    - "Stopcock #3 grease on the Schlenk line dried and cracked over 8 months without maintenance, creating a hairline channel between the bore and plug"
+    - "During vacuum-N2 purge cycles, the leak was too slow to detect at the manifold gauge (~50 mTorr base pressure vs expected 10-30 mTorr, a subtle sign)"
+    - "Once the reaction was running at 70°C with N2 flow, the slight positive room air pressure from HVAC and thermal gradients slowly pushed O2 through the stopcock crack"
+    - "O2 diffusing into the reaction headspace dissolved into the THF/aqueous solvent system and contacted the Pd(PPh3)4 catalyst"
+    - "Triphenylphosphine ligands on Pd(PPh3)4 were oxidized to O=PPh3, progressively stripping the catalyst of its stabilizing ligands"
+    - "Unligated Pd(0) atoms aggregated into Pd black nanoparticles (visible as black precipitate), which are catalytically inactive for cross-coupling"
+    - "Without active catalyst, the Suzuki coupling could not proceed — 81% starting material was recovered unreacted with only 4.3% trace product formed in the initial period before catalyst decomposition"
+  intervention: >
+    (1) Perform a static vacuum leak test: evacuate the Schlenk line to base pressure,
+    isolate from the pump, and monitor pressure rise over 10 minutes — a well-sealed
+    system should show <5 mTorr rise, a leaking system will show continuous pressure increase.
+    (2) Regrease all stopcocks with fresh Apiezon H grease and retest.
+    (3) Repeat the Suzuki coupling on the serviced Schlenk line with fresh Pd(PPh3)4.
+    As a positive control, run a parallel reaction in a properly tested glovebox to confirm
+    the reagents and protocol are otherwise correct.
+  key_evidence:
+    - "Vacuum base pressure of 48-52 mTorr is above the expected 10-30 mTorr range, suggesting a system leak"
+    - "Progressive color change from yellow to black over 18h is diagnostic of Pd(0) catalyst decomposition via ligand oxidation and Pd black formation"
+    - "1H-NMR shows trace triphenylphosphine oxide (O=PPh3) — direct chemical evidence of oxygen exposure"
+    - "Post-reaction inspection revealed dried/cracked grease and a visible hairline gap on stopcock #3"
+    - "81% recovery of starting material rules out side reactions — the reaction simply did not proceed"
+    - "TLC shows reaction stalling after 3h rather than going to completion, consistent with gradual catalyst death"
+  alternative_diagnoses:
+    - "Catalyst batch was pre-decomposed or improperly stored"
+    - "Boronic acid was degraded (protodeboronation)"
+    - "Base (K2CO3) was insufficiently strong or quantity was wrong"
+    - "Solvent (THF) contained peroxides that oxidized the catalyst"
+  why_alternatives_fail:
+    "Catalyst batch was pre-decomposed or improperly stored": >
+      The Pd(PPh3)4 was taken from a freshly opened bottle stored in the glovebox and
+      was bright yellow — the correct color for active catalyst. Decomposed Pd(PPh3)4
+      appears brown or grey. The initial bright yellow color and the fact that trace
+      product (4.3%) did form both confirm the catalyst was active at the start.
+    "Boronic acid was degraded (protodeboronation)": >
+      Protodeboronation would consume the boronic acid and produce benzene, not recover
+      81% of the aryl bromide starting material. If boronic acid degradation were the issue,
+      TLC would show diminishing boronic acid spot (Rf ~0.1) rather than persistent
+      starting material. Also, protodeboronation is slow under these mild conditions.
+    "Base (K2CO3) was insufficiently strong or quantity was wrong": >
+      K2CO3 is the standard base for Suzuki couplings and 3.0 equivalents is within
+      the optimal range. An insufficient base would slow the reaction but not cause
+      the diagnostic Pd black formation. The black precipitate and O=PPh3 in NMR
+      point specifically to oxidative decomposition, not base-related issues.
+    "Solvent (THF) contained peroxides that oxidized the catalyst": >
+      The THF was freshly distilled from sodium/benzophenone and verified by deep
+      blue-purple ketyl color, which is destroyed by peroxides or water. Peroxide-free
+      THF from a properly maintained still is confirmed by this test.
+  difficulty_justification: >
+    This is a hard case because the leak is subtle — vacuum readings are only slightly
+    elevated (50 mTorr vs expected 30 mTorr), which could be dismissed as normal
+    variation. The reaction does produce trace product, suggesting the system was
+    partially working. Diagnosing the specific failure point requires knowledge of
+    Pd catalyst decomposition pathways and the ability to interpret the progressive
+    color change and O=PPh3 NMR evidence. The stopcock inspection is the confirmatory
+    evidence but would only be checked by someone who suspects an atmosphere breach.
+
+scoring:
+  weights:
+    root_cause: 0.30
+    causal_chain: 0.40
+    intervention: 0.30
+  root_cause_keywords:
+    - "Schlenk"
+    - "stopcock"
+    - "leak"
+    - "oxygen"
+    - "atmosphere"
+    - "grease"
+    - "seal"
+    - "inert"
+    - "Pd"
+    - "catalyst"
+    - "oxidation"
+  partial_credit_causes:
+    "oxygen exposure caused catalyst decomposition": 0.7
+    "catalyst decomposed during reaction": 0.4
+    "Pd black formation from air exposure": 0.6
+    "inert atmosphere was compromised": 0.6
+
+available_tools:
+  - "vacuum_gauge"
+  - "tlc_plate_reader"
+  - "nmr_spectrometer"
+  - "schlenk_line_inspector"
+  - "pressure_leak_tester"
+
+mock_data_refs: []
+max_tool_calls: 20
+
+source: "Composite — based on synthetic chemistry troubleshooting literature (Organometallics, JACS) and common Schlenk technique failure modes documented in Shriver & Drezdzon 'The Manipulation of Air-Sensitive Compounds'"
+tags:
+  - "suzuki_coupling"
+  - "palladium_catalysis"
+  - "schlenk_technique"
+  - "inert_atmosphere"
+  - "catalyst_decomposition"
+  - "air_sensitive"
+author: "EpiDebug Benchmark Team"

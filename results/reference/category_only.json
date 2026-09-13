@@ -1,0 +1,1781 @@
+{
+  "benchmark": "epidebug",
+  "version": "0.1.0",
+  "model": "category_only",
+  "mode": "text",
+  "timestamp": "2026-06-02T11:11:38.736987+00:00",
+  "total_cases": 30,
+  "reference_model": true,
+  "results": [
+    {
+      "test_case_id": "FH-003",
+      "model": "category_only",
+      "mode": "text",
+      "run_index": 0,
+      "timestamp": "2026-06-02T11:11:38.731762+00:00",
+      "response": {
+        "model_name": "category_only",
+        "test_case_id": "FH-003",
+        "mode": "text",
+        "root_cause": "This looks like a flawed hypothesis problem, but the specific variable is uncertain.",
+        "causal_chain": [
+          "A problem in the broad failure category affected the experiment",
+          "That category-level problem propagated into the observed symptoms"
+        ],
+        "intervention": "Repeat the experiment while checking the broad suspected category.",
+        "raw_response": "### Root Cause\nThis looks like a flawed hypothesis problem, but the specific variable is uncertain.\n\n### Causal Chain\n1. A problem in the broad failure category affected the experiment\n2. That category-level problem propagated into the observed symptoms\n\n### Intervention\nRepeat the experiment while checking the broad suspected category.\n",
+        "tool_calls": [],
+        "total_tokens": null,
+        "latency_seconds": null,
+        "confidence": null
+      },
+      "score": {
+        "test_case_id": "FH-003",
+        "model_name": "category_only",
+        "mode": "text",
+        "root_cause_score": {
+          "score": 0.0,
+          "weight": 0.3,
+          "weighted_score": 0.0,
+          "rationale": "Root cause not identified or completely incorrect."
+        },
+        "causal_chain_score": {
+          "score": 0.0,
+          "weight": 0.4,
+          "weighted_score": 0.0,
+          "rationale": "Causal chain does not match the expected failure mechanism."
+        },
+        "intervention_score": {
+          "score": 0.0,
+          "weight": 0.3,
+          "weighted_score": 0.0,
+          "rationale": "Intervention does not address the identified root cause."
+        },
+        "final_score": 0.0,
+        "trajectory": {
+          "tool_calls_made": 0,
+          "tool_calls_budget": 12,
+          "tool_efficiency": null,
+          "budget_compliant": true,
+          "anti_patterns": []
+        }
+      },
+      "metadata": {
+        "reference_model": true,
+        "total_tokens": null,
+        "latency_seconds": 0.0
+      }
+    },
+    {
+      "test_case_id": "FH-005",
+      "model": "category_only",
+      "mode": "text",
+      "run_index": 0,
+      "timestamp": "2026-06-02T11:11:38.732037+00:00",
+      "response": {
+        "model_name": "category_only",
+        "test_case_id": "FH-005",
+        "mode": "text",
+        "root_cause": "This looks like a flawed hypothesis problem, but the specific variable is uncertain.",
+        "causal_chain": [
+          "A problem in the broad failure category affected the experiment",
+          "That category-level problem propagated into the observed symptoms"
+        ],
+        "intervention": "Repeat the experiment while checking the broad suspected category.",
+        "raw_response": "### Root Cause\nThis looks like a flawed hypothesis problem, but the specific variable is uncertain.\n\n### Causal Chain\n1. A problem in the broad failure category affected the experiment\n2. That category-level problem propagated into the observed symptoms\n\n### Intervention\nRepeat the experiment while checking the broad suspected category.\n",
+        "tool_calls": [],
+        "total_tokens": null,
+        "latency_seconds": null,
+        "confidence": null
+      },
+      "score": {
+        "test_case_id": "FH-005",
+        "model_name": "category_only",
+        "mode": "text",
+        "root_cause_score": {
+          "score": 0.0,
+          "weight": 0.3,
+          "weighted_score": 0.0,
+          "rationale": "Root cause not identified or completely incorrect."
+        },
+        "causal_chain_score": {
+          "score": 0.0,
+          "weight": 0.4,
+          "weighted_score": 0.0,
+          "rationale": "Causal chain does not match the expected failure mechanism."
+        },
+        "intervention_score": {
+          "score": 0.0,
+          "weight": 0.3,
+          "weighted_score": 0.0,
+          "rationale": "Intervention does not address the identified root cause."
+        },
+        "final_score": 0.0,
+        "trajectory": {
+          "tool_calls_made": 0,
+          "tool_calls_budget": 20,
+          "tool_efficiency": null,
+          "budget_compliant": true,
+          "anti_patterns": []
+        }
+      },
+      "metadata": {
+        "reference_model": true,
+        "total_tokens": null,
+        "latency_seconds": 0.0
+      }
+    },
+    {
+      "test_case_id": "FH-009",
+      "model": "category_only",
+      "mode": "text",
+      "run_index": 0,
+      "timestamp": "2026-06-02T11:11:38.732248+00:00",
+      "response": {
+        "model_name": "category_only",
+        "test_case_id": "FH-009",
+        "mode": "text",
+        "root_cause": "This looks like a flawed hypothesis problem, but the specific variable is uncertain.",
+        "causal_chain": [
+          "A problem in the broad failure category affected the experiment",
+          "That category-level problem propagated into the observed symptoms"
+        ],
+        "intervention": "Repeat the experiment while checking the broad suspected category.",
+        "raw_response": "### Root Cause\nThis looks like a flawed hypothesis problem, but the specific variable is uncertain.\n\n### Causal Chain\n1. A problem in the broad failure category affected the experiment\n2. That category-level problem propagated into the observed symptoms\n\n### Intervention\nRepeat the experiment while checking the broad suspected category.\n",
+        "tool_calls": [],
+        "total_tokens": null,
+        "latency_seconds": null,
+        "confidence": null
+      },
+      "score": {
+        "test_case_id": "FH-009",
+        "model_name": "category_only",
+        "mode": "text",
+        "root_cause_score": {
+          "score": 0.0,
+          "weight": 0.3,
+          "weighted_score": 0.0,
+          "rationale": "Root cause not identified or completely incorrect."
+        },
+        "causal_chain_score": {
+          "score": 0.0,
+          "weight": 0.4,
+          "weighted_score": 0.0,
+          "rationale": "Causal chain does not match the expected failure mechanism."
+        },
+        "intervention_score": {
+          "score": 0.0,
+          "weight": 0.3,
+          "weighted_score": 0.0,
+          "rationale": "Intervention does not address the identified root cause."
+        },
+        "final_score": 0.0,
+        "trajectory": {
+          "tool_calls_made": 0,
+          "tool_calls_budget": 15,
+          "tool_efficiency": null,
+          "budget_compliant": true,
+          "anti_patterns": []
+        }
+      },
+      "metadata": {
+        "reference_model": true,
+        "total_tokens": null,
+        "latency_seconds": 0.0
+      }
+    },
+    {
+      "test_case_id": "FH-010",
+      "model": "category_only",
+      "mode": "text",
+      "run_index": 0,
+      "timestamp": "2026-06-02T11:11:38.732406+00:00",
+      "response": {
+        "model_name": "category_only",
+        "test_case_id": "FH-010",
+        "mode": "text",
+        "root_cause": "This looks like a flawed hypothesis problem, but the specific variable is uncertain.",
+        "causal_chain": [
+          "A problem in the broad failure category affected the experiment",
+          "That category-level problem propagated into the observed symptoms"
+        ],
+        "intervention": "Repeat the experiment while checking the broad suspected category.",
+        "raw_response": "### Root Cause\nThis looks like a flawed hypothesis problem, but the specific variable is uncertain.\n\n### Causal Chain\n1. A problem in the broad failure category affected the experiment\n2. That category-level problem propagated into the observed symptoms\n\n### Intervention\nRepeat the experiment while checking the broad suspected category.\n",
+        "tool_calls": [],
+        "total_tokens": null,
+        "latency_seconds": null,
+        "confidence": null
+      },
+      "score": {
+        "test_case_id": "FH-010",
+        "model_name": "category_only",
+        "mode": "text",
+        "root_cause_score": {
+          "score": 0.0,
+          "weight": 0.3,
+          "weighted_score": 0.0,
+          "rationale": "Root cause not identified or completely incorrect."
+        },
+        "causal_chain_score": {
+          "score": 0.0,
+          "weight": 0.4,
+          "weighted_score": 0.0,
+          "rationale": "Causal chain does not match the expected failure mechanism."
+        },
+        "intervention_score": {
+          "score": 0.0,
+          "weight": 0.3,
+          "weighted_score": 0.0,
+          "rationale": "Intervention does not address the identified root cause."
+        },
+        "final_score": 0.0,
+        "trajectory": {
+          "tool_calls_made": 0,
+          "tool_calls_budget": 12,
+          "tool_efficiency": null,
+          "budget_compliant": true,
+          "anti_patterns": []
+        }
+      },
+      "metadata": {
+        "reference_model": true,
+        "total_tokens": null,
+        "latency_seconds": 0.0
+      }
+    },
+    {
+      "test_case_id": "FH-011",
+      "model": "category_only",
+      "mode": "text",
+      "run_index": 0,
+      "timestamp": "2026-06-02T11:11:38.732555+00:00",
+      "response": {
+        "model_name": "category_only",
+        "test_case_id": "FH-011",
+        "mode": "text",
+        "root_cause": "This looks like a flawed hypothesis problem, but the specific variable is uncertain.",
+        "causal_chain": [
+          "A problem in the broad failure category affected the experiment",
+          "That category-level problem propagated into the observed symptoms"
+        ],
+        "intervention": "Repeat the experiment while checking the broad suspected category.",
+        "raw_response": "### Root Cause\nThis looks like a flawed hypothesis problem, but the specific variable is uncertain.\n\n### Causal Chain\n1. A problem in the broad failure category affected the experiment\n2. That category-level problem propagated into the observed symptoms\n\n### Intervention\nRepeat the experiment while checking the broad suspected category.\n",
+        "tool_calls": [],
+        "total_tokens": null,
+        "latency_seconds": null,
+        "confidence": null
+      },
+      "score": {
+        "test_case_id": "FH-011",
+        "model_name": "category_only",
+        "mode": "text",
+        "root_cause_score": {
+          "score": 0.0,
+          "weight": 0.3,
+          "weighted_score": 0.0,
+          "rationale": "Root cause not identified or completely incorrect."
+        },
+        "causal_chain_score": {
+          "score": 0.0,
+          "weight": 0.4,
+          "weighted_score": 0.0,
+          "rationale": "Causal chain does not match the expected failure mechanism."
+        },
+        "intervention_score": {
+          "score": 0.0,
+          "weight": 0.3,
+          "weighted_score": 0.0,
+          "rationale": "Intervention does not address the identified root cause."
+        },
+        "final_score": 0.0,
+        "trajectory": {
+          "tool_calls_made": 0,
+          "tool_calls_budget": 12,
+          "tool_efficiency": null,
+          "budget_compliant": true,
+          "anti_patterns": []
+        }
+      },
+      "metadata": {
+        "reference_model": true,
+        "total_tokens": null,
+        "latency_seconds": 0.0
+      }
+    },
+    {
+      "test_case_id": "FH-012",
+      "model": "category_only",
+      "mode": "text",
+      "run_index": 0,
+      "timestamp": "2026-06-02T11:11:38.732705+00:00",
+      "response": {
+        "model_name": "category_only",
+        "test_case_id": "FH-012",
+        "mode": "text",
+        "root_cause": "This looks like a flawed hypothesis problem, but the specific variable is uncertain.",
+        "causal_chain": [
+          "A problem in the broad failure category affected the experiment",
+          "That category-level problem propagated into the observed symptoms"
+        ],
+        "intervention": "Repeat the experiment while checking the broad suspected category.",
+        "raw_response": "### Root Cause\nThis looks like a flawed hypothesis problem, but the specific variable is uncertain.\n\n### Causal Chain\n1. A problem in the broad failure category affected the experiment\n2. That category-level problem propagated into the observed symptoms\n\n### Intervention\nRepeat the experiment while checking the broad suspected category.\n",
+        "tool_calls": [],
+        "total_tokens": null,
+        "latency_seconds": null,
+        "confidence": null
+      },
+      "score": {
+        "test_case_id": "FH-012",
+        "model_name": "category_only",
+        "mode": "text",
+        "root_cause_score": {
+          "score": 0.0,
+          "weight": 0.3,
+          "weighted_score": 0.0,
+          "rationale": "Root cause not identified or completely incorrect."
+        },
+        "causal_chain_score": {
+          "score": 0.0,
+          "weight": 0.4,
+          "weighted_score": 0.0,
+          "rationale": "Causal chain does not match the expected failure mechanism."
+        },
+        "intervention_score": {
+          "score": 0.0,
+          "weight": 0.3,
+          "weighted_score": 0.0,
+          "rationale": "Intervention does not address the identified root cause."
+        },
+        "final_score": 0.0,
+        "trajectory": {
+          "tool_calls_made": 0,
+          "tool_calls_budget": 15,
+          "tool_efficiency": null,
+          "budget_compliant": true,
+          "anti_patterns": []
+        }
+      },
+      "metadata": {
+        "reference_model": true,
+        "total_tokens": null,
+        "latency_seconds": 0.0
+      }
+    },
+    {
+      "test_case_id": "FH-013",
+      "model": "category_only",
+      "mode": "text",
+      "run_index": 0,
+      "timestamp": "2026-06-02T11:11:38.732864+00:00",
+      "response": {
+        "model_name": "category_only",
+        "test_case_id": "FH-013",
+        "mode": "text",
+        "root_cause": "This looks like a flawed hypothesis problem, but the specific variable is uncertain.",
+        "causal_chain": [
+          "A problem in the broad failure category affected the experiment",
+          "That category-level problem propagated into the observed symptoms"
+        ],
+        "intervention": "Repeat the experiment while checking the broad suspected category.",
+        "raw_response": "### Root Cause\nThis looks like a flawed hypothesis problem, but the specific variable is uncertain.\n\n### Causal Chain\n1. A problem in the broad failure category affected the experiment\n2. That category-level problem propagated into the observed symptoms\n\n### Intervention\nRepeat the experiment while checking the broad suspected category.\n",
+        "tool_calls": [],
+        "total_tokens": null,
+        "latency_seconds": null,
+        "confidence": null
+      },
+      "score": {
+        "test_case_id": "FH-013",
+        "model_name": "category_only",
+        "mode": "text",
+        "root_cause_score": {
+          "score": 0.0,
+          "weight": 0.3,
+          "weighted_score": 0.0,
+          "rationale": "Root cause not identified or completely incorrect."
+        },
+        "causal_chain_score": {
+          "score": 0.0,
+          "weight": 0.4,
+          "weighted_score": 0.0,
+          "rationale": "Causal chain does not match the expected failure mechanism."
+        },
+        "intervention_score": {
+          "score": 0.0,
+          "weight": 0.3,
+          "weighted_score": 0.0,
+          "rationale": "Intervention does not address the identified root cause."
+        },
+        "final_score": 0.0,
+        "trajectory": {
+          "tool_calls_made": 0,
+          "tool_calls_budget": 15,
+          "tool_efficiency": null,
+          "budget_compliant": true,
+          "anti_patterns": []
+        }
+      },
+      "metadata": {
+        "reference_model": true,
+        "total_tokens": null,
+        "latency_seconds": 0.0
+      }
+    },
+    {
+      "test_case_id": "IN-001",
+      "model": "category_only",
+      "mode": "text",
+      "run_index": 0,
+      "timestamp": "2026-06-02T11:11:38.733051+00:00",
+      "response": {
+        "model_name": "category_only",
+        "test_case_id": "IN-001",
+        "mode": "text",
+        "root_cause": "This looks like a instrumentation problem, but the specific variable is uncertain.",
+        "causal_chain": [
+          "A problem in the broad failure category affected the experiment",
+          "That category-level problem propagated into the observed symptoms"
+        ],
+        "intervention": "Repeat the experiment while checking the broad suspected category.",
+        "raw_response": "### Root Cause\nThis looks like a instrumentation problem, but the specific variable is uncertain.\n\n### Causal Chain\n1. A problem in the broad failure category affected the experiment\n2. That category-level problem propagated into the observed symptoms\n\n### Intervention\nRepeat the experiment while checking the broad suspected category.\n",
+        "tool_calls": [],
+        "total_tokens": null,
+        "latency_seconds": null,
+        "confidence": null
+      },
+      "score": {
+        "test_case_id": "IN-001",
+        "model_name": "category_only",
+        "mode": "text",
+        "root_cause_score": {
+          "score": 0.0,
+          "weight": 0.3,
+          "weighted_score": 0.0,
+          "rationale": "Root cause not identified or completely incorrect."
+        },
+        "causal_chain_score": {
+          "score": 0.0,
+          "weight": 0.4,
+          "weighted_score": 0.0,
+          "rationale": "Causal chain does not match the expected failure mechanism."
+        },
+        "intervention_score": {
+          "score": 0.0,
+          "weight": 0.3,
+          "weighted_score": 0.0,
+          "rationale": "Intervention does not address the identified root cause."
+        },
+        "final_score": 0.0,
+        "trajectory": {
+          "tool_calls_made": 0,
+          "tool_calls_budget": 10,
+          "tool_efficiency": null,
+          "budget_compliant": true,
+          "anti_patterns": []
+        }
+      },
+      "metadata": {
+        "reference_model": true,
+        "total_tokens": null,
+        "latency_seconds": 0.0
+      }
+    },
+    {
+      "test_case_id": "IN-005",
+      "model": "category_only",
+      "mode": "text",
+      "run_index": 0,
+      "timestamp": "2026-06-02T11:11:38.733311+00:00",
+      "response": {
+        "model_name": "category_only",
+        "test_case_id": "IN-005",
+        "mode": "text",
+        "root_cause": "This looks like a instrumentation problem, but the specific variable is uncertain.",
+        "causal_chain": [
+          "A problem in the broad failure category affected the experiment",
+          "That category-level problem propagated into the observed symptoms"
+        ],
+        "intervention": "Repeat the experiment while checking the broad suspected category.",
+        "raw_response": "### Root Cause\nThis looks like a instrumentation problem, but the specific variable is uncertain.\n\n### Causal Chain\n1. A problem in the broad failure category affected the experiment\n2. That category-level problem propagated into the observed symptoms\n\n### Intervention\nRepeat the experiment while checking the broad suspected category.\n",
+        "tool_calls": [],
+        "total_tokens": null,
+        "latency_seconds": null,
+        "confidence": null
+      },
+      "score": {
+        "test_case_id": "IN-005",
+        "model_name": "category_only",
+        "mode": "text",
+        "root_cause_score": {
+          "score": 0.0,
+          "weight": 0.3,
+          "weighted_score": 0.0,
+          "rationale": "Root cause not identified or completely incorrect."
+        },
+        "causal_chain_score": {
+          "score": 0.0,
+          "weight": 0.4,
+          "weighted_score": 0.0,
+          "rationale": "Causal chain does not match the expected failure mechanism."
+        },
+        "intervention_score": {
+          "score": 0.0,
+          "weight": 0.3,
+          "weighted_score": 0.0,
+          "rationale": "Intervention does not address the identified root cause."
+        },
+        "final_score": 0.0,
+        "trajectory": {
+          "tool_calls_made": 0,
+          "tool_calls_budget": 20,
+          "tool_efficiency": null,
+          "budget_compliant": true,
+          "anti_patterns": []
+        }
+      },
+      "metadata": {
+        "reference_model": true,
+        "total_tokens": null,
+        "latency_seconds": 0.0
+      }
+    },
+    {
+      "test_case_id": "IN-007",
+      "model": "category_only",
+      "mode": "text",
+      "run_index": 0,
+      "timestamp": "2026-06-02T11:11:38.733620+00:00",
+      "response": {
+        "model_name": "category_only",
+        "test_case_id": "IN-007",
+        "mode": "text",
+        "root_cause": "This looks like a instrumentation problem, but the specific variable is uncertain.",
+        "causal_chain": [
+          "A problem in the broad failure category affected the experiment",
+          "That category-level problem propagated into the observed symptoms"
+        ],
+        "intervention": "Repeat the experiment while checking the broad suspected category.",
+        "raw_response": "### Root Cause\nThis looks like a instrumentation problem, but the specific variable is uncertain.\n\n### Causal Chain\n1. A problem in the broad failure category affected the experiment\n2. That category-level problem propagated into the observed symptoms\n\n### Intervention\nRepeat the experiment while checking the broad suspected category.\n",
+        "tool_calls": [],
+        "total_tokens": null,
+        "latency_seconds": null,
+        "confidence": null
+      },
+      "score": {
+        "test_case_id": "IN-007",
+        "model_name": "category_only",
+        "mode": "text",
+        "root_cause_score": {
+          "score": 0.0,
+          "weight": 0.3,
+          "weighted_score": 0.0,
+          "rationale": "Root cause not identified or completely incorrect."
+        },
+        "causal_chain_score": {
+          "score": 0.0,
+          "weight": 0.4,
+          "weighted_score": 0.0,
+          "rationale": "Causal chain does not match the expected failure mechanism."
+        },
+        "intervention_score": {
+          "score": 0.0,
+          "weight": 0.3,
+          "weighted_score": 0.0,
+          "rationale": "Intervention does not address the identified root cause."
+        },
+        "final_score": 0.0,
+        "trajectory": {
+          "tool_calls_made": 0,
+          "tool_calls_budget": 15,
+          "tool_efficiency": null,
+          "budget_compliant": true,
+          "anti_patterns": []
+        }
+      },
+      "metadata": {
+        "reference_model": true,
+        "total_tokens": null,
+        "latency_seconds": 0.0
+      }
+    },
+    {
+      "test_case_id": "IN-009",
+      "model": "category_only",
+      "mode": "text",
+      "run_index": 0,
+      "timestamp": "2026-06-02T11:11:38.733818+00:00",
+      "response": {
+        "model_name": "category_only",
+        "test_case_id": "IN-009",
+        "mode": "text",
+        "root_cause": "This looks like a instrumentation problem, but the specific variable is uncertain.",
+        "causal_chain": [
+          "A problem in the broad failure category affected the experiment",
+          "That category-level problem propagated into the observed symptoms"
+        ],
+        "intervention": "Repeat the experiment while checking the broad suspected category.",
+        "raw_response": "### Root Cause\nThis looks like a instrumentation problem, but the specific variable is uncertain.\n\n### Causal Chain\n1. A problem in the broad failure category affected the experiment\n2. That category-level problem propagated into the observed symptoms\n\n### Intervention\nRepeat the experiment while checking the broad suspected category.\n",
+        "tool_calls": [],
+        "total_tokens": null,
+        "latency_seconds": null,
+        "confidence": null
+      },
+      "score": {
+        "test_case_id": "IN-009",
+        "model_name": "category_only",
+        "mode": "text",
+        "root_cause_score": {
+          "score": 0.25,
+          "weight": 0.3,
+          "weighted_score": 0.075,
+          "rationale": "Related concept mentioned but root cause not identified."
+        },
+        "causal_chain_score": {
+          "score": 0.0,
+          "weight": 0.4,
+          "weighted_score": 0.0,
+          "rationale": "Causal chain does not match the expected failure mechanism."
+        },
+        "intervention_score": {
+          "score": 0.0,
+          "weight": 0.3,
+          "weighted_score": 0.0,
+          "rationale": "Intervention does not address the identified root cause."
+        },
+        "final_score": 0.075,
+        "trajectory": {
+          "tool_calls_made": 0,
+          "tool_calls_budget": 12,
+          "tool_efficiency": null,
+          "budget_compliant": true,
+          "anti_patterns": []
+        }
+      },
+      "metadata": {
+        "reference_model": true,
+        "total_tokens": null,
+        "latency_seconds": 0.0
+      }
+    },
+    {
+      "test_case_id": "IN-011",
+      "model": "category_only",
+      "mode": "text",
+      "run_index": 0,
+      "timestamp": "2026-06-02T11:11:38.733971+00:00",
+      "response": {
+        "model_name": "category_only",
+        "test_case_id": "IN-011",
+        "mode": "text",
+        "root_cause": "This looks like a instrumentation problem, but the specific variable is uncertain.",
+        "causal_chain": [
+          "A problem in the broad failure category affected the experiment",
+          "That category-level problem propagated into the observed symptoms"
+        ],
+        "intervention": "Repeat the experiment while checking the broad suspected category.",
+        "raw_response": "### Root Cause\nThis looks like a instrumentation problem, but the specific variable is uncertain.\n\n### Causal Chain\n1. A problem in the broad failure category affected the experiment\n2. That category-level problem propagated into the observed symptoms\n\n### Intervention\nRepeat the experiment while checking the broad suspected category.\n",
+        "tool_calls": [],
+        "total_tokens": null,
+        "latency_seconds": null,
+        "confidence": null
+      },
+      "score": {
+        "test_case_id": "IN-011",
+        "model_name": "category_only",
+        "mode": "text",
+        "root_cause_score": {
+          "score": 0.0,
+          "weight": 0.3,
+          "weighted_score": 0.0,
+          "rationale": "Root cause not identified or completely incorrect."
+        },
+        "causal_chain_score": {
+          "score": 0.0,
+          "weight": 0.4,
+          "weighted_score": 0.0,
+          "rationale": "Causal chain does not match the expected failure mechanism."
+        },
+        "intervention_score": {
+          "score": 0.0,
+          "weight": 0.3,
+          "weighted_score": 0.0,
+          "rationale": "Intervention does not address the identified root cause."
+        },
+        "final_score": 0.0,
+        "trajectory": {
+          "tool_calls_made": 0,
+          "tool_calls_budget": 12,
+          "tool_efficiency": null,
+          "budget_compliant": true,
+          "anti_patterns": []
+        }
+      },
+      "metadata": {
+        "reference_model": true,
+        "total_tokens": null,
+        "latency_seconds": 0.0
+      }
+    },
+    {
+      "test_case_id": "IN-012",
+      "model": "category_only",
+      "mode": "text",
+      "run_index": 0,
+      "timestamp": "2026-06-02T11:11:38.734118+00:00",
+      "response": {
+        "model_name": "category_only",
+        "test_case_id": "IN-012",
+        "mode": "text",
+        "root_cause": "This looks like a instrumentation problem, but the specific variable is uncertain.",
+        "causal_chain": [
+          "A problem in the broad failure category affected the experiment",
+          "That category-level problem propagated into the observed symptoms"
+        ],
+        "intervention": "Repeat the experiment while checking the broad suspected category.",
+        "raw_response": "### Root Cause\nThis looks like a instrumentation problem, but the specific variable is uncertain.\n\n### Causal Chain\n1. A problem in the broad failure category affected the experiment\n2. That category-level problem propagated into the observed symptoms\n\n### Intervention\nRepeat the experiment while checking the broad suspected category.\n",
+        "tool_calls": [],
+        "total_tokens": null,
+        "latency_seconds": null,
+        "confidence": null
+      },
+      "score": {
+        "test_case_id": "IN-012",
+        "model_name": "category_only",
+        "mode": "text",
+        "root_cause_score": {
+          "score": 0.25,
+          "weight": 0.3,
+          "weighted_score": 0.075,
+          "rationale": "Related concept mentioned but root cause not identified."
+        },
+        "causal_chain_score": {
+          "score": 0.0,
+          "weight": 0.4,
+          "weighted_score": 0.0,
+          "rationale": "Causal chain does not match the expected failure mechanism."
+        },
+        "intervention_score": {
+          "score": 0.0,
+          "weight": 0.3,
+          "weighted_score": 0.0,
+          "rationale": "Intervention does not address the identified root cause."
+        },
+        "final_score": 0.075,
+        "trajectory": {
+          "tool_calls_made": 0,
+          "tool_calls_budget": 15,
+          "tool_efficiency": null,
+          "budget_compliant": true,
+          "anti_patterns": []
+        }
+      },
+      "metadata": {
+        "reference_model": true,
+        "total_tokens": null,
+        "latency_seconds": 0.0
+      }
+    },
+    {
+      "test_case_id": "IN-013",
+      "model": "category_only",
+      "mode": "text",
+      "run_index": 0,
+      "timestamp": "2026-06-02T11:11:38.734260+00:00",
+      "response": {
+        "model_name": "category_only",
+        "test_case_id": "IN-013",
+        "mode": "text",
+        "root_cause": "This looks like a instrumentation problem, but the specific variable is uncertain.",
+        "causal_chain": [
+          "A problem in the broad failure category affected the experiment",
+          "That category-level problem propagated into the observed symptoms"
+        ],
+        "intervention": "Repeat the experiment while checking the broad suspected category.",
+        "raw_response": "### Root Cause\nThis looks like a instrumentation problem, but the specific variable is uncertain.\n\n### Causal Chain\n1. A problem in the broad failure category affected the experiment\n2. That category-level problem propagated into the observed symptoms\n\n### Intervention\nRepeat the experiment while checking the broad suspected category.\n",
+        "tool_calls": [],
+        "total_tokens": null,
+        "latency_seconds": null,
+        "confidence": null
+      },
+      "score": {
+        "test_case_id": "IN-013",
+        "model_name": "category_only",
+        "mode": "text",
+        "root_cause_score": {
+          "score": 0.0,
+          "weight": 0.3,
+          "weighted_score": 0.0,
+          "rationale": "Root cause not identified or completely incorrect."
+        },
+        "causal_chain_score": {
+          "score": 0.0,
+          "weight": 0.4,
+          "weighted_score": 0.0,
+          "rationale": "Causal chain does not match the expected failure mechanism."
+        },
+        "intervention_score": {
+          "score": 0.0,
+          "weight": 0.3,
+          "weighted_score": 0.0,
+          "rationale": "Intervention does not address the identified root cause."
+        },
+        "final_score": 0.0,
+        "trajectory": {
+          "tool_calls_made": 0,
+          "tool_calls_budget": 10,
+          "tool_efficiency": null,
+          "budget_compliant": true,
+          "anti_patterns": []
+        }
+      },
+      "metadata": {
+        "reference_model": true,
+        "total_tokens": null,
+        "latency_seconds": 0.0
+      }
+    },
+    {
+      "test_case_id": "IN-014",
+      "model": "category_only",
+      "mode": "text",
+      "run_index": 0,
+      "timestamp": "2026-06-02T11:11:38.734391+00:00",
+      "response": {
+        "model_name": "category_only",
+        "test_case_id": "IN-014",
+        "mode": "text",
+        "root_cause": "This looks like a instrumentation problem, but the specific variable is uncertain.",
+        "causal_chain": [
+          "A problem in the broad failure category affected the experiment",
+          "That category-level problem propagated into the observed symptoms"
+        ],
+        "intervention": "Repeat the experiment while checking the broad suspected category.",
+        "raw_response": "### Root Cause\nThis looks like a instrumentation problem, but the specific variable is uncertain.\n\n### Causal Chain\n1. A problem in the broad failure category affected the experiment\n2. That category-level problem propagated into the observed symptoms\n\n### Intervention\nRepeat the experiment while checking the broad suspected category.\n",
+        "tool_calls": [],
+        "total_tokens": null,
+        "latency_seconds": null,
+        "confidence": null
+      },
+      "score": {
+        "test_case_id": "IN-014",
+        "model_name": "category_only",
+        "mode": "text",
+        "root_cause_score": {
+          "score": 0.0,
+          "weight": 0.3,
+          "weighted_score": 0.0,
+          "rationale": "Root cause not identified or completely incorrect."
+        },
+        "causal_chain_score": {
+          "score": 0.0,
+          "weight": 0.4,
+          "weighted_score": 0.0,
+          "rationale": "Causal chain does not match the expected failure mechanism."
+        },
+        "intervention_score": {
+          "score": 0.0,
+          "weight": 0.3,
+          "weighted_score": 0.0,
+          "rationale": "Intervention does not address the identified root cause."
+        },
+        "final_score": 0.0,
+        "trajectory": {
+          "tool_calls_made": 0,
+          "tool_calls_budget": 8,
+          "tool_efficiency": null,
+          "budget_compliant": true,
+          "anti_patterns": []
+        }
+      },
+      "metadata": {
+        "reference_model": true,
+        "total_tokens": null,
+        "latency_seconds": 0.0
+      }
+    },
+    {
+      "test_case_id": "PL-001",
+      "model": "category_only",
+      "mode": "text",
+      "run_index": 0,
+      "timestamp": "2026-06-02T11:11:38.734572+00:00",
+      "response": {
+        "model_name": "category_only",
+        "test_case_id": "PL-001",
+        "mode": "text",
+        "root_cause": "This looks like a protocol/human problem, but the specific variable is uncertain.",
+        "causal_chain": [
+          "A problem in the broad failure category affected the experiment",
+          "That category-level problem propagated into the observed symptoms"
+        ],
+        "intervention": "Repeat the experiment while checking the broad suspected category.",
+        "raw_response": "### Root Cause\nThis looks like a protocol/human problem, but the specific variable is uncertain.\n\n### Causal Chain\n1. A problem in the broad failure category affected the experiment\n2. That category-level problem propagated into the observed symptoms\n\n### Intervention\nRepeat the experiment while checking the broad suspected category.\n",
+        "tool_calls": [],
+        "total_tokens": null,
+        "latency_seconds": null,
+        "confidence": null
+      },
+      "score": {
+        "test_case_id": "PL-001",
+        "model_name": "category_only",
+        "mode": "text",
+        "root_cause_score": {
+          "score": 0.0,
+          "weight": 0.3,
+          "weighted_score": 0.0,
+          "rationale": "Root cause not identified or completely incorrect."
+        },
+        "causal_chain_score": {
+          "score": 0.0,
+          "weight": 0.4,
+          "weighted_score": 0.0,
+          "rationale": "Causal chain does not match the expected failure mechanism."
+        },
+        "intervention_score": {
+          "score": 0.0,
+          "weight": 0.3,
+          "weighted_score": 0.0,
+          "rationale": "Intervention does not address the identified root cause."
+        },
+        "final_score": 0.0,
+        "trajectory": {
+          "tool_calls_made": 0,
+          "tool_calls_budget": 12,
+          "tool_efficiency": null,
+          "budget_compliant": true,
+          "anti_patterns": []
+        }
+      },
+      "metadata": {
+        "reference_model": true,
+        "total_tokens": null,
+        "latency_seconds": 0.0
+      }
+    },
+    {
+      "test_case_id": "PL-004",
+      "model": "category_only",
+      "mode": "text",
+      "run_index": 0,
+      "timestamp": "2026-06-02T11:11:38.734810+00:00",
+      "response": {
+        "model_name": "category_only",
+        "test_case_id": "PL-004",
+        "mode": "text",
+        "root_cause": "This looks like a protocol/human problem, but the specific variable is uncertain.",
+        "causal_chain": [
+          "A problem in the broad failure category affected the experiment",
+          "That category-level problem propagated into the observed symptoms"
+        ],
+        "intervention": "Repeat the experiment while checking the broad suspected category.",
+        "raw_response": "### Root Cause\nThis looks like a protocol/human problem, but the specific variable is uncertain.\n\n### Causal Chain\n1. A problem in the broad failure category affected the experiment\n2. That category-level problem propagated into the observed symptoms\n\n### Intervention\nRepeat the experiment while checking the broad suspected category.\n",
+        "tool_calls": [],
+        "total_tokens": null,
+        "latency_seconds": null,
+        "confidence": null
+      },
+      "score": {
+        "test_case_id": "PL-004",
+        "model_name": "category_only",
+        "mode": "text",
+        "root_cause_score": {
+          "score": 0.0,
+          "weight": 0.3,
+          "weighted_score": 0.0,
+          "rationale": "Root cause not identified or completely incorrect."
+        },
+        "causal_chain_score": {
+          "score": 0.0,
+          "weight": 0.4,
+          "weighted_score": 0.0,
+          "rationale": "Causal chain does not match the expected failure mechanism."
+        },
+        "intervention_score": {
+          "score": 0.0,
+          "weight": 0.3,
+          "weighted_score": 0.0,
+          "rationale": "Intervention does not address the identified root cause."
+        },
+        "final_score": 0.0,
+        "trajectory": {
+          "tool_calls_made": 0,
+          "tool_calls_budget": 20,
+          "tool_efficiency": null,
+          "budget_compliant": true,
+          "anti_patterns": []
+        }
+      },
+      "metadata": {
+        "reference_model": true,
+        "total_tokens": null,
+        "latency_seconds": 0.0
+      }
+    },
+    {
+      "test_case_id": "PL-006",
+      "model": "category_only",
+      "mode": "text",
+      "run_index": 0,
+      "timestamp": "2026-06-02T11:11:38.734953+00:00",
+      "response": {
+        "model_name": "category_only",
+        "test_case_id": "PL-006",
+        "mode": "text",
+        "root_cause": "This looks like a protocol/human problem, but the specific variable is uncertain.",
+        "causal_chain": [
+          "A problem in the broad failure category affected the experiment",
+          "That category-level problem propagated into the observed symptoms"
+        ],
+        "intervention": "Repeat the experiment while checking the broad suspected category.",
+        "raw_response": "### Root Cause\nThis looks like a protocol/human problem, but the specific variable is uncertain.\n\n### Causal Chain\n1. A problem in the broad failure category affected the experiment\n2. That category-level problem propagated into the observed symptoms\n\n### Intervention\nRepeat the experiment while checking the broad suspected category.\n",
+        "tool_calls": [],
+        "total_tokens": null,
+        "latency_seconds": null,
+        "confidence": null
+      },
+      "score": {
+        "test_case_id": "PL-006",
+        "model_name": "category_only",
+        "mode": "text",
+        "root_cause_score": {
+          "score": 0.0,
+          "weight": 0.3,
+          "weighted_score": 0.0,
+          "rationale": "Root cause not identified or completely incorrect."
+        },
+        "causal_chain_score": {
+          "score": 0.0,
+          "weight": 0.4,
+          "weighted_score": 0.0,
+          "rationale": "Causal chain does not match the expected failure mechanism."
+        },
+        "intervention_score": {
+          "score": 0.0,
+          "weight": 0.3,
+          "weighted_score": 0.0,
+          "rationale": "Intervention does not address the identified root cause."
+        },
+        "final_score": 0.0,
+        "trajectory": {
+          "tool_calls_made": 0,
+          "tool_calls_budget": 8,
+          "tool_efficiency": null,
+          "budget_compliant": true,
+          "anti_patterns": []
+        }
+      },
+      "metadata": {
+        "reference_model": true,
+        "total_tokens": null,
+        "latency_seconds": 0.0
+      }
+    },
+    {
+      "test_case_id": "PL-007",
+      "model": "category_only",
+      "mode": "text",
+      "run_index": 0,
+      "timestamp": "2026-06-02T11:11:38.735151+00:00",
+      "response": {
+        "model_name": "category_only",
+        "test_case_id": "PL-007",
+        "mode": "text",
+        "root_cause": "This looks like a protocol/human problem, but the specific variable is uncertain.",
+        "causal_chain": [
+          "A problem in the broad failure category affected the experiment",
+          "That category-level problem propagated into the observed symptoms"
+        ],
+        "intervention": "Repeat the experiment while checking the broad suspected category.",
+        "raw_response": "### Root Cause\nThis looks like a protocol/human problem, but the specific variable is uncertain.\n\n### Causal Chain\n1. A problem in the broad failure category affected the experiment\n2. That category-level problem propagated into the observed symptoms\n\n### Intervention\nRepeat the experiment while checking the broad suspected category.\n",
+        "tool_calls": [],
+        "total_tokens": null,
+        "latency_seconds": null,
+        "confidence": null
+      },
+      "score": {
+        "test_case_id": "PL-007",
+        "model_name": "category_only",
+        "mode": "text",
+        "root_cause_score": {
+          "score": 0.0,
+          "weight": 0.3,
+          "weighted_score": 0.0,
+          "rationale": "Root cause not identified or completely incorrect."
+        },
+        "causal_chain_score": {
+          "score": 0.0,
+          "weight": 0.4,
+          "weighted_score": 0.0,
+          "rationale": "Causal chain does not match the expected failure mechanism."
+        },
+        "intervention_score": {
+          "score": 0.0,
+          "weight": 0.3,
+          "weighted_score": 0.0,
+          "rationale": "Intervention does not address the identified root cause."
+        },
+        "final_score": 0.0,
+        "trajectory": {
+          "tool_calls_made": 0,
+          "tool_calls_budget": 12,
+          "tool_efficiency": null,
+          "budget_compliant": true,
+          "anti_patterns": []
+        }
+      },
+      "metadata": {
+        "reference_model": true,
+        "total_tokens": null,
+        "latency_seconds": 0.0
+      }
+    },
+    {
+      "test_case_id": "PL-008",
+      "model": "category_only",
+      "mode": "text",
+      "run_index": 0,
+      "timestamp": "2026-06-02T11:11:38.735334+00:00",
+      "response": {
+        "model_name": "category_only",
+        "test_case_id": "PL-008",
+        "mode": "text",
+        "root_cause": "This looks like a protocol/human problem, but the specific variable is uncertain.",
+        "causal_chain": [
+          "A problem in the broad failure category affected the experiment",
+          "That category-level problem propagated into the observed symptoms"
+        ],
+        "intervention": "Repeat the experiment while checking the broad suspected category.",
+        "raw_response": "### Root Cause\nThis looks like a protocol/human problem, but the specific variable is uncertain.\n\n### Causal Chain\n1. A problem in the broad failure category affected the experiment\n2. That category-level problem propagated into the observed symptoms\n\n### Intervention\nRepeat the experiment while checking the broad suspected category.\n",
+        "tool_calls": [],
+        "total_tokens": null,
+        "latency_seconds": null,
+        "confidence": null
+      },
+      "score": {
+        "test_case_id": "PL-008",
+        "model_name": "category_only",
+        "mode": "text",
+        "root_cause_score": {
+          "score": 0.0,
+          "weight": 0.3,
+          "weighted_score": 0.0,
+          "rationale": "Root cause not identified or completely incorrect."
+        },
+        "causal_chain_score": {
+          "score": 0.0,
+          "weight": 0.4,
+          "weighted_score": 0.0,
+          "rationale": "Causal chain does not match the expected failure mechanism."
+        },
+        "intervention_score": {
+          "score": 0.0,
+          "weight": 0.3,
+          "weighted_score": 0.0,
+          "rationale": "Intervention does not address the identified root cause."
+        },
+        "final_score": 0.0,
+        "trajectory": {
+          "tool_calls_made": 0,
+          "tool_calls_budget": 10,
+          "tool_efficiency": null,
+          "budget_compliant": true,
+          "anti_patterns": []
+        }
+      },
+      "metadata": {
+        "reference_model": true,
+        "total_tokens": null,
+        "latency_seconds": 0.0
+      }
+    },
+    {
+      "test_case_id": "PL-009",
+      "model": "category_only",
+      "mode": "text",
+      "run_index": 0,
+      "timestamp": "2026-06-02T11:11:38.735489+00:00",
+      "response": {
+        "model_name": "category_only",
+        "test_case_id": "PL-009",
+        "mode": "text",
+        "root_cause": "This looks like a protocol/human problem, but the specific variable is uncertain.",
+        "causal_chain": [
+          "A problem in the broad failure category affected the experiment",
+          "That category-level problem propagated into the observed symptoms"
+        ],
+        "intervention": "Repeat the experiment while checking the broad suspected category.",
+        "raw_response": "### Root Cause\nThis looks like a protocol/human problem, but the specific variable is uncertain.\n\n### Causal Chain\n1. A problem in the broad failure category affected the experiment\n2. That category-level problem propagated into the observed symptoms\n\n### Intervention\nRepeat the experiment while checking the broad suspected category.\n",
+        "tool_calls": [],
+        "total_tokens": null,
+        "latency_seconds": null,
+        "confidence": null
+      },
+      "score": {
+        "test_case_id": "PL-009",
+        "model_name": "category_only",
+        "mode": "text",
+        "root_cause_score": {
+          "score": 0.0,
+          "weight": 0.3,
+          "weighted_score": 0.0,
+          "rationale": "Root cause not identified or completely incorrect."
+        },
+        "causal_chain_score": {
+          "score": 0.0,
+          "weight": 0.4,
+          "weighted_score": 0.0,
+          "rationale": "Causal chain does not match the expected failure mechanism."
+        },
+        "intervention_score": {
+          "score": 0.0,
+          "weight": 0.3,
+          "weighted_score": 0.0,
+          "rationale": "Intervention does not address the identified root cause."
+        },
+        "final_score": 0.0,
+        "trajectory": {
+          "tool_calls_made": 0,
+          "tool_calls_budget": 10,
+          "tool_efficiency": null,
+          "budget_compliant": true,
+          "anti_patterns": []
+        }
+      },
+      "metadata": {
+        "reference_model": true,
+        "total_tokens": null,
+        "latency_seconds": 0.0
+      }
+    },
+    {
+      "test_case_id": "RF-001",
+      "model": "category_only",
+      "mode": "text",
+      "run_index": 0,
+      "timestamp": "2026-06-02T11:11:38.735674+00:00",
+      "response": {
+        "model_name": "category_only",
+        "test_case_id": "RF-001",
+        "mode": "text",
+        "root_cause": "This looks like a reagent/material problem, but the specific variable is uncertain.",
+        "causal_chain": [
+          "A problem in the broad failure category affected the experiment",
+          "That category-level problem propagated into the observed symptoms"
+        ],
+        "intervention": "Repeat the experiment while checking the broad suspected category.",
+        "raw_response": "### Root Cause\nThis looks like a reagent/material problem, but the specific variable is uncertain.\n\n### Causal Chain\n1. A problem in the broad failure category affected the experiment\n2. That category-level problem propagated into the observed symptoms\n\n### Intervention\nRepeat the experiment while checking the broad suspected category.\n",
+        "tool_calls": [],
+        "total_tokens": null,
+        "latency_seconds": null,
+        "confidence": null
+      },
+      "score": {
+        "test_case_id": "RF-001",
+        "model_name": "category_only",
+        "mode": "text",
+        "root_cause_score": {
+          "score": 0.0,
+          "weight": 0.3,
+          "weighted_score": 0.0,
+          "rationale": "Root cause not identified or completely incorrect."
+        },
+        "causal_chain_score": {
+          "score": 0.0,
+          "weight": 0.4,
+          "weighted_score": 0.0,
+          "rationale": "Causal chain does not match the expected failure mechanism."
+        },
+        "intervention_score": {
+          "score": 0.0,
+          "weight": 0.3,
+          "weighted_score": 0.0,
+          "rationale": "Intervention does not address the identified root cause."
+        },
+        "final_score": 0.0,
+        "trajectory": {
+          "tool_calls_made": 0,
+          "tool_calls_budget": 15,
+          "tool_efficiency": null,
+          "budget_compliant": true,
+          "anti_patterns": []
+        }
+      },
+      "metadata": {
+        "reference_model": true,
+        "total_tokens": null,
+        "latency_seconds": 0.0
+      }
+    },
+    {
+      "test_case_id": "RF-002",
+      "model": "category_only",
+      "mode": "text",
+      "run_index": 0,
+      "timestamp": "2026-06-02T11:11:38.735847+00:00",
+      "response": {
+        "model_name": "category_only",
+        "test_case_id": "RF-002",
+        "mode": "text",
+        "root_cause": "This looks like a reagent/material problem, but the specific variable is uncertain.",
+        "causal_chain": [
+          "A problem in the broad failure category affected the experiment",
+          "That category-level problem propagated into the observed symptoms"
+        ],
+        "intervention": "Repeat the experiment while checking the broad suspected category.",
+        "raw_response": "### Root Cause\nThis looks like a reagent/material problem, but the specific variable is uncertain.\n\n### Causal Chain\n1. A problem in the broad failure category affected the experiment\n2. That category-level problem propagated into the observed symptoms\n\n### Intervention\nRepeat the experiment while checking the broad suspected category.\n",
+        "tool_calls": [],
+        "total_tokens": null,
+        "latency_seconds": null,
+        "confidence": null
+      },
+      "score": {
+        "test_case_id": "RF-002",
+        "model_name": "category_only",
+        "mode": "text",
+        "root_cause_score": {
+          "score": 0.0,
+          "weight": 0.3,
+          "weighted_score": 0.0,
+          "rationale": "Root cause not identified or completely incorrect."
+        },
+        "causal_chain_score": {
+          "score": 0.0,
+          "weight": 0.4,
+          "weighted_score": 0.0,
+          "rationale": "Causal chain does not match the expected failure mechanism."
+        },
+        "intervention_score": {
+          "score": 0.0,
+          "weight": 0.3,
+          "weighted_score": 0.0,
+          "rationale": "Intervention does not address the identified root cause."
+        },
+        "final_score": 0.0,
+        "trajectory": {
+          "tool_calls_made": 0,
+          "tool_calls_budget": 10,
+          "tool_efficiency": null,
+          "budget_compliant": true,
+          "anti_patterns": []
+        }
+      },
+      "metadata": {
+        "reference_model": true,
+        "total_tokens": null,
+        "latency_seconds": 0.0
+      }
+    },
+    {
+      "test_case_id": "RF-004",
+      "model": "category_only",
+      "mode": "text",
+      "run_index": 0,
+      "timestamp": "2026-06-02T11:11:38.736082+00:00",
+      "response": {
+        "model_name": "category_only",
+        "test_case_id": "RF-004",
+        "mode": "text",
+        "root_cause": "This looks like a reagent/material problem, but the specific variable is uncertain.",
+        "causal_chain": [
+          "A problem in the broad failure category affected the experiment",
+          "That category-level problem propagated into the observed symptoms"
+        ],
+        "intervention": "Repeat the experiment while checking the broad suspected category.",
+        "raw_response": "### Root Cause\nThis looks like a reagent/material problem, but the specific variable is uncertain.\n\n### Causal Chain\n1. A problem in the broad failure category affected the experiment\n2. That category-level problem propagated into the observed symptoms\n\n### Intervention\nRepeat the experiment while checking the broad suspected category.\n",
+        "tool_calls": [],
+        "total_tokens": null,
+        "latency_seconds": null,
+        "confidence": null
+      },
+      "score": {
+        "test_case_id": "RF-004",
+        "model_name": "category_only",
+        "mode": "text",
+        "root_cause_score": {
+          "score": 0.0,
+          "weight": 0.3,
+          "weighted_score": 0.0,
+          "rationale": "Root cause not identified or completely incorrect."
+        },
+        "causal_chain_score": {
+          "score": 0.0,
+          "weight": 0.4,
+          "weighted_score": 0.0,
+          "rationale": "Causal chain does not match the expected failure mechanism."
+        },
+        "intervention_score": {
+          "score": 0.0,
+          "weight": 0.3,
+          "weighted_score": 0.0,
+          "rationale": "Intervention does not address the identified root cause."
+        },
+        "final_score": 0.0,
+        "trajectory": {
+          "tool_calls_made": 0,
+          "tool_calls_budget": 20,
+          "tool_efficiency": null,
+          "budget_compliant": true,
+          "anti_patterns": []
+        }
+      },
+      "metadata": {
+        "reference_model": true,
+        "total_tokens": null,
+        "latency_seconds": 0.0
+      }
+    },
+    {
+      "test_case_id": "RF-009",
+      "model": "category_only",
+      "mode": "text",
+      "run_index": 0,
+      "timestamp": "2026-06-02T11:11:38.736257+00:00",
+      "response": {
+        "model_name": "category_only",
+        "test_case_id": "RF-009",
+        "mode": "text",
+        "root_cause": "This looks like a reagent/material problem, but the specific variable is uncertain.",
+        "causal_chain": [
+          "A problem in the broad failure category affected the experiment",
+          "That category-level problem propagated into the observed symptoms"
+        ],
+        "intervention": "Repeat the experiment while checking the broad suspected category.",
+        "raw_response": "### Root Cause\nThis looks like a reagent/material problem, but the specific variable is uncertain.\n\n### Causal Chain\n1. A problem in the broad failure category affected the experiment\n2. That category-level problem propagated into the observed symptoms\n\n### Intervention\nRepeat the experiment while checking the broad suspected category.\n",
+        "tool_calls": [],
+        "total_tokens": null,
+        "latency_seconds": null,
+        "confidence": null
+      },
+      "score": {
+        "test_case_id": "RF-009",
+        "model_name": "category_only",
+        "mode": "text",
+        "root_cause_score": {
+          "score": 0.0,
+          "weight": 0.3,
+          "weighted_score": 0.0,
+          "rationale": "Root cause not identified or completely incorrect."
+        },
+        "causal_chain_score": {
+          "score": 0.0,
+          "weight": 0.4,
+          "weighted_score": 0.0,
+          "rationale": "Causal chain does not match the expected failure mechanism."
+        },
+        "intervention_score": {
+          "score": 0.0,
+          "weight": 0.3,
+          "weighted_score": 0.0,
+          "rationale": "Intervention does not address the identified root cause."
+        },
+        "final_score": 0.0,
+        "trajectory": {
+          "tool_calls_made": 0,
+          "tool_calls_budget": 12,
+          "tool_efficiency": null,
+          "budget_compliant": true,
+          "anti_patterns": []
+        }
+      },
+      "metadata": {
+        "reference_model": true,
+        "total_tokens": null,
+        "latency_seconds": 0.0
+      }
+    },
+    {
+      "test_case_id": "RF-010",
+      "model": "category_only",
+      "mode": "text",
+      "run_index": 0,
+      "timestamp": "2026-06-02T11:11:38.736417+00:00",
+      "response": {
+        "model_name": "category_only",
+        "test_case_id": "RF-010",
+        "mode": "text",
+        "root_cause": "This looks like a reagent/material problem, but the specific variable is uncertain.",
+        "causal_chain": [
+          "A problem in the broad failure category affected the experiment",
+          "That category-level problem propagated into the observed symptoms"
+        ],
+        "intervention": "Repeat the experiment while checking the broad suspected category.",
+        "raw_response": "### Root Cause\nThis looks like a reagent/material problem, but the specific variable is uncertain.\n\n### Causal Chain\n1. A problem in the broad failure category affected the experiment\n2. That category-level problem propagated into the observed symptoms\n\n### Intervention\nRepeat the experiment while checking the broad suspected category.\n",
+        "tool_calls": [],
+        "total_tokens": null,
+        "latency_seconds": null,
+        "confidence": null
+      },
+      "score": {
+        "test_case_id": "RF-010",
+        "model_name": "category_only",
+        "mode": "text",
+        "root_cause_score": {
+          "score": 0.0,
+          "weight": 0.3,
+          "weighted_score": 0.0,
+          "rationale": "Root cause not identified or completely incorrect."
+        },
+        "causal_chain_score": {
+          "score": 0.0,
+          "weight": 0.4,
+          "weighted_score": 0.0,
+          "rationale": "Causal chain does not match the expected failure mechanism."
+        },
+        "intervention_score": {
+          "score": 0.0,
+          "weight": 0.3,
+          "weighted_score": 0.0,
+          "rationale": "Intervention does not address the identified root cause."
+        },
+        "final_score": 0.0,
+        "trajectory": {
+          "tool_calls_made": 0,
+          "tool_calls_budget": 10,
+          "tool_efficiency": null,
+          "budget_compliant": true,
+          "anti_patterns": []
+        }
+      },
+      "metadata": {
+        "reference_model": true,
+        "total_tokens": null,
+        "latency_seconds": 0.0
+      }
+    },
+    {
+      "test_case_id": "RF-011",
+      "model": "category_only",
+      "mode": "text",
+      "run_index": 0,
+      "timestamp": "2026-06-02T11:11:38.736564+00:00",
+      "response": {
+        "model_name": "category_only",
+        "test_case_id": "RF-011",
+        "mode": "text",
+        "root_cause": "This looks like a reagent/material problem, but the specific variable is uncertain.",
+        "causal_chain": [
+          "A problem in the broad failure category affected the experiment",
+          "That category-level problem propagated into the observed symptoms"
+        ],
+        "intervention": "Repeat the experiment while checking the broad suspected category.",
+        "raw_response": "### Root Cause\nThis looks like a reagent/material problem, but the specific variable is uncertain.\n\n### Causal Chain\n1. A problem in the broad failure category affected the experiment\n2. That category-level problem propagated into the observed symptoms\n\n### Intervention\nRepeat the experiment while checking the broad suspected category.\n",
+        "tool_calls": [],
+        "total_tokens": null,
+        "latency_seconds": null,
+        "confidence": null
+      },
+      "score": {
+        "test_case_id": "RF-011",
+        "model_name": "category_only",
+        "mode": "text",
+        "root_cause_score": {
+          "score": 0.0,
+          "weight": 0.3,
+          "weighted_score": 0.0,
+          "rationale": "Root cause not identified or completely incorrect."
+        },
+        "causal_chain_score": {
+          "score": 0.0,
+          "weight": 0.4,
+          "weighted_score": 0.0,
+          "rationale": "Causal chain does not match the expected failure mechanism."
+        },
+        "intervention_score": {
+          "score": 0.0,
+          "weight": 0.3,
+          "weighted_score": 0.0,
+          "rationale": "Intervention does not address the identified root cause."
+        },
+        "final_score": 0.0,
+        "trajectory": {
+          "tool_calls_made": 0,
+          "tool_calls_budget": 12,
+          "tool_efficiency": null,
+          "budget_compliant": true,
+          "anti_patterns": []
+        }
+      },
+      "metadata": {
+        "reference_model": true,
+        "total_tokens": null,
+        "latency_seconds": 0.0
+      }
+    },
+    {
+      "test_case_id": "RF-012",
+      "model": "category_only",
+      "mode": "text",
+      "run_index": 0,
+      "timestamp": "2026-06-02T11:11:38.736709+00:00",
+      "response": {
+        "model_name": "category_only",
+        "test_case_id": "RF-012",
+        "mode": "text",
+        "root_cause": "This looks like a reagent/material problem, but the specific variable is uncertain.",
+        "causal_chain": [
+          "A problem in the broad failure category affected the experiment",
+          "That category-level problem propagated into the observed symptoms"
+        ],
+        "intervention": "Repeat the experiment while checking the broad suspected category.",
+        "raw_response": "### Root Cause\nThis looks like a reagent/material problem, but the specific variable is uncertain.\n\n### Causal Chain\n1. A problem in the broad failure category affected the experiment\n2. That category-level problem propagated into the observed symptoms\n\n### Intervention\nRepeat the experiment while checking the broad suspected category.\n",
+        "tool_calls": [],
+        "total_tokens": null,
+        "latency_seconds": null,
+        "confidence": null
+      },
+      "score": {
+        "test_case_id": "RF-012",
+        "model_name": "category_only",
+        "mode": "text",
+        "root_cause_score": {
+          "score": 0.0,
+          "weight": 0.3,
+          "weighted_score": 0.0,
+          "rationale": "Root cause not identified or completely incorrect."
+        },
+        "causal_chain_score": {
+          "score": 0.0,
+          "weight": 0.4,
+          "weighted_score": 0.0,
+          "rationale": "Causal chain does not match the expected failure mechanism."
+        },
+        "intervention_score": {
+          "score": 0.0,
+          "weight": 0.3,
+          "weighted_score": 0.0,
+          "rationale": "Intervention does not address the identified root cause."
+        },
+        "final_score": 0.0,
+        "trajectory": {
+          "tool_calls_made": 0,
+          "tool_calls_budget": 12,
+          "tool_efficiency": null,
+          "budget_compliant": true,
+          "anti_patterns": []
+        }
+      },
+      "metadata": {
+        "reference_model": true,
+        "total_tokens": null,
+        "latency_seconds": 0.0
+      }
+    },
+    {
+      "test_case_id": "RF-013",
+      "model": "category_only",
+      "mode": "text",
+      "run_index": 0,
+      "timestamp": "2026-06-02T11:11:38.736847+00:00",
+      "response": {
+        "model_name": "category_only",
+        "test_case_id": "RF-013",
+        "mode": "text",
+        "root_cause": "This looks like a reagent/material problem, but the specific variable is uncertain.",
+        "causal_chain": [
+          "A problem in the broad failure category affected the experiment",
+          "That category-level problem propagated into the observed symptoms"
+        ],
+        "intervention": "Repeat the experiment while checking the broad suspected category.",
+        "raw_response": "### Root Cause\nThis looks like a reagent/material problem, but the specific variable is uncertain.\n\n### Causal Chain\n1. A problem in the broad failure category affected the experiment\n2. That category-level problem propagated into the observed symptoms\n\n### Intervention\nRepeat the experiment while checking the broad suspected category.\n",
+        "tool_calls": [],
+        "total_tokens": null,
+        "latency_seconds": null,
+        "confidence": null
+      },
+      "score": {
+        "test_case_id": "RF-013",
+        "model_name": "category_only",
+        "mode": "text",
+        "root_cause_score": {
+          "score": 0.0,
+          "weight": 0.3,
+          "weighted_score": 0.0,
+          "rationale": "Root cause not identified or completely incorrect."
+        },
+        "causal_chain_score": {
+          "score": 0.0,
+          "weight": 0.4,
+          "weighted_score": 0.0,
+          "rationale": "Causal chain does not match the expected failure mechanism."
+        },
+        "intervention_score": {
+          "score": 0.0,
+          "weight": 0.3,
+          "weighted_score": 0.0,
+          "rationale": "Intervention does not address the identified root cause."
+        },
+        "final_score": 0.0,
+        "trajectory": {
+          "tool_calls_made": 0,
+          "tool_calls_budget": 10,
+          "tool_efficiency": null,
+          "budget_compliant": true,
+          "anti_patterns": []
+        }
+      },
+      "metadata": {
+        "reference_model": true,
+        "total_tokens": null,
+        "latency_seconds": 0.0
+      }
+    },
+    {
+      "test_case_id": "RF-014",
+      "model": "category_only",
+      "mode": "text",
+      "run_index": 0,
+      "timestamp": "2026-06-02T11:11:38.736977+00:00",
+      "response": {
+        "model_name": "category_only",
+        "test_case_id": "RF-014",
+        "mode": "text",
+        "root_cause": "This looks like a reagent/material problem, but the specific variable is uncertain.",
+        "causal_chain": [
+          "A problem in the broad failure category affected the experiment",
+          "That category-level problem propagated into the observed symptoms"
+        ],
+        "intervention": "Repeat the experiment while checking the broad suspected category.",
+        "raw_response": "### Root Cause\nThis looks like a reagent/material problem, but the specific variable is uncertain.\n\n### Causal Chain\n1. A problem in the broad failure category affected the experiment\n2. That category-level problem propagated into the observed symptoms\n\n### Intervention\nRepeat the experiment while checking the broad suspected category.\n",
+        "tool_calls": [],
+        "total_tokens": null,
+        "latency_seconds": null,
+        "confidence": null
+      },
+      "score": {
+        "test_case_id": "RF-014",
+        "model_name": "category_only",
+        "mode": "text",
+        "root_cause_score": {
+          "score": 0.0,
+          "weight": 0.3,
+          "weighted_score": 0.0,
+          "rationale": "Root cause not identified or completely incorrect."
+        },
+        "causal_chain_score": {
+          "score": 0.0,
+          "weight": 0.4,
+          "weighted_score": 0.0,
+          "rationale": "Causal chain does not match the expected failure mechanism."
+        },
+        "intervention_score": {
+          "score": 0.0,
+          "weight": 0.3,
+          "weighted_score": 0.0,
+          "rationale": "Intervention does not address the identified root cause."
+        },
+        "final_score": 0.0,
+        "trajectory": {
+          "tool_calls_made": 0,
+          "tool_calls_budget": 10,
+          "tool_efficiency": null,
+          "budget_compliant": true,
+          "anti_patterns": []
+        }
+      },
+      "metadata": {
+        "reference_model": true,
+        "total_tokens": null,
+        "latency_seconds": 0.0
+      }
+    }
+  ]
+}

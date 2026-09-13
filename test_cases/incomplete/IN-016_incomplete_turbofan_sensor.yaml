@@ -1,0 +1,114 @@
+id: "IN-016"
+title: "Incomplete Turbofan Log: Health Alert Without Reference Sensor"
+version: "1.0"
+domain: "aerospace"
+subdomain: "engine_health_monitoring"
+failure_category: "instrumentation_artifact"
+difficulty: "hard"
+information_regime: "incomplete"
+split: "held_out"
+
+objective: |
+  A research turbofan health-monitoring rig should detect genuine compressor
+  degradation. After a 40-hour endurance run the monitor flagged 'accelerated
+  degradation' and recommended an unscheduled teardown.
+
+protocol:
+  - step: 1
+    action: "Install the research compressor-discharge pressure (CDP) transducer"
+    details: "Transducer was swapped from a previous campaign; installation torque was not recorded"
+  - step: 2
+    action: "Run the standard 40-hour endurance cycle"
+    details: "Inlet conditions were within envelope"
+  - step: 3
+    action: "Health monitor computed a remaining-useful-life drop of 38 percent"
+    notes: "No borescope or independent Kiel probe was available during the run"
+
+telemetry:
+  health_index:
+    description: "Normalized compressor health index (1.0 = new)"
+    data_type: "timeseries"
+    values: [0.99, 0.97, 0.93, 0.88, 0.82, 0.76, 0.71]
+    units: "dimensionless"
+    expected_range:
+      min: 0.92
+      max: 1.0
+    note: "Apparent monotonic degradation far faster than historical builds"
+  vibration:
+    description: "Broadband vibration survey"
+    data_type: "numeric"
+    values: [0.21, 0.22, 0.20, 0.23]
+    units: "in/s peak"
+    expected_range:
+      min: 0.1
+      max: 0.35
+    note: "Vibration remains in-family"
+  egt_margin:
+    description: "Exhaust gas temperature margin"
+    data_type: "numeric"
+    values: [42, 41, 43, 40]
+    units: "C"
+    expected_range:
+      min: 25
+      max: 60
+    note: "EGT margin is stable"
+
+contextual_clues:
+  - "A previous campaign on this transducer ended with a suspected 4 kPa bias that was never closed"
+  - "Oil analysis from this run is unremarkable"
+  - "Fan speed and fuel flow traces look normal"
+  - "The independent reference Kiel probe data were not recorded on this build"
+
+hidden_fields:
+  - "contextual_clues"
+
+ground_truth:
+  root_cause: "The compressor-discharge transducer is biased, so the health monitor inferred false degradation. Vibration and EGT margin remaining in-family contradict a real compressor fault. The prior unresolved bias on the same transducer is the key missing record."
+  root_cause_category: "instrumentation_artifact"
+  causal_chain:
+    - "A previously biased CDP transducer was reused without a documented zero check"
+    - "The health algorithm treats CDP error as efficiency loss"
+    - "Health index fell 29 points while vibration and EGT stayed in-family"
+    - "No independent Kiel probe was recorded, so the software story was not challenged in real time"
+    - "The monitor recommended an unnecessary teardown"
+  intervention: "Zero-check or replace the CDP transducer, install an independent Kiel probe, and replay the health algorithm. If the health index recovers while mechanical indicators stay flat, the sensor-bias diagnosis is confirmed."
+  key_evidence:
+    - "Health index collapsed while vibration and EGT margin did not"
+    - "Transducer reused from a campaign with an open bias suspicion"
+    - "No independent pressure reference"
+  alternative_diagnoses:
+    - "True compressor fouling or blade damage"
+    - "Inlet distortion"
+    - "Control-schedule software bug unrelated to sensing"
+  why_alternatives_fail:
+    "True compressor fouling or blade damage": "Vibration and EGT margin would typically move with genuine degradation."
+    "Inlet distortion": "Inlet conditions were within envelope and fan speed is normal."
+    "Control-schedule software bug unrelated to sensing": "Possible but less parsimonious than a known-suspect transducer; still worth a replay after sensor correction."
+  difficulty_justification: "Incomplete: the prior bias note is withheld as a contextual clue. The model must notice the disagreement among indicators and ask for a reference measurement rather than accept the health alert."
+
+scoring:
+  weights:
+    root_cause: 0.30
+    causal_chain: 0.40
+    intervention: 0.30
+  root_cause_keywords:
+    - "sensor"
+    - "bias"
+    - "transducer"
+    - "false"
+    - "health"
+    - "calibration"
+  partial_credit_causes:
+    "instrument error": 0.6
+    "false degradation": 0.75
+
+available_tools:
+  - "calibration_checker"
+  - "statistical_analyzer"
+  - "trace_log_analyzer"
+max_tool_calls: 12
+
+source: "Synthetic composite inspired by public turbofan prognostics sensor-fault patterns; no proprietary engine data"
+expert_validated: false
+tags: ["incomplete", "aerospace", "sensor_bias", "health_monitoring"]
+author: "EpiDebug Team"

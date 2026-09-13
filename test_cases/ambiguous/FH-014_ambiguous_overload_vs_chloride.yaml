@@ -1,0 +1,120 @@
+id: "FH-014"
+title: "Ambiguous Wing-Spar Crack: Overload Sequence vs Residual Chloride"
+version: "1.0"
+domain: "aerospace"
+subdomain: "structural_fatigue"
+failure_category: "flawed_hypothesis"
+difficulty: "expert"
+information_regime: "ambiguous"
+split: "development"
+
+objective: |
+  Qualify a 2024-T3 aluminum wing-spar coupon under a compressed flight-hour
+  spectrum. Target: survive 2.0 lifetimes with no through-crack at the fastener
+  hole. The team assumed linear Miner-rule damage accumulation and a clean
+  hole-prep process.
+
+protocol:
+  - step: 1
+    action: "CNC-drill and ream the 6 mm fastener hole"
+    details: "Shop air blow-off after reaming; no documented solvent wipe"
+  - step: 2
+    action: "Apply the standard flight spectrum on a servo-hydraulic frame"
+    details: "Spectrum includes several 1.3x limit-load overloads clustered early in block 2"
+  - step: 3
+    action: "Inspect at 0.5, 1.0, 1.5, and 2.0 lifetimes"
+    notes: "A 4 mm corner crack was found at 1.1 lifetimes — well before prediction"
+  - step: 4
+    action: "Continue to failure to record residual life"
+    details: "Through-crack at 1.35 lifetimes"
+
+telemetry:
+  predicted_vs_observed:
+    description: "Miner-rule predicted life versus observed crack initiation"
+    data_type: "table"
+    observations:
+      - "Miner prediction: 2.4 lifetimes to a 1 mm crack"
+      - "Observed: 1.1 lifetimes to a 4 mm corner crack"
+      - "Linear damage sum at observation was only 0.46"
+    expected_range:
+      min: 2.0
+      max: 3.0
+  load_spectrum:
+    description: "Peak overload factors in the applied block"
+    data_type: "timeseries"
+    values: [1.0, 1.05, 1.3, 1.28, 1.31, 0.7, 1.0]
+    units: "limit-load factor"
+    note: "Three overloads above 1.25 clustered within 800 cycles"
+  hole_surface:
+    description: "Optical inspection of the hole after failure"
+    data_type: "text"
+    observations:
+      - "Dull gray film near the bore entrance"
+      - "Beach marks are present but origin is occluded by corrosion staining"
+      - "No SEM/EDS has been run yet"
+
+contextual_clues:
+  - "The drill coolant sump was topped up from a drum that previously held a chloride-containing cleaner, but conductivity of the coolant was not logged"
+  - "The spectrum reconstruction used a linear damage rule with no interaction term for overloads"
+  - "A sister coupon from the same plate, tested last quarter with a milder spectrum and a solvent-wiped hole, reached 2.2 lifetimes"
+  - "Shop humidity was high that week; parts sat overnight before testing"
+  - "The load-frame calibration is current"
+
+ground_truth:
+  root_cause: "The Miner linear-damage hypothesis is the primary scientific error: clustered overloads created a nonlinear damage interaction that initiated the corner crack far earlier than predicted. Residual chloride from the coolant drum is a real confounding contaminant and may have assisted initiation, so the case is intentionally ambiguous until fractography/EDS is obtained. Scoring treats the flawed linear-damage assumption as the intended root cause because the sister coupon with a milder spectrum survived, but a chloride-only story is not fully ruled out."
+  root_cause_category: "flawed_hypothesis"
+  causal_chain:
+    - "The qualification model assumed linear, load-order-independent fatigue damage"
+    - "The applied block placed several >1.25 limit-load overloads close together"
+    - "Plasticity and crack-closure transients made subsequent cycles more damaging than Miner predicted"
+    - "A corner crack appeared at 1.1 lifetimes while the damage sum was only 0.46"
+    - "Corrosion staining from possible chloride exposure occludes the origin, so a contamination story remains live"
+    - "Without SEM/EDS and a matched solvent-wiped overload coupon, the two mechanisms cannot be fully separated"
+  intervention: "Run two paired coupons from the same plate: (A) identical overload spectrum with a solvent-wiped, chloride-checked hole; (B) the milder spectrum with the original hole prep. If A still fails early, the overload-interaction hypothesis is confirmed. If only the unwiped hole fails, chloride contamination dominates. Follow with SEM/EDS of the origin."
+  key_evidence:
+    - "Failure at 1.1 lifetimes while Miner sum is 0.46"
+    - "Clustered overloads in the spectrum"
+    - "Sister coupon on a milder spectrum survived"
+    - "Possible chloride source in the coolant drum without chemistry data"
+  alternative_diagnoses:
+    - "Chloride-contaminated coolant caused pitting that initiated the crack independently of the overload sequence"
+    - "The load frame over-applied the commanded spectrum"
+    - "Wrong aluminum temper was used"
+  why_alternatives_fail:
+    "Chloride-contaminated coolant caused pitting that initiated the crack independently of the overload sequence": "Possible and not ruled out — that is why the case is ambiguous. The milder-spectrum sister coupon still suggests load interaction is necessary, but staining at the origin keeps chloride in play."
+    "The load frame over-applied the commanded spectrum": "Calibration is current and commanded peaks match the recorded load cell."
+    "Wrong aluminum temper was used": "The sister coupon from the same plate survived a milder spectrum."
+  difficulty_justification: "Two scientifically serious mechanisms remain consistent with the evidence. A good diagnosis must keep both live, quantify uncertainty, and propose a discriminating pair of follow-ups rather than committing early."
+
+scoring:
+  weights:
+    root_cause: 0.30
+    causal_chain: 0.40
+    intervention: 0.30
+  root_cause_keywords:
+    - "Miner"
+    - "overload"
+    - "nonlinear"
+    - "damage"
+    - "chloride"
+    - "ambiguous"
+  partial_credit_causes:
+    "chloride contamination": 0.7
+    "fatigue overloads": 0.75
+    "wrong damage rule": 0.75
+  evidence_keywords:
+    - "Miner"
+    - "overload"
+    - "staining"
+    - "sister coupon"
+
+available_tools:
+  - "material_properties"
+  - "statistical_analyzer"
+  - "calibration_checker"
+max_tool_calls: 15
+
+source: "Composite of fatigue interaction literature and aerospace hole-prep contamination lessons; not a copy of any single accident report"
+expert_validated: false
+tags: ["ambiguous", "fatigue", "aerospace", "chloride", "miner_rule"]
+author: "EpiDebug Team"

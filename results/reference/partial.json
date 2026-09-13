@@ -1,0 +1,1811 @@
+{
+  "benchmark": "epidebug",
+  "version": "0.1.0",
+  "model": "partial",
+  "mode": "text",
+  "timestamp": "2026-06-02T11:11:38.728593+00:00",
+  "total_cases": 30,
+  "reference_model": true,
+  "results": [
+    {
+      "test_case_id": "FH-003",
+      "model": "partial",
+      "mode": "text",
+      "run_index": 0,
+      "timestamp": "2026-06-02T11:11:38.721993+00:00",
+      "response": {
+        "model_name": "partial",
+        "test_case_id": "FH-003",
+        "mode": "text",
+        "root_cause": "elimination instead of substitution",
+        "causal_chain": [
+          "Researcher assumed SN2 would dominate because 1-bromobutane is a primary substrate",
+          "However, NaOEt is a strong base (pKb very low), which can promote E2 as well as act as nucleophile",
+          "Reaction was run at reflux (78\u00b0C) \u2014 high temperature strongly favors elimination over substitution"
+        ],
+        "intervention": "Rerun the reaction at room temperature (25\u00b0C) or 0\u00b0C, using a weaker/smaller nucleophile (e.g., NaI in acetone for Finkelstein, then NaOEt at 25\u00b0C) or switching to a polar aprotic solvent (DMF) to maximize SN2.",
+        "raw_response": "### Root Cause\nelimination instead of substitution\n\n### Causal Chain\n1. Researcher assumed SN2 would dominate because 1-bromobutane is a primary substrate\n2. However, NaOEt is a strong base (pKb very low), which can promote E2 as well as act as nucleophile\n3. Reaction was run at reflux (78\u00b0C) \u2014 high temperature strongly favors elimination over substitution\n\n### Intervention\nRerun the reaction at room temperature (25\u00b0C) or 0\u00b0C, using a weaker/smaller nucleophile (e.g., NaI in acetone for Finkelstein, then NaOEt at 25\u00b0C) or switching to a polar aprotic solvent (DMF) to maximize SN2.\n",
+        "tool_calls": [],
+        "total_tokens": null,
+        "latency_seconds": null,
+        "confidence": null
+      },
+      "score": {
+        "test_case_id": "FH-003",
+        "model_name": "partial",
+        "mode": "text",
+        "root_cause_score": {
+          "score": 1.0,
+          "weight": 0.3,
+          "weighted_score": 0.3,
+          "rationale": "Root cause correctly identified \u2014 key terms match ground truth."
+        },
+        "causal_chain_score": {
+          "score": 0.5,
+          "weight": 0.4,
+          "weighted_score": 0.2,
+          "rationale": "Causal chain captures some key steps but has significant gaps."
+        },
+        "intervention_score": {
+          "score": 0.99,
+          "weight": 0.3,
+          "weighted_score": 0.297,
+          "rationale": "Intervention targets the correct variable and would test the diagnosis."
+        },
+        "final_score": 0.797,
+        "trajectory": {
+          "tool_calls_made": 0,
+          "tool_calls_budget": 12,
+          "tool_efficiency": null,
+          "budget_compliant": true,
+          "anti_patterns": []
+        }
+      },
+      "metadata": {
+        "reference_model": true,
+        "total_tokens": null,
+        "latency_seconds": 0.0
+      }
+    },
+    {
+      "test_case_id": "FH-005",
+      "model": "partial",
+      "mode": "text",
+      "run_index": 0,
+      "timestamp": "2026-06-02T11:11:38.722339+00:00",
+      "response": {
+        "model_name": "partial",
+        "test_case_id": "FH-005",
+        "mode": "text",
+        "root_cause": "FEA mesh was too coarse to capture stress concentration",
+        "causal_chain": [
+          "Design included a 2 mm radius notch (step-down feature) at the base of the 15 mm fillet, creating a geometric stress concentration",
+          "FEA mesh used a global 2.0 mm element size with no local refinement, resulting in only 1-2 elements across the 2 mm notch radius",
+          "Coarse mesh could not resolve the steep stress gradient at the notch root, reporting 190.3 MPa peak stress instead of the true 412 MPa"
+        ],
+        "intervention": "(1) Re-run the FEA with proper mesh refinement at the notch root (element size \u2264 0.2 mm, or \u2264 r/10 where r is the notch radius), confirming the 412 MPa peak stress.",
+        "raw_response": "### Root Cause\nFEA mesh was too coarse to capture stress concentration\n\n### Causal Chain\n1. Design included a 2 mm radius notch (step-down feature) at the base of the 15 mm fillet, creating a geometric stress concentration\n2. FEA mesh used a global 2.0 mm element size with no local refinement, resulting in only 1-2 elements across the 2 mm notch radius\n3. Coarse mesh could not resolve the steep stress gradient at the notch root, reporting 190.3 MPa peak stress instead of the true 412 MPa\n\n### Intervention\n(1) Re-run the FEA with proper mesh refinement at the notch root (element size \u2264 0.2 mm, or \u2264 r/10 where r is the notch radius), confirming the 412 MPa peak stress.\n",
+        "tool_calls": [],
+        "total_tokens": null,
+        "latency_seconds": null,
+        "confidence": null
+      },
+      "score": {
+        "test_case_id": "FH-005",
+        "model_name": "partial",
+        "mode": "text",
+        "root_cause_score": {
+          "score": 1.0,
+          "weight": 0.3,
+          "weighted_score": 0.3,
+          "rationale": "Root cause correctly identified \u2014 key terms match ground truth."
+        },
+        "causal_chain_score": {
+          "score": 0.5,
+          "weight": 0.4,
+          "weighted_score": 0.2,
+          "rationale": "Causal chain captures some key steps but has significant gaps."
+        },
+        "intervention_score": {
+          "score": 0.5,
+          "weight": 0.3,
+          "weighted_score": 0.15,
+          "rationale": "Intervention is related but may not isolate the suspected variable."
+        },
+        "final_score": 0.65,
+        "trajectory": {
+          "tool_calls_made": 0,
+          "tool_calls_budget": 20,
+          "tool_efficiency": null,
+          "budget_compliant": true,
+          "anti_patterns": []
+        }
+      },
+      "metadata": {
+        "reference_model": true,
+        "total_tokens": null,
+        "latency_seconds": 0.0
+      }
+    },
+    {
+      "test_case_id": "FH-009",
+      "model": "partial",
+      "mode": "text",
+      "run_index": 0,
+      "timestamp": "2026-06-02T11:11:38.722576+00:00",
+      "response": {
+        "model_name": "partial",
+        "test_case_id": "FH-009",
+        "mode": "text",
+        "root_cause": "train test leakage",
+        "causal_chain": [
+          "High-resolution bridge images were sliced into overlapping patches",
+          "The random patch split allowed adjacent patches and the same bridge sites to appear in both train and validation sets",
+          "Validation patches often had near-duplicate training neighbors and shared site-specific texture, lighting, and painted grid marks"
+        ],
+        "intervention": "Rebuild the evaluation protocol with splits grouped by parent image and bridge site, remove or separately label overlapping near-duplicate patches, and choose thresholds only on site-held-out validation.",
+        "raw_response": "### Root Cause\ntrain test leakage\n\n### Causal Chain\n1. High-resolution bridge images were sliced into overlapping patches\n2. The random patch split allowed adjacent patches and the same bridge sites to appear in both train and validation sets\n3. Validation patches often had near-duplicate training neighbors and shared site-specific texture, lighting, and painted grid marks\n\n### Intervention\nRebuild the evaluation protocol with splits grouped by parent image and bridge site, remove or separately label overlapping near-duplicate patches, and choose thresholds only on site-held-out validation.\n",
+        "tool_calls": [],
+        "total_tokens": null,
+        "latency_seconds": null,
+        "confidence": null
+      },
+      "score": {
+        "test_case_id": "FH-009",
+        "model_name": "partial",
+        "mode": "text",
+        "root_cause_score": {
+          "score": 1.0,
+          "weight": 0.3,
+          "weighted_score": 0.3,
+          "rationale": "Root cause correctly identified \u2014 key terms match ground truth."
+        },
+        "causal_chain_score": {
+          "score": 0.5,
+          "weight": 0.4,
+          "weighted_score": 0.2,
+          "rationale": "Causal chain captures some key steps but has significant gaps."
+        },
+        "intervention_score": {
+          "score": 0.5,
+          "weight": 0.3,
+          "weighted_score": 0.15,
+          "rationale": "Intervention is related but may not isolate the suspected variable."
+        },
+        "final_score": 0.65,
+        "trajectory": {
+          "tool_calls_made": 0,
+          "tool_calls_budget": 15,
+          "tool_efficiency": null,
+          "budget_compliant": true,
+          "anti_patterns": []
+        }
+      },
+      "metadata": {
+        "reference_model": true,
+        "total_tokens": null,
+        "latency_seconds": 0.0
+      }
+    },
+    {
+      "test_case_id": "FH-010",
+      "model": "partial",
+      "mode": "text",
+      "run_index": 0,
+      "timestamp": "2026-06-02T11:11:38.722748+00:00",
+      "response": {
+        "model_name": "partial",
+        "test_case_id": "FH-010",
+        "mode": "text",
+        "root_cause": "data leakage",
+        "causal_chain": [
+          "The actual task is predicting defects in future releases",
+          "Rows were randomly split across releases instead of split chronologically",
+          "The same module appeared in both train and test across nearby releases"
+        ],
+        "intervention": "Recompute features using only information available before each release, evaluate with rolling-origin time splits, and report release-held-out metrics.",
+        "raw_response": "### Root Cause\ndata leakage\n\n### Causal Chain\n1. The actual task is predicting defects in future releases\n2. Rows were randomly split across releases instead of split chronologically\n3. The same module appeared in both train and test across nearby releases\n\n### Intervention\nRecompute features using only information available before each release, evaluate with rolling-origin time splits, and report release-held-out metrics.\n",
+        "tool_calls": [],
+        "total_tokens": null,
+        "latency_seconds": null,
+        "confidence": null
+      },
+      "score": {
+        "test_case_id": "FH-010",
+        "model_name": "partial",
+        "mode": "text",
+        "root_cause_score": {
+          "score": 1.0,
+          "weight": 0.3,
+          "weighted_score": 0.3,
+          "rationale": "Root cause correctly identified \u2014 key terms match ground truth."
+        },
+        "causal_chain_score": {
+          "score": 0.5,
+          "weight": 0.4,
+          "weighted_score": 0.2,
+          "rationale": "Causal chain captures some key steps but has significant gaps."
+        },
+        "intervention_score": {
+          "score": 0.5,
+          "weight": 0.3,
+          "weighted_score": 0.15,
+          "rationale": "Intervention is related but may not isolate the suspected variable."
+        },
+        "final_score": 0.65,
+        "trajectory": {
+          "tool_calls_made": 0,
+          "tool_calls_budget": 12,
+          "tool_efficiency": null,
+          "budget_compliant": true,
+          "anti_patterns": []
+        }
+      },
+      "metadata": {
+        "reference_model": true,
+        "total_tokens": null,
+        "latency_seconds": 0.0
+      }
+    },
+    {
+      "test_case_id": "FH-011",
+      "model": "partial",
+      "mode": "text",
+      "run_index": 0,
+      "timestamp": "2026-06-02T11:11:38.722910+00:00",
+      "response": {
+        "model_name": "partial",
+        "test_case_id": "FH-011",
+        "mode": "text",
+        "root_cause": "object compliance",
+        "causal_chain": [
+          "The engineer modeled the pouch as a rigid flat object",
+          "Production pouches deform and redistribute contents under finger force",
+          "The contact patch and normal force change after closure"
+        ],
+        "intervention": "Test a compliance-aware grasp strategy: wider soft fingers, vacuum support, or a lift-after-settle delay with tactile feedback.",
+        "raw_response": "### Root Cause\nobject compliance\n\n### Causal Chain\n1. The engineer modeled the pouch as a rigid flat object\n2. Production pouches deform and redistribute contents under finger force\n3. The contact patch and normal force change after closure\n\n### Intervention\nTest a compliance-aware grasp strategy: wider soft fingers, vacuum support, or a lift-after-settle delay with tactile feedback.\n",
+        "tool_calls": [],
+        "total_tokens": null,
+        "latency_seconds": null,
+        "confidence": null
+      },
+      "score": {
+        "test_case_id": "FH-011",
+        "model_name": "partial",
+        "mode": "text",
+        "root_cause_score": {
+          "score": 1.0,
+          "weight": 0.3,
+          "weighted_score": 0.3,
+          "rationale": "Root cause correctly identified \u2014 key terms match ground truth."
+        },
+        "causal_chain_score": {
+          "score": 0.83,
+          "weight": 0.4,
+          "weighted_score": 0.332,
+          "rationale": "Causal chain covers most key mechanistic steps."
+        },
+        "intervention_score": {
+          "score": 0.88,
+          "weight": 0.3,
+          "weighted_score": 0.264,
+          "rationale": "Intervention targets the correct variable and would test the diagnosis."
+        },
+        "final_score": 0.896,
+        "trajectory": {
+          "tool_calls_made": 0,
+          "tool_calls_budget": 12,
+          "tool_efficiency": null,
+          "budget_compliant": true,
+          "anti_patterns": []
+        }
+      },
+      "metadata": {
+        "reference_model": true,
+        "total_tokens": null,
+        "latency_seconds": 0.0
+      }
+    },
+    {
+      "test_case_id": "FH-012",
+      "model": "partial",
+      "mode": "text",
+      "run_index": 0,
+      "timestamp": "2026-06-02T11:11:38.723082+00:00",
+      "response": {
+        "model_name": "partial",
+        "test_case_id": "FH-012",
+        "mode": "text",
+        "root_cause": "sequence effects",
+        "causal_chain": [
+          "The bracket contains a machined notch and rougher surface than the S-N coupons",
+          "The calculation used nominal stress bins and linear Miner accumulation",
+          "Early overload cycles produced local plastic strain at the notch"
+        ],
+        "intervention": "Reanalyze with notch stress/strain, surface-finish correction, and sequence-aware fatigue modeling, then run a blocked-spectrum test with and without early overloads.",
+        "raw_response": "### Root Cause\nsequence effects\n\n### Causal Chain\n1. The bracket contains a machined notch and rougher surface than the S-N coupons\n2. The calculation used nominal stress bins and linear Miner accumulation\n3. Early overload cycles produced local plastic strain at the notch\n\n### Intervention\nReanalyze with notch stress/strain, surface-finish correction, and sequence-aware fatigue modeling, then run a blocked-spectrum test with and without early overloads.\n",
+        "tool_calls": [],
+        "total_tokens": null,
+        "latency_seconds": null,
+        "confidence": null
+      },
+      "score": {
+        "test_case_id": "FH-012",
+        "model_name": "partial",
+        "mode": "text",
+        "root_cause_score": {
+          "score": 1.0,
+          "weight": 0.3,
+          "weighted_score": 0.3,
+          "rationale": "Root cause correctly identified \u2014 key terms match ground truth."
+        },
+        "causal_chain_score": {
+          "score": 0.83,
+          "weight": 0.4,
+          "weighted_score": 0.332,
+          "rationale": "Causal chain covers most key mechanistic steps."
+        },
+        "intervention_score": {
+          "score": 0.94,
+          "weight": 0.3,
+          "weighted_score": 0.282,
+          "rationale": "Intervention targets the correct variable and would test the diagnosis."
+        },
+        "final_score": 0.914,
+        "trajectory": {
+          "tool_calls_made": 0,
+          "tool_calls_budget": 15,
+          "tool_efficiency": null,
+          "budget_compliant": true,
+          "anti_patterns": []
+        }
+      },
+      "metadata": {
+        "reference_model": true,
+        "total_tokens": null,
+        "latency_seconds": 0.0
+      }
+    },
+    {
+      "test_case_id": "FH-013",
+      "model": "partial",
+      "mode": "text",
+      "run_index": 0,
+      "timestamp": "2026-06-02T11:11:38.723260+00:00",
+      "response": {
+        "model_name": "partial",
+        "test_case_id": "FH-013",
+        "mode": "text",
+        "root_cause": "off-target editing",
+        "causal_chain": [
+          "The sgRNA was designed against an outdated genome annotation",
+          "A newly annotated KIN1P paralog contained a near-match target site",
+          "Cas9 edited both KIN1 and KIN1P in selected clones"
+        ],
+        "intervention": "Redesign multiple sgRNAs unique to KIN1 under the current genome annotation, validate all paralog sites by amplicon sequencing, and rescue with KIN1 and KIN1P separately.",
+        "raw_response": "### Root Cause\noff-target editing\n\n### Causal Chain\n1. The sgRNA was designed against an outdated genome annotation\n2. A newly annotated KIN1P paralog contained a near-match target site\n3. Cas9 edited both KIN1 and KIN1P in selected clones\n\n### Intervention\nRedesign multiple sgRNAs unique to KIN1 under the current genome annotation, validate all paralog sites by amplicon sequencing, and rescue with KIN1 and KIN1P separately.\n",
+        "tool_calls": [],
+        "total_tokens": null,
+        "latency_seconds": null,
+        "confidence": null
+      },
+      "score": {
+        "test_case_id": "FH-013",
+        "model_name": "partial",
+        "mode": "text",
+        "root_cause_score": {
+          "score": 1.0,
+          "weight": 0.3,
+          "weighted_score": 0.3,
+          "rationale": "Root cause correctly identified \u2014 key terms match ground truth."
+        },
+        "causal_chain_score": {
+          "score": 0.5,
+          "weight": 0.4,
+          "weighted_score": 0.2,
+          "rationale": "Causal chain captures some key steps but has significant gaps."
+        },
+        "intervention_score": {
+          "score": 0.96,
+          "weight": 0.3,
+          "weighted_score": 0.288,
+          "rationale": "Intervention targets the correct variable and would test the diagnosis."
+        },
+        "final_score": 0.788,
+        "trajectory": {
+          "tool_calls_made": 0,
+          "tool_calls_budget": 15,
+          "tool_efficiency": null,
+          "budget_compliant": true,
+          "anti_patterns": []
+        }
+      },
+      "metadata": {
+        "reference_model": true,
+        "total_tokens": null,
+        "latency_seconds": 0.0
+      }
+    },
+    {
+      "test_case_id": "IN-001",
+      "model": "partial",
+      "mode": "text",
+      "run_index": 0,
+      "timestamp": "2026-06-02T11:11:38.723469+00:00",
+      "response": {
+        "model_name": "partial",
+        "test_case_id": "IN-001",
+        "mode": "text",
+        "root_cause": "instrument contamination",
+        "causal_chain": [
+          "Previous user measured RNA samples and did not clean the pedestal thoroughly",
+          "UV-absorbing residue (dried RNA/nucleotide) remained on the Nanodrop pedestal",
+          "Blank with EB read 0.08 AU instead of < 0.04 AU, but researcher proceeded anyway"
+        ],
+        "intervention": "Thoroughly clean both Nanodrop pedestals with 70% ethanol and lint-free wipe, then with nuclease-free water.",
+        "raw_response": "### Root Cause\ninstrument contamination\n\n### Causal Chain\n1. Previous user measured RNA samples and did not clean the pedestal thoroughly\n2. UV-absorbing residue (dried RNA/nucleotide) remained on the Nanodrop pedestal\n3. Blank with EB read 0.08 AU instead of < 0.04 AU, but researcher proceeded anyway\n\n### Intervention\nThoroughly clean both Nanodrop pedestals with 70% ethanol and lint-free wipe, then with nuclease-free water.\n",
+        "tool_calls": [],
+        "total_tokens": null,
+        "latency_seconds": null,
+        "confidence": null
+      },
+      "score": {
+        "test_case_id": "IN-001",
+        "model_name": "partial",
+        "mode": "text",
+        "root_cause_score": {
+          "score": 1.0,
+          "weight": 0.3,
+          "weighted_score": 0.3,
+          "rationale": "Root cause correctly identified \u2014 key terms match ground truth."
+        },
+        "causal_chain_score": {
+          "score": 0.5,
+          "weight": 0.4,
+          "weighted_score": 0.2,
+          "rationale": "Causal chain captures some key steps but has significant gaps."
+        },
+        "intervention_score": {
+          "score": 0.5,
+          "weight": 0.3,
+          "weighted_score": 0.15,
+          "rationale": "Intervention is related but may not isolate the suspected variable."
+        },
+        "final_score": 0.65,
+        "trajectory": {
+          "tool_calls_made": 0,
+          "tool_calls_budget": 10,
+          "tool_efficiency": null,
+          "budget_compliant": true,
+          "anti_patterns": []
+        }
+      },
+      "metadata": {
+        "reference_model": true,
+        "total_tokens": null,
+        "latency_seconds": 0.0
+      }
+    },
+    {
+      "test_case_id": "IN-005",
+      "model": "partial",
+      "mode": "text",
+      "run_index": 0,
+      "timestamp": "2026-06-02T11:11:38.723809+00:00",
+      "response": {
+        "model_name": "partial",
+        "test_case_id": "IN-005",
+        "mode": "text",
+        "root_cause": "ADC interleaving reduced the effective sample rate per channel",
+        "causal_chain": [
+          "Engineer enables both Channel 1 (signal) and Channel 2 (power rail) on the oscilloscope simultaneously",
+          "The MDO3104's ADC architecture uses interleaving \u2014 maximum 5 GS/s sample rate is only available when a single channel is active",
+          "With 2 channels active, the ADC interleaving is split and each channel receives approximately 50 MS/s effective sample rate"
+        ],
+        "intervention": "Disable Channel 2 (or any other active channels) so that Channel 1 receives the full 5 GS/s sample rate.",
+        "raw_response": "### Root Cause\nADC interleaving reduced the effective sample rate per channel\n\n### Causal Chain\n1. Engineer enables both Channel 1 (signal) and Channel 2 (power rail) on the oscilloscope simultaneously\n2. The MDO3104's ADC architecture uses interleaving \u2014 maximum 5 GS/s sample rate is only available when a single channel is active\n3. With 2 channels active, the ADC interleaving is split and each channel receives approximately 50 MS/s effective sample rate\n\n### Intervention\nDisable Channel 2 (or any other active channels) so that Channel 1 receives the full 5 GS/s sample rate.\n",
+        "tool_calls": [],
+        "total_tokens": null,
+        "latency_seconds": null,
+        "confidence": null
+      },
+      "score": {
+        "test_case_id": "IN-005",
+        "model_name": "partial",
+        "mode": "text",
+        "root_cause_score": {
+          "score": 1.0,
+          "weight": 0.3,
+          "weighted_score": 0.3,
+          "rationale": "Root cause correctly identified \u2014 key terms match ground truth."
+        },
+        "causal_chain_score": {
+          "score": 0.5,
+          "weight": 0.4,
+          "weighted_score": 0.2,
+          "rationale": "Causal chain captures some key steps but has significant gaps."
+        },
+        "intervention_score": {
+          "score": 0.25,
+          "weight": 0.3,
+          "weighted_score": 0.075,
+          "rationale": "Intervention addresses the problem area but is too vague."
+        },
+        "final_score": 0.575,
+        "trajectory": {
+          "tool_calls_made": 0,
+          "tool_calls_budget": 20,
+          "tool_efficiency": null,
+          "budget_compliant": true,
+          "anti_patterns": []
+        }
+      },
+      "metadata": {
+        "reference_model": true,
+        "total_tokens": null,
+        "latency_seconds": 0.0
+      }
+    },
+    {
+      "test_case_id": "IN-007",
+      "model": "partial",
+      "mode": "text",
+      "run_index": 0,
+      "timestamp": "2026-06-02T11:11:38.724157+00:00",
+      "response": {
+        "model_name": "partial",
+        "test_case_id": "IN-007",
+        "mode": "text",
+        "root_cause": "laser misalignment on flow cytometer",
+        "causal_chain": [
+          "488 nm laser alignment gradually drifted over months of heavy use (2-3 sessions/day by 8 users), possibly exacerbated by vibrations from the adjacent centrifuge",
+          "Laser spot is no longer centered on the flow cell interrogation point \u2014 cells at different positions in the sample stream receive different excitation intensities",
+          "Newly hired technician (3 weeks experience) was unaware of or skipped the mandatory daily CS&T bead QC check that would have detected the alignment issue"
+        ],
+        "intervention": "(1) Immediately run CS&T beads and confirm the FITC CV >3% and asymmetric peak shape, documenting the misalignment.",
+        "raw_response": "### Root Cause\nlaser misalignment on flow cytometer\n\n### Causal Chain\n1. 488 nm laser alignment gradually drifted over months of heavy use (2-3 sessions/day by 8 users), possibly exacerbated by vibrations from the adjacent centrifuge\n2. Laser spot is no longer centered on the flow cell interrogation point \u2014 cells at different positions in the sample stream receive different excitation intensities\n3. Newly hired technician (3 weeks experience) was unaware of or skipped the mandatory daily CS&T bead QC check that would have detected the alignment issue\n\n### Intervention\n(1) Immediately run CS&T beads and confirm the FITC CV >3% and asymmetric peak shape, documenting the misalignment.\n",
+        "tool_calls": [],
+        "total_tokens": null,
+        "latency_seconds": null,
+        "confidence": null
+      },
+      "score": {
+        "test_case_id": "IN-007",
+        "model_name": "partial",
+        "mode": "text",
+        "root_cause_score": {
+          "score": 1.0,
+          "weight": 0.3,
+          "weighted_score": 0.3,
+          "rationale": "Root cause correctly identified \u2014 key terms match ground truth."
+        },
+        "causal_chain_score": {
+          "score": 0.5,
+          "weight": 0.4,
+          "weighted_score": 0.2,
+          "rationale": "Causal chain captures some key steps but has significant gaps."
+        },
+        "intervention_score": {
+          "score": 0.25,
+          "weight": 0.3,
+          "weighted_score": 0.075,
+          "rationale": "Intervention addresses the problem area but is too vague."
+        },
+        "final_score": 0.575,
+        "trajectory": {
+          "tool_calls_made": 0,
+          "tool_calls_budget": 15,
+          "tool_efficiency": null,
+          "budget_compliant": true,
+          "anti_patterns": []
+        }
+      },
+      "metadata": {
+        "reference_model": true,
+        "total_tokens": null,
+        "latency_seconds": 0.0
+      }
+    },
+    {
+      "test_case_id": "IN-009",
+      "model": "partial",
+      "mode": "text",
+      "run_index": 0,
+      "timestamp": "2026-06-02T11:11:38.724371+00:00",
+      "response": {
+        "model_name": "partial",
+        "test_case_id": "IN-009",
+        "mode": "text",
+        "root_cause": "host time synchronization problem",
+        "causal_chain": [
+          "The canary base image booted checkout-canary-3 without chrony running",
+          "checkout-canary-3's wall clock drifted about 1.24 seconds ahead of gateway and dependency hosts",
+          "OpenTelemetry spans emitted by checkout-canary-3 used the skewed wall-clock timestamps"
+        ],
+        "intervention": "Re-enable chrony or remove checkout-canary-3 from the canary pool, wait for clock offset to return below 10 ms, and rerun the same load test.",
+        "raw_response": "### Root Cause\nhost time synchronization problem\n\n### Causal Chain\n1. The canary base image booted checkout-canary-3 without chrony running\n2. checkout-canary-3's wall clock drifted about 1.24 seconds ahead of gateway and dependency hosts\n3. OpenTelemetry spans emitted by checkout-canary-3 used the skewed wall-clock timestamps\n\n### Intervention\nRe-enable chrony or remove checkout-canary-3 from the canary pool, wait for clock offset to return below 10 ms, and rerun the same load test.\n",
+        "tool_calls": [],
+        "total_tokens": null,
+        "latency_seconds": null,
+        "confidence": null
+      },
+      "score": {
+        "test_case_id": "IN-009",
+        "model_name": "partial",
+        "mode": "text",
+        "root_cause_score": {
+          "score": 1.0,
+          "weight": 0.3,
+          "weighted_score": 0.3,
+          "rationale": "Root cause correctly identified \u2014 key terms match ground truth."
+        },
+        "causal_chain_score": {
+          "score": 0.5,
+          "weight": 0.4,
+          "weighted_score": 0.2,
+          "rationale": "Causal chain captures some key steps but has significant gaps."
+        },
+        "intervention_score": {
+          "score": 0.5,
+          "weight": 0.3,
+          "weighted_score": 0.15,
+          "rationale": "Intervention is related but may not isolate the suspected variable."
+        },
+        "final_score": 0.65,
+        "trajectory": {
+          "tool_calls_made": 0,
+          "tool_calls_budget": 12,
+          "tool_efficiency": null,
+          "budget_compliant": true,
+          "anti_patterns": []
+        }
+      },
+      "metadata": {
+        "reference_model": true,
+        "total_tokens": null,
+        "latency_seconds": 0.0
+      }
+    },
+    {
+      "test_case_id": "IN-011",
+      "model": "partial",
+      "mode": "text",
+      "run_index": 0,
+      "timestamp": "2026-06-02T11:11:38.724626+00:00",
+      "response": {
+        "model_name": "partial",
+        "test_case_id": "IN-011",
+        "mode": "text",
+        "root_cause": "thermocouple calibration error",
+        "causal_chain": [
+          "Thermocouple voltage must be corrected using the DAQ cold-junction temperature",
+          "The DAQ cold-junction sensor was cooled by an air-conditioning vent",
+          "The DAQ estimated the reference junction about 11 degC too cold"
+        ],
+        "intervention": "Move the DAQ away from the vent, let it equilibrate, perform an ice-bath check, and rerun the furnace profile with the independent logger in parallel.",
+        "raw_response": "### Root Cause\nthermocouple calibration error\n\n### Causal Chain\n1. Thermocouple voltage must be corrected using the DAQ cold-junction temperature\n2. The DAQ cold-junction sensor was cooled by an air-conditioning vent\n3. The DAQ estimated the reference junction about 11 degC too cold\n\n### Intervention\nMove the DAQ away from the vent, let it equilibrate, perform an ice-bath check, and rerun the furnace profile with the independent logger in parallel.\n",
+        "tool_calls": [],
+        "total_tokens": null,
+        "latency_seconds": null,
+        "confidence": null
+      },
+      "score": {
+        "test_case_id": "IN-011",
+        "model_name": "partial",
+        "mode": "text",
+        "root_cause_score": {
+          "score": 1.0,
+          "weight": 0.3,
+          "weighted_score": 0.3,
+          "rationale": "Root cause correctly identified \u2014 key terms match ground truth."
+        },
+        "causal_chain_score": {
+          "score": 0.83,
+          "weight": 0.4,
+          "weighted_score": 0.332,
+          "rationale": "Causal chain covers most key mechanistic steps."
+        },
+        "intervention_score": {
+          "score": 0.93,
+          "weight": 0.3,
+          "weighted_score": 0.279,
+          "rationale": "Intervention targets the correct variable and would test the diagnosis."
+        },
+        "final_score": 0.911,
+        "trajectory": {
+          "tool_calls_made": 0,
+          "tool_calls_budget": 12,
+          "tool_efficiency": null,
+          "budget_compliant": true,
+          "anti_patterns": []
+        }
+      },
+      "metadata": {
+        "reference_model": true,
+        "total_tokens": null,
+        "latency_seconds": 0.0
+      }
+    },
+    {
+      "test_case_id": "IN-012",
+      "model": "partial",
+      "mode": "text",
+      "run_index": 0,
+      "timestamp": "2026-06-02T11:11:38.724822+00:00",
+      "response": {
+        "model_name": "partial",
+        "test_case_id": "IN-012",
+        "mode": "text",
+        "root_cause": "bad sensor input",
+        "causal_chain": [
+          "Maintenance disturbed the compressor pressure sensor connector",
+          "The installed pressure channel developed a low bias",
+          "The RUL model consumed the biased channel as if it were physical engine behavior"
+        ],
+        "intervention": "Repair or reseat the pressure-sensor harness, recalibrate the channel, rerun the ground test, and compare against the portable reference.",
+        "raw_response": "### Root Cause\nbad sensor input\n\n### Causal Chain\n1. Maintenance disturbed the compressor pressure sensor connector\n2. The installed pressure channel developed a low bias\n3. The RUL model consumed the biased channel as if it were physical engine behavior\n\n### Intervention\nRepair or reseat the pressure-sensor harness, recalibrate the channel, rerun the ground test, and compare against the portable reference.\n",
+        "tool_calls": [],
+        "total_tokens": null,
+        "latency_seconds": null,
+        "confidence": null
+      },
+      "score": {
+        "test_case_id": "IN-012",
+        "model_name": "partial",
+        "mode": "text",
+        "root_cause_score": {
+          "score": 1.0,
+          "weight": 0.3,
+          "weighted_score": 0.3,
+          "rationale": "Root cause correctly identified \u2014 key terms match ground truth."
+        },
+        "causal_chain_score": {
+          "score": 0.84,
+          "weight": 0.4,
+          "weighted_score": 0.336,
+          "rationale": "Causal chain covers most key mechanistic steps."
+        },
+        "intervention_score": {
+          "score": 0.5,
+          "weight": 0.3,
+          "weighted_score": 0.15,
+          "rationale": "Intervention is related but may not isolate the suspected variable."
+        },
+        "final_score": 0.786,
+        "trajectory": {
+          "tool_calls_made": 0,
+          "tool_calls_budget": 15,
+          "tool_efficiency": null,
+          "budget_compliant": true,
+          "anti_patterns": []
+        }
+      },
+      "metadata": {
+        "reference_model": true,
+        "total_tokens": null,
+        "latency_seconds": 0.0
+      }
+    },
+    {
+      "test_case_id": "IN-013",
+      "model": "partial",
+      "mode": "text",
+      "run_index": 0,
+      "timestamp": "2026-06-02T11:11:38.724997+00:00",
+      "response": {
+        "model_name": "partial",
+        "test_case_id": "IN-013",
+        "mode": "text",
+        "root_cause": "sample carryover",
+        "causal_chain": [
+          "A high-concentration standard was injected before blanks and study samples",
+          "The sticky analyte remained in the needle or injection path",
+          "The 50% methanol wash did not remove all residual analyte"
+        ],
+        "intervention": "Reorder the batch with blanks before high standards, use a strong organic needle wash, and require blank-after-high-standard carryover below 20% of LLOQ.",
+        "raw_response": "### Root Cause\nsample carryover\n\n### Causal Chain\n1. A high-concentration standard was injected before blanks and study samples\n2. The sticky analyte remained in the needle or injection path\n3. The 50% methanol wash did not remove all residual analyte\n\n### Intervention\nReorder the batch with blanks before high standards, use a strong organic needle wash, and require blank-after-high-standard carryover below 20% of LLOQ.\n",
+        "tool_calls": [],
+        "total_tokens": null,
+        "latency_seconds": null,
+        "confidence": null
+      },
+      "score": {
+        "test_case_id": "IN-013",
+        "model_name": "partial",
+        "mode": "text",
+        "root_cause_score": {
+          "score": 1.0,
+          "weight": 0.3,
+          "weighted_score": 0.3,
+          "rationale": "Root cause correctly identified \u2014 key terms match ground truth."
+        },
+        "causal_chain_score": {
+          "score": 0.87,
+          "weight": 0.4,
+          "weighted_score": 0.348,
+          "rationale": "Causal chain covers most key mechanistic steps."
+        },
+        "intervention_score": {
+          "score": 0.94,
+          "weight": 0.3,
+          "weighted_score": 0.282,
+          "rationale": "Intervention targets the correct variable and would test the diagnosis."
+        },
+        "final_score": 0.93,
+        "trajectory": {
+          "tool_calls_made": 0,
+          "tool_calls_budget": 10,
+          "tool_efficiency": null,
+          "budget_compliant": true,
+          "anti_patterns": []
+        }
+      },
+      "metadata": {
+        "reference_model": true,
+        "total_tokens": null,
+        "latency_seconds": 0.0
+      }
+    },
+    {
+      "test_case_id": "IN-014",
+      "model": "partial",
+      "mode": "text",
+      "run_index": 0,
+      "timestamp": "2026-06-02T11:11:38.725137+00:00",
+      "response": {
+        "model_name": "partial",
+        "test_case_id": "IN-014",
+        "mode": "text",
+        "root_cause": "probe fouling",
+        "causal_chain": [
+          "Warm water and delayed maintenance allowed algae to grow on the optical window",
+          "Biofilm and trapped silt increased light scattering inside the probe path"
+        ],
+        "intervention": "Clean the probe, redeploy with an upstream duplicate or wiper-equipped sensor, and compare field readings to grab samples after the same weather conditions..",
+        "raw_response": "### Root Cause\nprobe fouling\n\n### Causal Chain\n1. Warm water and delayed maintenance allowed algae to grow on the optical window\n2. Biofilm and trapped silt increased light scattering inside the probe path\n\n### Intervention\nClean the probe, redeploy with an upstream duplicate or wiper-equipped sensor, and compare field readings to grab samples after the same weather conditions..\n",
+        "tool_calls": [],
+        "total_tokens": null,
+        "latency_seconds": null,
+        "confidence": null
+      },
+      "score": {
+        "test_case_id": "IN-014",
+        "model_name": "partial",
+        "mode": "text",
+        "root_cause_score": {
+          "score": 1.0,
+          "weight": 0.3,
+          "weighted_score": 0.3,
+          "rationale": "Root cause correctly identified \u2014 key terms match ground truth."
+        },
+        "causal_chain_score": {
+          "score": 0.5,
+          "weight": 0.4,
+          "weighted_score": 0.2,
+          "rationale": "Causal chain captures some key steps but has significant gaps."
+        },
+        "intervention_score": {
+          "score": 1.0,
+          "weight": 0.3,
+          "weighted_score": 0.3,
+          "rationale": "Intervention targets the correct variable and would test the diagnosis."
+        },
+        "final_score": 0.8,
+        "trajectory": {
+          "tool_calls_made": 0,
+          "tool_calls_budget": 8,
+          "tool_efficiency": null,
+          "budget_compliant": true,
+          "anti_patterns": []
+        }
+      },
+      "metadata": {
+        "reference_model": true,
+        "total_tokens": null,
+        "latency_seconds": 0.0
+      }
+    },
+    {
+      "test_case_id": "PL-001",
+      "model": "partial",
+      "mode": "text",
+      "run_index": 0,
+      "timestamp": "2026-06-02T11:11:38.725393+00:00",
+      "response": {
+        "model_name": "partial",
+        "test_case_id": "PL-001",
+        "mode": "text",
+        "root_cause": "inoculation error",
+        "causal_chain": [
+          "Glycerol stock was retrieved from -80\u00b0C without vortexing or mixing",
+          "In frozen glycerol stocks, cells sediment to the bottom; top layer is mostly glycerol",
+          "Researcher scraped from the top, transferring mostly glycerol with very few cells",
+          "Extremely low starting inoculum in 5 mL overnight culture"
+        ],
+        "intervention": "Thaw a new aliquot of the same glycerol stock, vortex thoroughly for 10-15 seconds to fully resuspend cells, then inoculate a fresh overnight culture.",
+        "raw_response": "### Root Cause\ninoculation error\n\n### Causal Chain\n1. Glycerol stock was retrieved from -80\u00b0C without vortexing or mixing\n2. In frozen glycerol stocks, cells sediment to the bottom; top layer is mostly glycerol\n3. Researcher scraped from the top, transferring mostly glycerol with very few cells\n4. Extremely low starting inoculum in 5 mL overnight culture\n\n### Intervention\nThaw a new aliquot of the same glycerol stock, vortex thoroughly for 10-15 seconds to fully resuspend cells, then inoculate a fresh overnight culture.\n",
+        "tool_calls": [],
+        "total_tokens": null,
+        "latency_seconds": null,
+        "confidence": null
+      },
+      "score": {
+        "test_case_id": "PL-001",
+        "model_name": "partial",
+        "mode": "text",
+        "root_cause_score": {
+          "score": 1.0,
+          "weight": 0.3,
+          "weighted_score": 0.3,
+          "rationale": "Root cause correctly identified \u2014 key terms match ground truth."
+        },
+        "causal_chain_score": {
+          "score": 0.9,
+          "weight": 0.4,
+          "weighted_score": 0.36,
+          "rationale": "Causal chain covers most key mechanistic steps."
+        },
+        "intervention_score": {
+          "score": 0.82,
+          "weight": 0.3,
+          "weighted_score": 0.246,
+          "rationale": "Intervention targets the correct variable and would test the diagnosis."
+        },
+        "final_score": 0.906,
+        "trajectory": {
+          "tool_calls_made": 0,
+          "tool_calls_budget": 12,
+          "tool_efficiency": null,
+          "budget_compliant": true,
+          "anti_patterns": []
+        }
+      },
+      "metadata": {
+        "reference_model": true,
+        "total_tokens": null,
+        "latency_seconds": 0.0
+      }
+    },
+    {
+      "test_case_id": "PL-004",
+      "model": "partial",
+      "mode": "text",
+      "run_index": 0,
+      "timestamp": "2026-06-02T11:11:38.725868+00:00",
+      "response": {
+        "model_name": "partial",
+        "test_case_id": "PL-004",
+        "mode": "text",
+        "root_cause": "oxygen exposure caused catalyst decomposition",
+        "causal_chain": [
+          "Stopcock #3 grease on the Schlenk line dried and cracked over 8 months without maintenance, creating a hairline channel between the bore and plug",
+          "During vacuum-N2 purge cycles, the leak was too slow to detect at the manifold gauge (~50 mTorr base pressure vs expected 10-30 mTorr, a subtle sign)",
+          "Once the reaction was running at 70\u00b0C with N2 flow, the slight positive room air pressure from HVAC and thermal gradients slowly pushed O2 through the stopcock crack"
+        ],
+        "intervention": "(1) Perform a static vacuum leak test: evacuate the Schlenk line to base pressure, isolate from the pump, and monitor pressure rise over 10 minutes \u2014 a well-sealed system should show <5 mTorr rise, a leaking system will show continuous pressure increase.",
+        "raw_response": "### Root Cause\noxygen exposure caused catalyst decomposition\n\n### Causal Chain\n1. Stopcock #3 grease on the Schlenk line dried and cracked over 8 months without maintenance, creating a hairline channel between the bore and plug\n2. During vacuum-N2 purge cycles, the leak was too slow to detect at the manifold gauge (~50 mTorr base pressure vs expected 10-30 mTorr, a subtle sign)\n3. Once the reaction was running at 70\u00b0C with N2 flow, the slight positive room air pressure from HVAC and thermal gradients slowly pushed O2 through the stopcock crack\n\n### Intervention\n(1) Perform a static vacuum leak test: evacuate the Schlenk line to base pressure, isolate from the pump, and monitor pressure rise over 10 minutes \u2014 a well-sealed system should show <5 mTorr rise, a leaking system will show continuous pressure increase.\n",
+        "tool_calls": [],
+        "total_tokens": null,
+        "latency_seconds": null,
+        "confidence": null
+      },
+      "score": {
+        "test_case_id": "PL-004",
+        "model_name": "partial",
+        "mode": "text",
+        "root_cause_score": {
+          "score": 1.0,
+          "weight": 0.3,
+          "weighted_score": 0.3,
+          "rationale": "Root cause correctly identified \u2014 key terms match ground truth."
+        },
+        "causal_chain_score": {
+          "score": 0.5,
+          "weight": 0.4,
+          "weighted_score": 0.2,
+          "rationale": "Causal chain captures some key steps but has significant gaps."
+        },
+        "intervention_score": {
+          "score": 0.5,
+          "weight": 0.3,
+          "weighted_score": 0.15,
+          "rationale": "Intervention is related but may not isolate the suspected variable."
+        },
+        "final_score": 0.65,
+        "trajectory": {
+          "tool_calls_made": 0,
+          "tool_calls_budget": 20,
+          "tool_efficiency": null,
+          "budget_compliant": true,
+          "anti_patterns": []
+        }
+      },
+      "metadata": {
+        "reference_model": true,
+        "total_tokens": null,
+        "latency_seconds": 0.0
+      }
+    },
+    {
+      "test_case_id": "PL-006",
+      "model": "partial",
+      "mode": "text",
+      "run_index": 0,
+      "timestamp": "2026-06-02T11:11:38.726070+00:00",
+      "response": {
+        "model_name": "partial",
+        "test_case_id": "PL-006",
+        "mode": "text",
+        "root_cause": "air bubbles in HPLC",
+        "causal_chain": [
+          "Fresh mobile phase retained dissolved gas",
+          "The off-line degassing step was skipped",
+          "The weak inline degasser failed to remove enough gas"
+        ],
+        "intervention": "Degas the same mobile phases by helium sparging or sonication, verify degasser vacuum, and rerun system suitability.",
+        "raw_response": "### Root Cause\nair bubbles in HPLC\n\n### Causal Chain\n1. Fresh mobile phase retained dissolved gas\n2. The off-line degassing step was skipped\n3. The weak inline degasser failed to remove enough gas\n\n### Intervention\nDegas the same mobile phases by helium sparging or sonication, verify degasser vacuum, and rerun system suitability.\n",
+        "tool_calls": [],
+        "total_tokens": null,
+        "latency_seconds": null,
+        "confidence": null
+      },
+      "score": {
+        "test_case_id": "PL-006",
+        "model_name": "partial",
+        "mode": "text",
+        "root_cause_score": {
+          "score": 1.0,
+          "weight": 0.3,
+          "weighted_score": 0.3,
+          "rationale": "Root cause correctly identified \u2014 key terms match ground truth."
+        },
+        "causal_chain_score": {
+          "score": 0.75,
+          "weight": 0.4,
+          "weighted_score": 0.3,
+          "rationale": "Causal chain covers most key mechanistic steps."
+        },
+        "intervention_score": {
+          "score": 0.5,
+          "weight": 0.3,
+          "weighted_score": 0.15,
+          "rationale": "Intervention is related but may not isolate the suspected variable."
+        },
+        "final_score": 0.75,
+        "trajectory": {
+          "tool_calls_made": 0,
+          "tool_calls_budget": 8,
+          "tool_efficiency": null,
+          "budget_compliant": true,
+          "anti_patterns": []
+        }
+      },
+      "metadata": {
+        "reference_model": true,
+        "total_tokens": null,
+        "latency_seconds": 0.0
+      }
+    },
+    {
+      "test_case_id": "PL-007",
+      "model": "partial",
+      "mode": "text",
+      "run_index": 0,
+      "timestamp": "2026-06-02T11:11:38.726244+00:00",
+      "response": {
+        "model_name": "partial",
+        "test_case_id": "PL-007",
+        "mode": "text",
+        "root_cause": "coordinate system mismatch",
+        "causal_chain": [
+          "The rover project defaulted to WGS84 ellipsoid height",
+          "The CAD/design surface used NAVD88 orthometric elevation",
+          "GCPs were imported without vertical datum conversion"
+        ],
+        "intervention": "Reprocess the same images using GCP elevations transformed into the CAD vertical datum, then compare check points and earthwork volume against the ground survey.",
+        "raw_response": "### Root Cause\ncoordinate system mismatch\n\n### Causal Chain\n1. The rover project defaulted to WGS84 ellipsoid height\n2. The CAD/design surface used NAVD88 orthometric elevation\n3. GCPs were imported without vertical datum conversion\n\n### Intervention\nReprocess the same images using GCP elevations transformed into the CAD vertical datum, then compare check points and earthwork volume against the ground survey.\n",
+        "tool_calls": [],
+        "total_tokens": null,
+        "latency_seconds": null,
+        "confidence": null
+      },
+      "score": {
+        "test_case_id": "PL-007",
+        "model_name": "partial",
+        "mode": "text",
+        "root_cause_score": {
+          "score": 1.0,
+          "weight": 0.3,
+          "weighted_score": 0.3,
+          "rationale": "Root cause correctly identified \u2014 key terms match ground truth."
+        },
+        "causal_chain_score": {
+          "score": 0.83,
+          "weight": 0.4,
+          "weighted_score": 0.332,
+          "rationale": "Causal chain covers most key mechanistic steps."
+        },
+        "intervention_score": {
+          "score": 1.0,
+          "weight": 0.3,
+          "weighted_score": 0.3,
+          "rationale": "Intervention targets the correct variable and would test the diagnosis."
+        },
+        "final_score": 0.932,
+        "trajectory": {
+          "tool_calls_made": 0,
+          "tool_calls_budget": 12,
+          "tool_efficiency": null,
+          "budget_compliant": true,
+          "anti_patterns": []
+        }
+      },
+      "metadata": {
+        "reference_model": true,
+        "total_tokens": null,
+        "latency_seconds": 0.0
+      }
+    },
+    {
+      "test_case_id": "PL-008",
+      "model": "partial",
+      "mode": "text",
+      "run_index": 0,
+      "timestamp": "2026-06-02T11:11:38.726571+00:00",
+      "response": {
+        "model_name": "partial",
+        "test_case_id": "PL-008",
+        "mode": "text",
+        "root_cause": "temperature gradient",
+        "causal_chain": [
+          "The plate was taken from 4 degC storage",
+          "The 30-minute room-temperature equilibration step was skipped",
+          "Condensation and temperature gradients persisted at edges and corners"
+        ],
+        "intervention": "Repeat the ELISA with a sealed plate equilibrated for 30 minutes, randomized sample placement, and edge/center controls.",
+        "raw_response": "### Root Cause\ntemperature gradient\n\n### Causal Chain\n1. The plate was taken from 4 degC storage\n2. The 30-minute room-temperature equilibration step was skipped\n3. Condensation and temperature gradients persisted at edges and corners\n\n### Intervention\nRepeat the ELISA with a sealed plate equilibrated for 30 minutes, randomized sample placement, and edge/center controls.\n",
+        "tool_calls": [],
+        "total_tokens": null,
+        "latency_seconds": null,
+        "confidence": null
+      },
+      "score": {
+        "test_case_id": "PL-008",
+        "model_name": "partial",
+        "mode": "text",
+        "root_cause_score": {
+          "score": 1.0,
+          "weight": 0.3,
+          "weighted_score": 0.3,
+          "rationale": "Root cause correctly identified \u2014 key terms match ground truth."
+        },
+        "causal_chain_score": {
+          "score": 0.79,
+          "weight": 0.4,
+          "weighted_score": 0.316,
+          "rationale": "Causal chain covers most key mechanistic steps."
+        },
+        "intervention_score": {
+          "score": 0.89,
+          "weight": 0.3,
+          "weighted_score": 0.267,
+          "rationale": "Intervention targets the correct variable and would test the diagnosis."
+        },
+        "final_score": 0.883,
+        "trajectory": {
+          "tool_calls_made": 0,
+          "tool_calls_budget": 10,
+          "tool_efficiency": null,
+          "budget_compliant": true,
+          "anti_patterns": []
+        }
+      },
+      "metadata": {
+        "reference_model": true,
+        "total_tokens": null,
+        "latency_seconds": 0.0
+      }
+    },
+    {
+      "test_case_id": "PL-009",
+      "model": "partial",
+      "mode": "text",
+      "run_index": 0,
+      "timestamp": "2026-06-02T11:11:38.726746+00:00",
+      "response": {
+        "model_name": "partial",
+        "test_case_id": "PL-009",
+        "mode": "text",
+        "root_cause": "uneven gasket compression",
+        "causal_chain": [
+          "The trainee skipped the staged star-pattern torque sequence",
+          "Clockwise full-torque tightening progressively distorted gasket compression",
+          "Bolt clamp load became uneven around the flange"
+        ],
+        "intervention": "Disassemble or relax the flange, inspect the gasket, then retorque in three star-pattern passes with bolt-load verification.",
+        "raw_response": "### Root Cause\nuneven gasket compression\n\n### Causal Chain\n1. The trainee skipped the staged star-pattern torque sequence\n2. Clockwise full-torque tightening progressively distorted gasket compression\n3. Bolt clamp load became uneven around the flange\n\n### Intervention\nDisassemble or relax the flange, inspect the gasket, then retorque in three star-pattern passes with bolt-load verification.\n",
+        "tool_calls": [],
+        "total_tokens": null,
+        "latency_seconds": null,
+        "confidence": null
+      },
+      "score": {
+        "test_case_id": "PL-009",
+        "model_name": "partial",
+        "mode": "text",
+        "root_cause_score": {
+          "score": 1.0,
+          "weight": 0.3,
+          "weighted_score": 0.3,
+          "rationale": "Root cause correctly identified \u2014 key terms match ground truth."
+        },
+        "causal_chain_score": {
+          "score": 0.85,
+          "weight": 0.4,
+          "weighted_score": 0.34,
+          "rationale": "Causal chain covers most key mechanistic steps."
+        },
+        "intervention_score": {
+          "score": 0.99,
+          "weight": 0.3,
+          "weighted_score": 0.297,
+          "rationale": "Intervention targets the correct variable and would test the diagnosis."
+        },
+        "final_score": 0.937,
+        "trajectory": {
+          "tool_calls_made": 0,
+          "tool_calls_budget": 10,
+          "tool_efficiency": null,
+          "budget_compliant": true,
+          "anti_patterns": []
+        }
+      },
+      "metadata": {
+        "reference_model": true,
+        "total_tokens": null,
+        "latency_seconds": 0.0
+      }
+    },
+    {
+      "test_case_id": "RF-001",
+      "model": "partial",
+      "mode": "text",
+      "run_index": 0,
+      "timestamp": "2026-06-02T11:11:38.727011+00:00",
+      "response": {
+        "model_name": "partial",
+        "test_case_id": "RF-001",
+        "mode": "text",
+        "root_cause": "buffer pH changed",
+        "causal_chain": [
+          "Tris-HCl lysis buffer was prepared and left at room temperature for 3 weeks",
+          "The nearby CO2 incubator vented CO2 into the ambient air on the bench",
+          "Atmospheric CO2 dissolved into the buffer: CO2 + H2O \u2192 H2CO3 (carbonic acid)",
+          "Carbonic acid overwhelmed the Tris buffering capacity, lowering pH from 8.0 to ~6.5"
+        ],
+        "intervention": "Re-prepare fresh lysis buffer from stock solutions, verify pH = 8.0 with a freshly calibrated pH meter immediately before use.",
+        "raw_response": "### Root Cause\nbuffer pH changed\n\n### Causal Chain\n1. Tris-HCl lysis buffer was prepared and left at room temperature for 3 weeks\n2. The nearby CO2 incubator vented CO2 into the ambient air on the bench\n3. Atmospheric CO2 dissolved into the buffer: CO2 + H2O \u2192 H2CO3 (carbonic acid)\n4. Carbonic acid overwhelmed the Tris buffering capacity, lowering pH from 8.0 to ~6.5\n\n### Intervention\nRe-prepare fresh lysis buffer from stock solutions, verify pH = 8.0 with a freshly calibrated pH meter immediately before use.\n",
+        "tool_calls": [],
+        "total_tokens": null,
+        "latency_seconds": null,
+        "confidence": null
+      },
+      "score": {
+        "test_case_id": "RF-001",
+        "model_name": "partial",
+        "mode": "text",
+        "root_cause_score": {
+          "score": 1.0,
+          "weight": 0.3,
+          "weighted_score": 0.3,
+          "rationale": "Root cause correctly identified \u2014 key terms match ground truth."
+        },
+        "causal_chain_score": {
+          "score": 0.79,
+          "weight": 0.4,
+          "weighted_score": 0.316,
+          "rationale": "Causal chain covers most key mechanistic steps."
+        },
+        "intervention_score": {
+          "score": 0.81,
+          "weight": 0.3,
+          "weighted_score": 0.243,
+          "rationale": "Intervention targets the correct variable and would test the diagnosis."
+        },
+        "final_score": 0.859,
+        "trajectory": {
+          "tool_calls_made": 0,
+          "tool_calls_budget": 15,
+          "tool_efficiency": null,
+          "budget_compliant": true,
+          "anti_patterns": []
+        }
+      },
+      "metadata": {
+        "reference_model": true,
+        "total_tokens": null,
+        "latency_seconds": 0.0
+      }
+    },
+    {
+      "test_case_id": "RF-002",
+      "model": "partial",
+      "mode": "text",
+      "run_index": 0,
+      "timestamp": "2026-06-02T11:11:38.727216+00:00",
+      "response": {
+        "model_name": "partial",
+        "test_case_id": "RF-002",
+        "mode": "text",
+        "root_cause": "primer quality issue",
+        "causal_chain": [
+          "Primer working stocks (10 \u00b5M) were stored at 4\u00b0C instead of -20\u00b0C",
+          "At 4\u00b0C, dilute oligonucleotides undergo slow depurination and phosphodiester hydrolysis",
+          "Multiple freeze-thaw cycles (~15) further accelerated degradation"
+        ],
+        "intervention": "Order fresh primers or prepare new working stocks from the concentrated frozen master stock (-20\u00b0C).",
+        "raw_response": "### Root Cause\nprimer quality issue\n\n### Causal Chain\n1. Primer working stocks (10 \u00b5M) were stored at 4\u00b0C instead of -20\u00b0C\n2. At 4\u00b0C, dilute oligonucleotides undergo slow depurination and phosphodiester hydrolysis\n3. Multiple freeze-thaw cycles (~15) further accelerated degradation\n\n### Intervention\nOrder fresh primers or prepare new working stocks from the concentrated frozen master stock (-20\u00b0C).\n",
+        "tool_calls": [],
+        "total_tokens": null,
+        "latency_seconds": null,
+        "confidence": null
+      },
+      "score": {
+        "test_case_id": "RF-002",
+        "model_name": "partial",
+        "mode": "text",
+        "root_cause_score": {
+          "score": 1.0,
+          "weight": 0.3,
+          "weighted_score": 0.3,
+          "rationale": "Root cause correctly identified \u2014 key terms match ground truth."
+        },
+        "causal_chain_score": {
+          "score": 0.5,
+          "weight": 0.4,
+          "weighted_score": 0.2,
+          "rationale": "Causal chain captures some key steps but has significant gaps."
+        },
+        "intervention_score": {
+          "score": 0.8,
+          "weight": 0.3,
+          "weighted_score": 0.24,
+          "rationale": "Intervention targets the correct variable and would test the diagnosis."
+        },
+        "final_score": 0.74,
+        "trajectory": {
+          "tool_calls_made": 0,
+          "tool_calls_budget": 10,
+          "tool_efficiency": null,
+          "budget_compliant": true,
+          "anti_patterns": []
+        }
+      },
+      "metadata": {
+        "reference_model": true,
+        "total_tokens": null,
+        "latency_seconds": 0.0
+      }
+    },
+    {
+      "test_case_id": "RF-004",
+      "model": "partial",
+      "mode": "text",
+      "run_index": 0,
+      "timestamp": "2026-06-02T11:11:38.727506+00:00",
+      "response": {
+        "model_name": "partial",
+        "test_case_id": "RF-004",
+        "mode": "text",
+        "root_cause": "Grignard reagent was destroyed by water",
+        "causal_chain": [
+          "Sure/Seal THF bottle septum degraded after ~40 punctures over 14 months, creating micro-channels for atmospheric moisture ingress",
+          "Lab humidity at 65-70% RH accelerated moisture permeation through the compromised septum",
+          "THF water content rose from <50 ppm (specification) to 1,850 ppm"
+        ],
+        "intervention": "Repeat the reaction using THF from a freshly opened Sure/Seal bottle (or THF freshly distilled from sodium/benzophenone \u2014 the ketyl radical should turn deep purple, confirming dryness).",
+        "raw_response": "### Root Cause\nGrignard reagent was destroyed by water\n\n### Causal Chain\n1. Sure/Seal THF bottle septum degraded after ~40 punctures over 14 months, creating micro-channels for atmospheric moisture ingress\n2. Lab humidity at 65-70% RH accelerated moisture permeation through the compromised septum\n3. THF water content rose from <50 ppm (specification) to 1,850 ppm\n\n### Intervention\nRepeat the reaction using THF from a freshly opened Sure/Seal bottle (or THF freshly distilled from sodium/benzophenone \u2014 the ketyl radical should turn deep purple, confirming dryness).\n",
+        "tool_calls": [],
+        "total_tokens": null,
+        "latency_seconds": null,
+        "confidence": null
+      },
+      "score": {
+        "test_case_id": "RF-004",
+        "model_name": "partial",
+        "mode": "text",
+        "root_cause_score": {
+          "score": 1.0,
+          "weight": 0.3,
+          "weighted_score": 0.3,
+          "rationale": "Root cause correctly identified \u2014 key terms match ground truth."
+        },
+        "causal_chain_score": {
+          "score": 0.5,
+          "weight": 0.4,
+          "weighted_score": 0.2,
+          "rationale": "Causal chain captures some key steps but has significant gaps."
+        },
+        "intervention_score": {
+          "score": 0.25,
+          "weight": 0.3,
+          "weighted_score": 0.075,
+          "rationale": "Intervention addresses the problem area but is too vague."
+        },
+        "final_score": 0.575,
+        "trajectory": {
+          "tool_calls_made": 0,
+          "tool_calls_budget": 20,
+          "tool_efficiency": null,
+          "budget_compliant": true,
+          "anti_patterns": []
+        }
+      },
+      "metadata": {
+        "reference_model": true,
+        "total_tokens": null,
+        "latency_seconds": 0.0
+      }
+    },
+    {
+      "test_case_id": "RF-009",
+      "model": "partial",
+      "mode": "text",
+      "run_index": 0,
+      "timestamp": "2026-06-02T11:11:38.727712+00:00",
+      "response": {
+        "model_name": "partial",
+        "test_case_id": "RF-009",
+        "mode": "text",
+        "root_cause": "worn cutter",
+        "causal_chain": [
+          "Tool EM-6-F3 was reused from a previous run without resetting or checking tool life",
+          "The end mill accumulated 18.4 cutting hours, exceeding the recommended 8 hour life",
+          "Flank wear reached 0.34 mm and one flute developed small edge chipping"
+        ],
+        "intervention": "Replace EM-6-F3 with a new end mill, rerun the same toolpath on the same stock and fixture for a short confirmation batch, and inspect slot width, Ra, burr height, spindle load, and vibration.",
+        "raw_response": "### Root Cause\nworn cutter\n\n### Causal Chain\n1. Tool EM-6-F3 was reused from a previous run without resetting or checking tool life\n2. The end mill accumulated 18.4 cutting hours, exceeding the recommended 8 hour life\n3. Flank wear reached 0.34 mm and one flute developed small edge chipping\n\n### Intervention\nReplace EM-6-F3 with a new end mill, rerun the same toolpath on the same stock and fixture for a short confirmation batch, and inspect slot width, Ra, burr height, spindle load, and vibration.\n",
+        "tool_calls": [],
+        "total_tokens": null,
+        "latency_seconds": null,
+        "confidence": null
+      },
+      "score": {
+        "test_case_id": "RF-009",
+        "model_name": "partial",
+        "mode": "text",
+        "root_cause_score": {
+          "score": 1.0,
+          "weight": 0.3,
+          "weighted_score": 0.3,
+          "rationale": "Root cause correctly identified \u2014 key terms match ground truth."
+        },
+        "causal_chain_score": {
+          "score": 0.5,
+          "weight": 0.4,
+          "weighted_score": 0.2,
+          "rationale": "Causal chain captures some key steps but has significant gaps."
+        },
+        "intervention_score": {
+          "score": 0.5,
+          "weight": 0.3,
+          "weighted_score": 0.15,
+          "rationale": "Intervention is related but may not isolate the suspected variable."
+        },
+        "final_score": 0.65,
+        "trajectory": {
+          "tool_calls_made": 0,
+          "tool_calls_budget": 12,
+          "tool_efficiency": null,
+          "budget_compliant": true,
+          "anti_patterns": []
+        }
+      },
+      "metadata": {
+        "reference_model": true,
+        "total_tokens": null,
+        "latency_seconds": 0.0
+      }
+    },
+    {
+      "test_case_id": "RF-010",
+      "model": "partial",
+      "mode": "text",
+      "run_index": 0,
+      "timestamp": "2026-06-02T11:11:38.727898+00:00",
+      "response": {
+        "model_name": "partial",
+        "test_case_id": "RF-010",
+        "mode": "text",
+        "root_cause": "blood sample damaged",
+        "causal_chain": [
+          "Day 3 post-dose blood tubes were transported through a rough pneumatic tube route",
+          "Several tubes also waited 70-90 minutes before centrifugation",
+          "Mechanical stress and delayed processing caused red blood cell hemolysis"
+        ],
+        "intervention": "Recollect blood from affected participants using gentle venipuncture, hand-carry tubes to the lab, centrifuge within 30 minutes, and reject or annotate samples with hemolysis index above 20 for potassium interpretation.",
+        "raw_response": "### Root Cause\nblood sample damaged\n\n### Causal Chain\n1. Day 3 post-dose blood tubes were transported through a rough pneumatic tube route\n2. Several tubes also waited 70-90 minutes before centrifugation\n3. Mechanical stress and delayed processing caused red blood cell hemolysis\n\n### Intervention\nRecollect blood from affected participants using gentle venipuncture, hand-carry tubes to the lab, centrifuge within 30 minutes, and reject or annotate samples with hemolysis index above 20 for potassium interpretation.\n",
+        "tool_calls": [],
+        "total_tokens": null,
+        "latency_seconds": null,
+        "confidence": null
+      },
+      "score": {
+        "test_case_id": "RF-010",
+        "model_name": "partial",
+        "mode": "text",
+        "root_cause_score": {
+          "score": 1.0,
+          "weight": 0.3,
+          "weighted_score": 0.3,
+          "rationale": "Root cause correctly identified \u2014 key terms match ground truth."
+        },
+        "causal_chain_score": {
+          "score": 0.5,
+          "weight": 0.4,
+          "weighted_score": 0.2,
+          "rationale": "Causal chain captures some key steps but has significant gaps."
+        },
+        "intervention_score": {
+          "score": 0.97,
+          "weight": 0.3,
+          "weighted_score": 0.291,
+          "rationale": "Intervention targets the correct variable and would test the diagnosis."
+        },
+        "final_score": 0.791,
+        "trajectory": {
+          "tool_calls_made": 0,
+          "tool_calls_budget": 10,
+          "tool_efficiency": null,
+          "budget_compliant": true,
+          "anti_patterns": []
+        }
+      },
+      "metadata": {
+        "reference_model": true,
+        "total_tokens": null,
+        "latency_seconds": 0.0
+      }
+    },
+    {
+      "test_case_id": "RF-011",
+      "model": "partial",
+      "mode": "text",
+      "run_index": 0,
+      "timestamp": "2026-06-02T11:11:38.728068+00:00",
+      "response": {
+        "model_name": "partial",
+        "test_case_id": "RF-011",
+        "mode": "text",
+        "root_cause": "heat dissipation failure",
+        "causal_chain": [
+          "The machine was moved near a deburring station that generated aluminum fines",
+          "The cooling intake filter became clogged before the next preventive-maintenance cleaning",
+          "Restricted airflow reduced heat removal from the process"
+        ],
+        "intervention": "Clean or replace the intake filter, rerun the same low-speed/high-torque recipe, and verify that delta-T rises above the heat-dissipation threshold while shutdowns disappear.",
+        "raw_response": "### Root Cause\nheat dissipation failure\n\n### Causal Chain\n1. The machine was moved near a deburring station that generated aluminum fines\n2. The cooling intake filter became clogged before the next preventive-maintenance cleaning\n3. Restricted airflow reduced heat removal from the process\n\n### Intervention\nClean or replace the intake filter, rerun the same low-speed/high-torque recipe, and verify that delta-T rises above the heat-dissipation threshold while shutdowns disappear.\n",
+        "tool_calls": [],
+        "total_tokens": null,
+        "latency_seconds": null,
+        "confidence": null
+      },
+      "score": {
+        "test_case_id": "RF-011",
+        "model_name": "partial",
+        "mode": "text",
+        "root_cause_score": {
+          "score": 1.0,
+          "weight": 0.3,
+          "weighted_score": 0.3,
+          "rationale": "Root cause correctly identified \u2014 key terms match ground truth."
+        },
+        "causal_chain_score": {
+          "score": 0.83,
+          "weight": 0.4,
+          "weighted_score": 0.332,
+          "rationale": "Causal chain covers most key mechanistic steps."
+        },
+        "intervention_score": {
+          "score": 0.96,
+          "weight": 0.3,
+          "weighted_score": 0.288,
+          "rationale": "Intervention targets the correct variable and would test the diagnosis."
+        },
+        "final_score": 0.92,
+        "trajectory": {
+          "tool_calls_made": 0,
+          "tool_calls_budget": 12,
+          "tool_efficiency": null,
+          "budget_compliant": true,
+          "anti_patterns": []
+        }
+      },
+      "metadata": {
+        "reference_model": true,
+        "total_tokens": null,
+        "latency_seconds": 0.0
+      }
+    },
+    {
+      "test_case_id": "RF-012",
+      "model": "partial",
+      "mode": "text",
+      "run_index": 0,
+      "timestamp": "2026-06-02T11:11:38.728230+00:00",
+      "response": {
+        "model_name": "partial",
+        "test_case_id": "RF-012",
+        "mode": "text",
+        "root_cause": "wet electrolyte",
+        "causal_chain": [
+          "The electrolyte bottle was repeatedly opened and exposed during transfers",
+          "Water content rose to about 143 ppm",
+          "Water reacted with LiPF6 to produce acidic decomposition products"
+        ],
+        "intervention": "Assemble matched cells with freshly opened low-water electrolyte and with the suspect bottle while keeping electrodes, separator, crimping, and formation protocol fixed.",
+        "raw_response": "### Root Cause\nwet electrolyte\n\n### Causal Chain\n1. The electrolyte bottle was repeatedly opened and exposed during transfers\n2. Water content rose to about 143 ppm\n3. Water reacted with LiPF6 to produce acidic decomposition products\n\n### Intervention\nAssemble matched cells with freshly opened low-water electrolyte and with the suspect bottle while keeping electrodes, separator, crimping, and formation protocol fixed.\n",
+        "tool_calls": [],
+        "total_tokens": null,
+        "latency_seconds": null,
+        "confidence": null
+      },
+      "score": {
+        "test_case_id": "RF-012",
+        "model_name": "partial",
+        "mode": "text",
+        "root_cause_score": {
+          "score": 1.0,
+          "weight": 0.3,
+          "weighted_score": 0.3,
+          "rationale": "Root cause correctly identified \u2014 key terms match ground truth."
+        },
+        "causal_chain_score": {
+          "score": 0.81,
+          "weight": 0.4,
+          "weighted_score": 0.324,
+          "rationale": "Causal chain covers most key mechanistic steps."
+        },
+        "intervention_score": {
+          "score": 0.5,
+          "weight": 0.3,
+          "weighted_score": 0.15,
+          "rationale": "Intervention is related but may not isolate the suspected variable."
+        },
+        "final_score": 0.774,
+        "trajectory": {
+          "tool_calls_made": 0,
+          "tool_calls_budget": 12,
+          "tool_efficiency": null,
+          "budget_compliant": true,
+          "anti_patterns": []
+        }
+      },
+      "metadata": {
+        "reference_model": true,
+        "total_tokens": null,
+        "latency_seconds": 0.0
+      }
+    },
+    {
+      "test_case_id": "RF-013",
+      "model": "partial",
+      "mode": "text",
+      "run_index": 0,
+      "timestamp": "2026-06-02T11:11:38.728384+00:00",
+      "response": {
+        "model_name": "partial",
+        "test_case_id": "RF-013",
+        "mode": "text",
+        "root_cause": "contaminated serum",
+        "causal_chain": [
+          "A new FBS lot was introduced into the culture medium",
+          "The FBS lot contained elevated endotoxin",
+          "RAW264.7 macrophages sensed endotoxin through innate immune pathways"
+        ],
+        "intervention": "Repeat the assay with certified low-endotoxin FBS and the suspect FBS side by side, keeping cells, ELISA kits, and nanoparticle stocks fixed.",
+        "raw_response": "### Root Cause\ncontaminated serum\n\n### Causal Chain\n1. A new FBS lot was introduced into the culture medium\n2. The FBS lot contained elevated endotoxin\n3. RAW264.7 macrophages sensed endotoxin through innate immune pathways\n\n### Intervention\nRepeat the assay with certified low-endotoxin FBS and the suspect FBS side by side, keeping cells, ELISA kits, and nanoparticle stocks fixed.\n",
+        "tool_calls": [],
+        "total_tokens": null,
+        "latency_seconds": null,
+        "confidence": null
+      },
+      "score": {
+        "test_case_id": "RF-013",
+        "model_name": "partial",
+        "mode": "text",
+        "root_cause_score": {
+          "score": 1.0,
+          "weight": 0.3,
+          "weighted_score": 0.3,
+          "rationale": "Root cause correctly identified \u2014 key terms match ground truth."
+        },
+        "causal_chain_score": {
+          "score": 0.75,
+          "weight": 0.4,
+          "weighted_score": 0.3,
+          "rationale": "Causal chain covers most key mechanistic steps."
+        },
+        "intervention_score": {
+          "score": 0.82,
+          "weight": 0.3,
+          "weighted_score": 0.246,
+          "rationale": "Intervention targets the correct variable and would test the diagnosis."
+        },
+        "final_score": 0.846,
+        "trajectory": {
+          "tool_calls_made": 0,
+          "tool_calls_budget": 10,
+          "tool_efficiency": null,
+          "budget_compliant": true,
+          "anti_patterns": []
+        }
+      },
+      "metadata": {
+        "reference_model": true,
+        "total_tokens": null,
+        "latency_seconds": 0.0
+      }
+    },
+    {
+      "test_case_id": "RF-014",
+      "model": "partial",
+      "mode": "text",
+      "run_index": 0,
+      "timestamp": "2026-06-02T11:11:38.728582+00:00",
+      "response": {
+        "model_name": "partial",
+        "test_case_id": "RF-014",
+        "mode": "text",
+        "root_cause": "contaminated rinse water",
+        "causal_chain": [
+          "DI resin maintenance introduced chloride leakage into the rinse stream",
+          "Coupons were rinsed in chloride-contaminated water"
+        ],
+        "intervention": "Re-rinse matched coupons with verified low-chloride DI water and with the suspect rinse stream, then repeat humidity exposure.",
+        "raw_response": "### Root Cause\ncontaminated rinse water\n\n### Causal Chain\n1. DI resin maintenance introduced chloride leakage into the rinse stream\n2. Coupons were rinsed in chloride-contaminated water\n\n### Intervention\nRe-rinse matched coupons with verified low-chloride DI water and with the suspect rinse stream, then repeat humidity exposure.\n",
+        "tool_calls": [],
+        "total_tokens": null,
+        "latency_seconds": null,
+        "confidence": null
+      },
+      "score": {
+        "test_case_id": "RF-014",
+        "model_name": "partial",
+        "mode": "text",
+        "root_cause_score": {
+          "score": 1.0,
+          "weight": 0.3,
+          "weighted_score": 0.3,
+          "rationale": "Root cause correctly identified \u2014 key terms match ground truth."
+        },
+        "causal_chain_score": {
+          "score": 0.5,
+          "weight": 0.4,
+          "weighted_score": 0.2,
+          "rationale": "Causal chain captures some key steps but has significant gaps."
+        },
+        "intervention_score": {
+          "score": 1.0,
+          "weight": 0.3,
+          "weighted_score": 0.3,
+          "rationale": "Intervention targets the correct variable and would test the diagnosis."
+        },
+        "final_score": 0.8,
+        "trajectory": {
+          "tool_calls_made": 0,
+          "tool_calls_budget": 10,
+          "tool_efficiency": null,
+          "budget_compliant": true,
+          "anti_patterns": []
+        }
+      },
+      "metadata": {
+        "reference_model": true,
+        "total_tokens": null,
+        "latency_seconds": 0.0
+      }
+    }
+  ]
+}

@@ -1,0 +1,81 @@
+{
+  "benchmark": "epidebug",
+  "version": "0.1.0",
+  "model": "distractor",
+  "mode": "text",
+  "timestamp": "2026-09-10T17:22:41.537443+00:00",
+  "total_cases": 1,
+  "reference_model": true,
+  "results": [
+    {
+      "test_case_id": "RF-001",
+      "model": "distractor",
+      "mode": "text",
+      "run_index": 0,
+      "timestamp": "2026-09-10T17:22:41.537411+00:00",
+      "response": {
+        "model_name": "distractor",
+        "test_case_id": "RF-001",
+        "mode": "text",
+        "root_cause": "IPTG induction failure \u00e2\u20ac\u201d protein not expressed",
+        "causal_chain": [
+          "IPTG induction failure \u00e2\u20ac\u201d protein not expressed occurred",
+          "The suspected alternative caused the observed failure"
+        ],
+        "intervention": "Change or replace the factor associated with: IPTG induction failure \u00e2\u20ac\u201d protein not expressed.",
+        "raw_response": "### Root Cause\nIPTG induction failure \u00e2\u20ac\u201d protein not expressed\n\n### Causal Chain\n1. IPTG induction failure \u00e2\u20ac\u201d protein not expressed occurred\n2. The suspected alternative caused the observed failure\n\n### Intervention\nChange or replace the factor associated with: IPTG induction failure \u00e2\u20ac\u201d protein not expressed.\n",
+        "tool_calls": [],
+        "total_tokens": null,
+        "latency_seconds": null,
+        "confidence": null,
+        "competing_hypotheses": [],
+        "supporting_evidence": [],
+        "contradictory_evidence": [],
+        "missing_information": []
+      },
+      "score": {
+        "test_case_id": "RF-001",
+        "model_name": "distractor",
+        "mode": "text",
+        "root_cause_score": {
+          "score": 0.0,
+          "weight": 0.3,
+          "weighted_score": 0.0,
+          "rationale": "Root cause not identified or completely incorrect."
+        },
+        "causal_chain_score": {
+          "score": 0.0,
+          "weight": 0.4,
+          "weighted_score": 0.0,
+          "rationale": "Causal chain does not match the expected failure mechanism."
+        },
+        "intervention_score": {
+          "score": 0.0,
+          "weight": 0.3,
+          "weighted_score": 0.0,
+          "rationale": "Intervention does not address the identified root cause."
+        },
+        "final_score": 0.0,
+        "trajectory": {
+          "tool_calls_made": 0,
+          "tool_calls_budget": 15,
+          "tool_efficiency": null,
+          "budget_compliant": true,
+          "anti_patterns": []
+        },
+        "epistemic": {
+          "evidence_grounding": 0.03,
+          "calibration_error": 0.0,
+          "confirmation_bias": 0.8,
+          "hypothesis_diversity": 0.333,
+          "missing_info_quality": 1.0
+        }
+      },
+      "metadata": {
+        "reference_model": true,
+        "total_tokens": null,
+        "latency_seconds": 0.0
+      }
+    }
+  ]
+}

@@ -1,0 +1,96 @@
+id: "FH-011"
+title: "Robot Pick Failure from Rigid-Object Assumption on Compliant Packaging"
+version: "1.0"
+
+domain: "robotics"
+subdomain: "manipulation"
+failure_category: "flawed_hypothesis"
+difficulty: "medium"
+
+objective: >
+  Tune a two-finger gripper to pick sealed snack pouches from a conveyor at 30
+  picks per minute with less than 2% drop rate.
+
+protocol:
+  - step: 1
+    action: "Estimate grasp force using rigid-body friction model"
+    details: "Model assumes flat rigid object, constant friction coefficient, and no shape change."
+  - step: 2
+    action: "Run conveyor pick test on production pouches"
+    details: "Gripper force is set to 18 N based on the rigid-object calculation."
+  - step: 3
+    action: "Record high-speed video and tactile sensor traces"
+    details: "Drops occur mostly during acceleration after lifting."
+
+telemetry:
+  pick_results:
+    description: "Pick success by gripper force"
+    data_type: "table"
+    values:
+      grip_force_N: [18, 24, 30, 36]
+      drop_rate_percent: [18.5, 12.2, 7.8, 8.1]
+      crushed_package_percent: [0, 1, 8, 24]
+    observations:
+      - "Increasing force helps only partly and eventually damages the package."
+  tactile_video:
+    description: "Observed grasp behavior"
+    data_type: "text"
+    observations:
+      - "Pouch wrinkles and redistributes contents after the fingers close."
+      - "Contact patch migrates during arm acceleration."
+      - "Tactile sensor shows force relaxation of 35% over 400 ms."
+
+contextual_clues:
+  - "Prototype tests used rigid plastic blocks with the same nominal mass."
+  - "Production pouches contain loose granules and trapped air."
+  - "Vacuum cup tests succeed but were rejected initially because the rigid model predicted fingers were sufficient."
+  - "Friction coefficient measured on flat film does not represent wrinkled pouch contact."
+
+ground_truth:
+  root_cause: >
+    The grasp model assumed a rigid object with stable contact, but the production
+    pouch is compliant and internally shifting. Force relaxation, wrinkling, and
+    contact migration invalidate the rigid friction calculation, causing drops
+    during acceleration.
+  root_cause_category: "flawed_hypothesis"
+  causal_chain:
+    - "The engineer modeled the pouch as a rigid flat object"
+    - "Production pouches deform and redistribute contents under finger force"
+    - "The contact patch and normal force change after closure"
+    - "Effective friction drops during acceleration"
+    - "Some pouches slip even when initial grip force seems sufficient"
+    - "Higher force eventually crushes packages instead of solving the assumption error"
+  intervention: >
+    Test a compliance-aware grasp strategy: wider soft fingers, vacuum support, or
+    a lift-after-settle delay with tactile feedback. Compare drop rate and damage
+    against the rigid-force-only policy.
+  key_evidence:
+    - "Rigid blocks passed but compliant pouches fail"
+    - "Tactile force relaxes after closure"
+    - "Contact patch migrates in high-speed video"
+    - "More force causes package damage without eliminating drops"
+  alternative_diagnoses:
+    - "Motor acceleration is too high"
+    - "Finger pads have wrong material"
+    - "Vision pose estimation is inaccurate"
+  why_alternatives_fail:
+    "Motor acceleration is too high": "Acceleration reveals the slip, but the contact model is already invalid after closure."
+    "Finger pads have wrong material": "Changing friction alone does not address compliance and force relaxation."
+    "Vision pose estimation is inaccurate": "Drops occur after apparently correct contacts and are visible as post-grasp slip."
+  difficulty_justification: "Medium because the rigid model is plausible but contradicted by tactile and video evidence."
+
+scoring:
+  root_cause_keywords: ["rigid", "compliant", "pouch", "grasp", "force relaxation", "contact"]
+  partial_credit_causes:
+    "object compliance": 0.85
+    "bad grasp model": 0.75
+    "not enough grip force": 0.35
+
+available_tools:
+  - "statistical_analyzer"
+max_tool_calls: 12
+
+source: "Synthetic composite based on robotic manipulation deployment failures"
+expert_validated: false
+tags: ["robotics", "grasping", "compliance", "manipulation", "model_assumption"]
+author: "EpiDebug Team"

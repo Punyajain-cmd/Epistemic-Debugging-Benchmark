@@ -1,0 +1,173 @@
+id: "RF-009"
+title: "CNC End Mill Wear Drives Dimensional Drift and Burr Formation"
+version: "1.0"
+
+domain: "manufacturing"
+subdomain: "cnc_milling"
+failure_category: "reagent_material_flaw"
+difficulty: "medium"
+
+objective: >
+  Machine a batch of aluminum 6061-T6 sensor brackets with a 6.00 +/- 0.03 mm
+  mounting slot, surface roughness Ra below 1.6 um, and no visible burrs. The
+  first 80 parts passed inspection, but parts from the second half of the batch
+  failed dimensional and surface-finish acceptance.
+
+protocol:
+  - step: 1
+    action: "Load certified 6061-T6 plate stock into the Haas VF-2 CNC mill"
+    details: "Material certificate lists yield strength 276 MPa and hardness inside expected range."
+    notes: "The same stock lot was used for passing and failing parts."
+
+  - step: 2
+    action: "Install 6 mm three-flute carbide end mill for slot finishing"
+    details: "Tool ID EM-6-F3 was reused from the previous production run."
+    notes: "Operator did not reset the tool-life counter because the tool still looked visually acceptable."
+
+  - step: 3
+    action: "Run the validated slot-finishing toolpath"
+    details: "Spindle 12000 rpm, feed 950 mm/min, 0.4 mm radial engagement, flood coolant."
+    notes: "Program, fixture, coolant concentration, and work offset match the validated setup sheet."
+
+  - step: 4
+    action: "Inspect every twentieth part on the CMM and surface profilometer"
+    details: "Slot width, burr height, and Ra are measured after deburring is intentionally skipped for process validation."
+    notes: "Measurements drift gradually after part 90 rather than failing abruptly."
+
+  - step: 5
+    action: "Inspect the end mill under a toolmaker microscope after the failed batch"
+    details: "Measure flank wear land and check cutting-edge chipping."
+    notes: "Flank wear measures 0.34 mm with small edge chipping on flute 2."
+
+telemetry:
+  dimensional_trend:
+    description: "CMM slot-width measurements across the batch"
+    data_type: "table"
+    values:
+      part_number: [20, 40, 60, 80, 100, 120, 140, 160]
+      slot_width_mm: [6.02, 6.01, 6.00, 5.99, 5.95, 5.92, 5.90, 5.88]
+      lower_spec_mm: 5.97
+      upper_spec_mm: 6.03
+    observations:
+      - "Slot width drifts below the lower tolerance after approximately part 100."
+      - "The drift is gradual and monotonic rather than random."
+
+  surface_finish:
+    description: "Surface roughness and burr-height measurements"
+    data_type: "table"
+    values:
+      part_number: [20, 60, 100, 140, 160]
+      ra_um: [0.9, 1.1, 2.4, 3.8, 4.9]
+      burr_height_mm: [0.01, 0.02, 0.08, 0.16, 0.22]
+    observations:
+      - "Ra exceeds the 1.6 um limit beginning near part 100."
+      - "Burr height increases with surface roughness."
+
+  machine_load:
+    description: "Spindle load and vibration trend from machine telemetry"
+    data_type: "timeseries"
+    values:
+      part_number: [20, 40, 60, 80, 100, 120, 140, 160]
+      spindle_load_percent: [34, 36, 39, 45, 52, 61, 68, 72]
+      vibration_rms_g: [0.18, 0.19, 0.22, 0.29, 0.38, 0.51, 0.62, 0.70]
+    observations:
+      - "Spindle load and vibration rise as the batch progresses."
+      - "Coolant flow and spindle speed remain stable."
+
+  tool_inspection:
+    description: "Microscope inspection of tool EM-6-F3 after the run"
+    data_type: "table"
+    values:
+      recorded_cutting_hours: 18.4
+      recommended_cutting_hours: 8.0
+      flank_wear_mm: 0.34
+      replacement_threshold_mm: 0.20
+      chipped_flutes: 1
+    observations:
+      - "The end mill is more than twice its recommended tool-life."
+      - "Measured flank wear exceeds the replacement threshold."
+
+contextual_clues:
+  - "The same plate stock lot produced both passing early parts and failing late parts."
+  - "Coolant concentration was 7.8%, inside the 7-9% process window."
+  - "The fixture was probed before and after the run; work offset shifted by less than 0.005 mm."
+  - "The tool had been used for an earlier abrasive prototype run but the operator's note was not copied into the production traveler."
+  - "The CNC program hash matches the previously validated process plan."
+
+ground_truth:
+  root_cause: >
+    The reused 6 mm carbide end mill was worn beyond its tool-life limit. Flank
+    wear and minor flute chipping increased cutting forces, vibration, and tool
+    deflection during slot finishing. The worn cutter rubbed instead of shearing
+    cleanly, creating burrs, poor surface finish, and undersized slots in later
+    parts.
+  root_cause_category: "reagent_material_flaw"
+  causal_chain:
+    - "Tool EM-6-F3 was reused from a previous run without resetting or checking tool life"
+    - "The end mill accumulated 18.4 cutting hours, exceeding the recommended 8 hour life"
+    - "Flank wear reached 0.34 mm and one flute developed small edge chipping"
+    - "The dull tool required higher cutting force and generated more vibration"
+    - "Higher force caused cutter deflection and rubbing during slot finishing"
+    - "Slots became undersized while surface roughness and burr height increased"
+    - "Late-batch parts failed dimensional and surface-finish inspection"
+  intervention: >
+    Replace EM-6-F3 with a new end mill, rerun the same toolpath on the same
+    stock and fixture for a short confirmation batch, and inspect slot width,
+    Ra, burr height, spindle load, and vibration. If new-tool parts return to
+    6.00 +/- 0.03 mm with Ra below 1.6 um and lower spindle load, the diagnosis
+    is confirmed. Add tool-life lockout or mandatory microscope inspection before
+    production runs.
+  key_evidence:
+    - "Failure is gradual across part number, consistent with wear rather than setup error"
+    - "The same material lot, fixture, program, coolant, and work offset are shared by passing and failing parts"
+    - "Spindle load and vibration increase as dimensions drift"
+    - "Flank wear exceeds the 0.20 mm replacement threshold"
+    - "Replacing the tool is the single variable that directly tests the hypothesis"
+  alternative_diagnoses:
+    - "Material stock hardness was out of specification"
+    - "Fixture shifted during the run"
+    - "Coolant concentration was too low"
+    - "The CNC program used the wrong cutter compensation"
+  why_alternatives_fail:
+    "Material stock hardness was out of specification": "The same certified stock lot produced passing early parts and failing late parts."
+    "Fixture shifted during the run": "Work offset changed less than 0.005 mm, far below the observed slot drift."
+    "Coolant concentration was too low": "Coolant stayed inside the validated 7-9% window and would not explain monotonic tool-load increase alone."
+    "The CNC program used the wrong cutter compensation": "The program hash matches the validated plan, and early parts were in tolerance."
+  difficulty_justification: >
+    Medium difficulty: the telemetry strongly points to a process input degrading
+    over time, but the solver must connect dimensional drift, load, vibration,
+    and microscope evidence to tool wear rather than blaming the material or fixture.
+
+scoring:
+  weights:
+    root_cause: 0.30
+    causal_chain: 0.40
+    intervention: 0.30
+  root_cause_keywords:
+    - "tool wear"
+    - "end mill"
+    - "flank wear"
+    - "dull"
+    - "cutting force"
+    - "vibration"
+  partial_credit_causes:
+    "worn cutter": 0.85
+    "tool past life": 0.8
+    "machining tool degradation": 0.7
+    "fixture problem": 0.25
+
+available_tools:
+  - "machine_failure_analyzer"
+  - "material_properties"
+  - "statistical_analyzer"
+max_tool_calls: 12
+
+source: "Synthetic composite inspired by manufacturing process-control and equipment-failure datasets"
+expert_validated: false
+tags:
+  - "manufacturing"
+  - "cnc"
+  - "tool_wear"
+  - "process_control"
+  - "dimensional_metrology"
+author: "EpiDebug Team"
