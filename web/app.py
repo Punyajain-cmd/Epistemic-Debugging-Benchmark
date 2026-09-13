@@ -122,7 +122,9 @@ def _fixture_index() -> dict[str, list[str]]:
         index[folder.name] = sorted(
             p.name
             for p in folder.iterdir()
-            if p.is_file() and not p.name.startswith(".") and p.suffix.lower() != ".md"
+            if p.is_file()
+            and not p.name.startswith(".")
+            and p.name.lower() not in {"readme.md", "license.md"}
         )
     return index
 

@@ -244,6 +244,96 @@ def test_dump_demo_fixtures_via_diagnose_bundle(client):
     assert log_stats["error_samples"]["unique"]
 
 
+def test_full_dump_mix_svg_stl_stub_markdown(client):
+    """Coordinator full_dump_demo shape: csv + log + md + svg + STL stub."""
+    files = [
+        ("files", ("pack_temp.csv", b"time_s,temp_C\n0,25.1\n1,48.0\n2,94.0\n", "text/csv")),
+        ("files", ("charger.log", b"2024-08-12 ERROR overheat pack_main\nALARM-401\n", "text/plain")),
+        (
+            "files",
+            (
+                "NOTES.md",
+                b"# Traveler SOP\n\nFinish bore per protocol. Lot 24-081.\n",
+                "text/markdown",
+            ),
+        ),
+        (
+            "files",
+            (
+                "setup_layout.svg",
+                b'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10"><title>Vise</title></svg>',
+                "image/svg+xml",
+            ),
+        ),
+        ("files", ("housing_stub.stl", b"solid stub\nendsolid stub\n", "model/stl")),
+    ]
+    data = {
+        "title": "Full dump mix",
+        "domain": "machining",
+        "unexpected_outcome": "Bore undersize and pack vented",
+        "objective": "Machine housing and charge pack",
+        "roles": '["sensor","log","process_doc","setup_photo","cad"]',
+    }
+    res = client.post("/api/diagnose-bundle", data=data, files=files)
+    assert res.status_code == 200
+    view = res.json()["view"]
+    assert view["contract_version"] == "0.6"
+    assert view["file_count"] == 5
+    cards = {a["filename"]: a for a in view["artifacts"]}
+    assert cards["pack_temp.csv"]["kind"] == "sensor"
+    assert cards["charger.log"]["kind"] == "log"
+    assert cards["NOTES.md"]["kind"] == "document"
+    assert "Traveler SOP" in (cards["NOTES.md"]["summary"] or "")
+    assert cards["setup_layout.svg"]["kind"] == "image"
+    assert cards["setup_layout.svg"]["mime_type"] == "image/svg+xml"
+    assert cards["housing_stub.stl"]["kind"] == "cad"
+    assert cards["housing_stub.stl"]["stats"].get("stub") is True
+    assert view["gallery"]["images"]
+    assert view["gallery"]["cad"]
+    assert view["gallery"]["tables"]
+    assert view["gallery"]["logs"]
+
+
+@pytest.mark.skipif(
+    not (ROOT / "mock_data" / "full_dump_demo").is_dir(),
+    reason="coordinator local fixtures at mock_data/full_dump_demo/",
+)
+def test_full_dump_demo_fixtures_via_diagnose_bundle(client):
+    demo = ROOT / "mock_data" / "full_dump_demo"
+    files = [
+        ("files", (path.name, path.read_bytes(), None))
+        for path in sorted(demo.iterdir())
+        if path.is_file() and not path.name.startswith(".")
+    ]
+    assert files
+    res = client.post(
+        "/api/diagnose-bundle",
+        data={
+            "title": "Coordinator full dump demo",
+            "domain": "machining",
+            "unexpected_outcome": "Multi-file dump smoke",
+        },
+        files=files,
+    )
+    assert res.status_code == 200
+    view = res.json()["view"]
+    assert view["contract_version"] == "0.6"
+    assert view["file_count"] == len(files)
+    assert not any(a.get("summary") is None for a in view["artifacts"])
+    kinds = {a["kind"] for a in view["artifacts"]}
+    names = {a["filename"].lower() for a in view["artifacts"]}
+    if any(n.endswith(".csv") for n in names):
+        assert "sensor" in kinds
+    if any(n.endswith(".log") for n in names):
+        assert "log" in kinds
+    if any(n.endswith(".svg") for n in names):
+        assert "image" in kinds
+    if any(n.endswith(".stl") for n in names):
+        assert "cad" in kinds
+    if any(n.endswith(".md") for n in names):
+        assert "document" in kinds
+
+
 def test_oversized_file_rejected(client):
     huge = b"x" * (25 * 1024 * 1024 + 8)
     res = client.post(

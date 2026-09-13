@@ -154,6 +154,69 @@ def test_ingest_notebook_heading():
     assert "Cell fade" in art.summary
 
 
+def test_ingest_svg_diagram_and_role():
+    svg = (
+        b'<?xml version="1.0"?>\n'
+        b'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 40" width="120" height="40">'
+        b"<title>Vise layout</title>"
+        b'<text x="4" y="22">jaw gap 12 mm</text>'
+        b"</svg>"
+    )
+    art = ingest_bytes("setup_vise_layout.svg", svg)
+    assert art.kind == ArtifactKind.IMAGE
+    assert art.mime_type == "image/svg+xml"
+    assert art.stats["title"] == "Vise layout"
+    assert art.stats["viewBox"] == "0 0 120 40"
+    assert "jaw gap 12 mm" in art.stats["text_labels"]
+    assert "Vise layout" in art.summary
+    assert art.role == ArtifactRole.SETUP_PHOTO
+    assert art.preview_url
+
+    failed = ingest_bytes("failed_bore.svg", b'<svg xmlns="http://www.w3.org/2000/svg"><rect/></svg>')
+    assert failed.kind == ArtifactKind.IMAGE
+    assert failed.role == ArtifactRole.RESULT_IMAGE
+
+    kind, mime = classify("untitled", b'<svg xmlns="http://www.w3.org/2000/svg"></svg>')
+    assert kind == ArtifactKind.IMAGE
+    assert mime == "image/svg+xml"
+
+
+def test_ingest_stl_stubs_do_not_crash():
+    ascii_stub = ingest_bytes("housing_stub.stl", b"solid stub\nendsolid stub\n")
+    assert ascii_stub.kind == ArtifactKind.CAD
+    assert ascii_stub.stats.get("facets_seen", 0) == 0
+    assert ascii_stub.stats.get("stub") is True
+    assert "stub" in ascii_stub.summary.lower()
+
+    empty = ingest_bytes("empty.stl", b"")
+    assert empty.kind == ArtifactKind.CAD
+    assert empty.stats.get("stub") is True
+
+    tiny = ingest_bytes("tiny.stl", b"\x00" * 20)
+    assert tiny.kind == ArtifactKind.CAD
+    assert tiny.stats.get("stub") is True
+    assert tiny.stats.get("triangles", 0) == 0
+
+    zero_tri = ingest_bytes("zero.stl", b"fixture" + b"\x00" * 73 + struct.pack("<I", 0))
+    assert zero_tri.kind == ArtifactKind.CAD
+    assert zero_tri.stats["triangles"] == 0
+    assert zero_tri.stats.get("stub") is True
+
+
+def test_ingest_markdown_heading_and_process_role():
+    md = (
+        b"# Traveler SOP\n\n"
+        b"Mill 6082-T6 housing per protocol.\n"
+        b"Lot 24-081 material cert is attached.\n"
+    )
+    art = ingest_bytes("NOTES.md", md)
+    assert art.kind == ArtifactKind.DOCUMENT
+    assert art.mime_type == "text/markdown"
+    assert art.stats["heading"] == "Traveler SOP"
+    assert "Traveler SOP" in art.summary
+    assert art.role == ArtifactRole.PROCESS_DOC
+
+
 def test_engine_uses_uploaded_artifacts():
     csv = b"cycle,capacity_mAh,temp_C\n1,2400,28\n2,2310,41\n3,1800,78\n4,900,94\n"
     art = ingest_bytes("cell_cycle.csv", csv)

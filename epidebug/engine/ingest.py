@@ -26,7 +26,7 @@ MAX_SUMMARY_CHARS = 500
 
 IMAGE_EXT = {
     ".png", ".jpg", ".jpeg", ".gif", ".webp", ".tif", ".tiff",
-    ".bmp", ".heic", ".heif", ".avif",
+    ".bmp", ".heic", ".heif", ".avif", ".svg",
 }
 CAD_EXT = {
     ".stl", ".step", ".stp", ".iges", ".igs", ".dxf", ".obj", ".3mf",
@@ -78,7 +78,10 @@ SENSOR_TOKS = (
     "imu", "encoder", "thermistor", "strain", "pressure", "scope",
 )
 LOG_TOKS = ("log", "serial", "console", "dmesg", "syslog", "alarm", "pendant", "cnc")
-SETUP_TOKS = ("setup", "bench", "rig", "lab", "photo", "vise", "fixture-photo")
+SETUP_TOKS = (
+    "setup", "bench", "rig", "lab", "photo", "vise", "fixture-photo",
+    "schematic", "layout", "diagram",
+)
 RESULT_TOKS = (
     "gel", "result", "fail", "crack", "burn", "corrosion", "vent", "scrap",
     "defect", "undersize", "fracture", "smear", "after", "failed",
@@ -100,6 +103,7 @@ MIME_BY_EXT = {
     ".tiff": "image/tiff",
     ".bmp": "image/bmp",
     ".heic": "image/heic",
+    ".svg": "image/svg+xml",
     ".pdf": "application/pdf",
     ".csv": "text/csv",
     ".tsv": "text/tab-separated-values",
@@ -312,6 +316,8 @@ def _extract(filename: str, kind: ArtifactKind, data: bytes) -> tuple[str, dict[
     if kind == ArtifactKind.CAD:
         return _extract_cad(filename, data)
     if kind == ArtifactKind.IMAGE:
+        if ext == ".svg" or _looks_like_svg(data):
+            return _extract_svg(filename, data)
         return _extract_image(filename, data)
     if kind == ArtifactKind.NOTEBOOK:
         return _extract_notebook(data)
@@ -319,6 +325,8 @@ def _extract(filename: str, kind: ArtifactKind, data: bytes) -> tuple[str, dict[
         return _extract_gcode(filename, data)
     if ext == ".pdf" or (data[:5] == b"%PDF-"):
         return _extract_pdf(data)
+    if ext in {".md", ".rst"}:
+        return _extract_markdown(filename, data)
     if ext in {".json"}:
         return _extract_json(data)
     if ext in {".yaml", ".yml"}:
@@ -387,9 +395,35 @@ def _looks_like_binary_stl(data: bytes) -> bool:
         return False
     if data[:5].lower() == b"solid" and _printable_ratio(data[:80]) > 0.9:
         return False
-    triangles = struct.unpack_from("<I", data, 80)[0]
+    try:
+        triangles = struct.unpack_from("<I", data, 80)[0]
+    except struct.error:
+        return False
+    if triangles > 1_000_000:
+        return False
     expected = 84 + triangles * 50
     return triangles > 0 and (expected == len(data) or abs(expected - len(data)) <= 50)
+
+
+def _looks_like_ascii_stl(data: bytes) -> bool:
+    if not data:
+        return False
+    if _looks_like_binary_stl(data):
+        return False
+    head = data.lstrip()[:80].lower()
+    if not head.startswith(b"solid"):
+        return False
+    low = data[:8000].lower()
+    return b"facet" in low or b"vertex" in low or b"endsolid" in low
+
+
+def _looks_like_svg(data: bytes) -> bool:
+    if not data:
+        return False
+    head = data.lstrip()[:800].lower()
+    if head.startswith(b"<svg") or head.startswith(b"<!doctype svg"):
+        return True
+    return head.startswith(b"<?xml") and b"<svg" in data[:4000].lower()
 
 
 def _sniff_magic(data: bytes) -> tuple[ArtifactKind | None, str | None]:
@@ -410,14 +444,12 @@ def _sniff_magic(data: bytes) -> tuple[ArtifactKind | None, str | None]:
         return ArtifactKind.IMAGE, "image/tiff"
     if head.startswith(b"%PDF"):
         return ArtifactKind.DOCUMENT, "application/pdf"
+    if _looks_like_svg(data):
+        return ArtifactKind.IMAGE, "image/svg+xml"
     stripped = data.lstrip()[:120]
     if stripped.startswith(b"ISO-10303-21"):
         return ArtifactKind.CAD, "model/step"
-    low4k = data[:4000].lower()
-    ascii_stl = data[:80].lower().lstrip().startswith(b"solid")
-    if ascii_stl and (b"facet" in low4k or b"vertex" in low4k):
-        return ArtifactKind.CAD, "model/stl"
-    if _looks_like_binary_stl(data):
+    if _looks_like_ascii_stl(data) or _looks_like_binary_stl(data):
         return ArtifactKind.CAD, "model/stl"
     if re.match(br"\s*0\s*\r?\n\s*(SECTION|HEADER)\b", data[:240], re.I):
         return ArtifactKind.CAD, "image/vnd.dxf"
@@ -438,6 +470,98 @@ def _extract_text(data: bytes) -> tuple[str, dict[str, Any], str]:
     if flags:
         summary += " Flagged lines: " + "; ".join(flags[:3])
     return text[:MAX_EXTRACT_CHARS], {"lines": len(lines), "flagged": flags}, summary
+
+
+def _extract_markdown(filename: str, data: bytes) -> tuple[str, dict[str, Any], str]:
+    text = _decode(data[:MAX_READ_BYTES])
+    raw_lines = text.splitlines()
+    lines = [ln for ln in raw_lines if ln.strip()]
+    headings: list[str] = []
+    for i, ln in enumerate(raw_lines):
+        m = re.match(r"^(#{1,6})\s+(.+)$", ln.strip())
+        if m:
+            headings.append(m.group(2).strip())
+            continue
+        if i + 1 < len(raw_lines) and re.match(r"^[=-]{3,}\s*$", raw_lines[i + 1]):
+            title = ln.strip()
+            if title:
+                headings.append(title)
+    heading = headings[0] if headings else ""
+    flags = [ln.strip() for ln in lines if any(w in ln.lower() for w in ERROR_WORDS)][:8]
+    stats: dict[str, Any] = {
+        "format": "markdown",
+        "lines": len(lines),
+        "heading": heading,
+        "headings": headings[:16],
+        "flagged": flags,
+    }
+    summary = f"Markdown {filename} ({len(lines)} lines)."
+    if heading:
+        summary = f"{heading}. " + summary
+    if flags:
+        summary += " Flagged: " + "; ".join(flags[:2])
+    return text[:MAX_EXTRACT_CHARS], stats, summary
+
+
+def _extract_svg(filename: str, data: bytes) -> tuple[str, dict[str, Any], str]:
+    text = _decode(data[:MAX_READ_BYTES])
+    tokens = re.findall(r"[a-z0-9]+", Path(filename).stem.lower())
+    stats: dict[str, Any] = {
+        "format": "svg",
+        "bytes": len(data),
+        "filename_tokens": tokens,
+    }
+
+    def _tag_text(tag: str) -> str:
+        m = re.search(rf"<{tag}[^>]*>(.*?)</{tag}>", text, re.I | re.S)
+        if not m:
+            return ""
+        inner = re.sub(r"<[^>]+>", " ", m.group(1))
+        return re.sub(r"\s+", " ", inner).strip()
+
+    title = _tag_text("title")
+    desc = _tag_text("desc")
+    if title:
+        stats["title"] = title[:160]
+    if desc:
+        stats["description"] = desc[:240]
+    vb = re.search(r'viewBox\s*=\s*["\']([^"\']+)["\']', text, re.I)
+    if vb:
+        stats["viewBox"] = vb.group(1).strip()
+    width = re.search(r'\bwidth\s*=\s*["\']?([\d.]+[a-z%]*)', text, re.I)
+    height = re.search(r'\bheight\s*=\s*["\']?([\d.]+[a-z%]*)', text, re.I)
+    if width and height:
+        stats["width"] = width.group(1)
+        stats["height"] = height.group(1)
+    labels = []
+    for raw in re.findall(r"<text[^>]*>(.*?)</text>", text, re.I | re.S):
+        label = re.sub(r"\s+", " ", re.sub(r"<[^>]+>", " ", raw)).strip()
+        if label:
+            labels.append(label)
+    if labels:
+        stats["text_labels"] = labels[:16]
+    elements: dict[str, int] = {}
+    for tag in ("path", "circle", "rect", "line", "polyline", "polygon", "g", "text", "image"):
+        n = len(re.findall(rf"<{tag}(?:\s|/|>)", text, re.I))
+        if n:
+            elements[tag] = n
+    if elements:
+        stats["elements"] = elements
+    bits = [f"SVG diagram {filename} ({len(data)} bytes)"]
+    if title:
+        bits[0] = f"{title}. SVG diagram {filename} ({len(data)} bytes)"
+    if stats.get("viewBox"):
+        bits.append(f"viewBox {stats['viewBox']}")
+    if width and height:
+        bits.append(f"{width.group(1)}×{height.group(1)}")
+    if labels:
+        bits.append("labels " + ", ".join(labels[:4]))
+    if tokens:
+        bits.append("cues " + ", ".join(tokens[:6]))
+    extracted = " ".join(
+        part for part in (title, desc, " ".join(labels), " ".join(tokens)) if part
+    )
+    return extracted[:MAX_EXTRACT_CHARS] or text[:MAX_EXTRACT_CHARS], stats, ". ".join(bits) + "."
 
 
 def _extract_log(data: bytes) -> tuple[str, dict[str, Any], str]:
@@ -755,31 +879,51 @@ def _extract_cad(filename: str, data: bytes) -> tuple[str, dict[str, Any], str]:
     head = data[:MAX_READ_BYTES]
     text = ""
     stats: dict[str, Any] = {"format": ext.lstrip(".") or "cad", "bytes": len(data)}
-    if ext in {".stl"} or _looks_like_binary_stl(data) or (
-        head[:80].lower().lstrip().startswith(b"solid") and b"facet" in head[:2000].lower()
-    ):
-        ascii_stl = head[:80].isascii() and b"solid" in head[:80].lower()
-        if ascii_stl and not _looks_like_binary_stl(data):
+    if ext in {".stl"} or _looks_like_ascii_stl(data) or _looks_like_binary_stl(data):
+        if not data:
+            stats["stub"] = True
+            stats["facets_seen"] = 0
+            return "", stats, "Empty STL stub (0 bytes)."
+        ascii_stl = _looks_like_ascii_stl(data) or (
+            head[:80].isascii() and b"solid" in head[:80].lower() and not _looks_like_binary_stl(data)
+        )
+        if ascii_stl:
             text = _decode(head)
-            facets = len(re.findall(r"facet normal", text, re.I))
+            facets = len(re.findall(r"facet\s+normal", text, re.I))
             stats["facets_seen"] = facets
+            stats["stub"] = facets == 0
             name = ""
-            m = re.match(r"solid\s+(\S+)", text, re.I)
+            m = re.match(r"solid\s+(\S+)", text.lstrip(), re.I)
             if m:
                 name = m.group(1)
                 stats["solid_name"] = name
-            summary = f"ASCII STL with at least {facets} facets ({len(data)} bytes)."
+            if facets == 0:
+                summary = f"ASCII STL stub ({len(data)} bytes)."
+            else:
+                summary = f"ASCII STL with at least {facets} facets ({len(data)} bytes)."
             if name:
                 summary = f"ASCII STL '{name}' with at least {facets} facets ({len(data)} bytes)."
+                if facets == 0:
+                    summary = f"ASCII STL stub '{name}' ({len(data)} bytes)."
         else:
             header = head[:80].decode("latin-1", errors="replace").strip("\x00 ").strip()
             stats["binary_header"] = header
-            if len(data) >= 84:
-                triangles = struct.unpack_from("<I", data, 80)[0]
-                stats["triangles"] = triangles
-                summary = f"Binary STL ({triangles} triangles, {len(data)} bytes)."
+            if len(data) < 84:
+                stats["stub"] = True
+                stats["triangles"] = 0
+                summary = f"STL stub ({len(data)} bytes)."
             else:
-                summary = f"Binary STL ({len(data)} bytes)."
+                try:
+                    triangles = struct.unpack_from("<I", data, 80)[0]
+                except struct.error:
+                    triangles = 0
+                    stats["stub"] = True
+                stats["triangles"] = triangles
+                stats["stub"] = triangles == 0
+                if triangles == 0:
+                    summary = f"Binary STL stub (0 triangles, {len(data)} bytes)."
+                else:
+                    summary = f"Binary STL ({triangles} triangles, {len(data)} bytes)."
             if header:
                 summary += f" Header: {header[:80]}"
             text = header

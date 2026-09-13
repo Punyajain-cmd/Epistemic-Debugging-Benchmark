@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Serif:ital,wght@0,500;0,600;1,500&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="/assets/styles.css?v=11" />
+  <link rel="stylesheet" href="/assets/styles.css?v=12" />
 </head>
 <body>
   <a class="skip" href="#workspace">Skip to diagnosis</a>
@@ -185,7 +185,7 @@
           </span>
           <strong>Drop anything here</strong>
           <span>or <label class="filepick">browse<input id="fileInput" type="file" multiple /></label></span>
-          <small>Photos, CAD (STEP/STL/DXF/IGES), CSV/JSON, logs, PDFs, notebooks. 25 MB each.</small>
+          <small>Photos/SVG, CAD (STEP/STL/DXF/IGES), CSV/JSON, logs, PDFs, notebooks. 25 MB each.</small>
         </div>
         <div id="fileList" class="file-list"></div>
       </div>
@@ -196,8 +196,8 @@
       <input id="attach-sensor" class="role-file" data-role="sensor" type="file" multiple hidden accept=".csv,.tsv,.json,.txt,.dat" />
       <input id="attach-log" class="role-file" data-role="log" type="file" multiple hidden accept=".log,.txt,.out,.err,.serial,.nmea,.ulog,.asc" />
       <input id="attach-datasheet" class="role-file" data-role="datasheet" type="file" multiple hidden accept=".pdf,.md,.txt,.html" />
-      <input id="attach-setup_photo" class="role-file" data-role="setup_photo" type="file" multiple hidden accept="image/*" />
-      <input id="attach-result_image" class="role-file" data-role="result_image" type="file" multiple hidden accept="image/*" />
+      <input id="attach-setup_photo" class="role-file" data-role="setup_photo" type="file" multiple hidden accept="image/*,.svg" />
+      <input id="attach-result_image" class="role-file" data-role="result_image" type="file" multiple hidden accept="image/*,.svg" />
 
       <div class="actions" id="actionsDock">
         <button id="diagnoseBtn" class="primary" type="button">
@@ -387,6 +387,6 @@
       </div>
     </section>
   </main>
-  <script src="/assets/app.js?v=11"></script>
+  <script src="/assets/app.js?v=12"></script>
 </body>
 </html>

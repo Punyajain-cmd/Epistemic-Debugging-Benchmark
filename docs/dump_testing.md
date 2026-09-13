@@ -30,8 +30,12 @@ Create a small folder (any machining / robotics / battery / lab mix):
 | Machine log | `charger.log` or `cnc.out` with `ERROR` / `ALARM` | Log / console |
 | CAD | `housing.step` (ASCII STEP) or a tiny STL | CAD / drawing |
 | Process | `bore_finish.nc` G-code or a traveler `.md` | Process sheet |
-| Photo | any PNG/JPEG of the bench or failed part | Setup or result photo |
+| Photo | any PNG/JPEG/SVG of the bench or failed part | Setup or result photo |
+| Markdown notes | `NOTES.md` with a `# heading` | Process / other document |
+| STL stub | tiny `solid … endsolid` or empty `.stl` | CAD (summarized as stub) |
 | Optional PDF | SDS / datasheet | Datasheet or material cert |
+
+Coordinator-local `mock_data/full_dump_demo/` (csv, log, md, svg, STL stub) is listed by `/api/fixtures` when present; see [`TEST.md`](../TEST.md) §5.
 
 In the dossier:
 

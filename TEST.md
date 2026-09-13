@@ -85,3 +85,47 @@ python -m pytest tests/test_ingest.py tests/test_present.py tests/test_web_api.p
 ```
 
 `test_dump_demo_fixtures_via_diagnose_bundle` posts the files on disk in `mock_data/dump_demo/`.
+
+## 5. Optional `full_dump_demo` (coordinator local fixtures)
+
+If you have `mock_data/full_dump_demo/` (csv, log, md, svg, STL stub), `/api/health` lists it automatically. Ingest must classify those types without crashing:
+
+| File | Expected |
+|------|----------|
+| `*.csv` | sensor + numeric stats / anomalies |
+| `*.log` | log + `error_samples` |
+| `*.md` | document, first heading in summary |
+| `*.svg` | image (`image/svg+xml`), viewBox/title/labels |
+| `*.stl` stub | cad, `stats.stub`, 0 facets/triangles |
+
+```bash
+# from repo root, server running
+python3 - <<'PY'
+from pathlib import Path
+demo = Path("mock_data/full_dump_demo")
+assert demo.is_dir(), "place coordinator fixtures at mock_data/full_dump_demo/"
+print("files", sorted(p.name for p in demo.iterdir() if p.is_file()))
+PY
+
+curl -sS -X POST http://127.0.0.1:8000/api/diagnose-bundle \
+  -F "title=Coordinator full dump" \
+  -F "domain=machining" \
+  -F "unexpected_outcome=Multi-file dump smoke" \
+  $(for f in mock_data/full_dump_demo/*; do
+      [ -f "$f" ] || continue
+      printf ' -F files=@%s' "$f"
+    done) \
+  | python3 -c '
+import json,sys
+body=json.load(sys.stdin)
+v=body["view"]
+print("contract", v["contract_version"], "files", v["file_count"])
+for a in v["artifacts"]:
+    print(" -", a["filename"], a["kind"], (a.get("summary") or "")[:90])
+assert v["contract_version"]=="0.6"
+assert v["file_count"]>=1
+print("FULL_DUMP SMOKE OK")
+'
+```
+
+`test_full_dump_mix_svg_stl_stub_markdown` covers the same mix in-repo. `test_full_dump_demo_fixtures_via_diagnose_bundle` runs only when that folder exists.
