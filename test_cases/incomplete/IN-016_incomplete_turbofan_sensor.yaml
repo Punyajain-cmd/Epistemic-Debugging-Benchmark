@@ -108,7 +108,8 @@ available_tools:
   - "trace_log_analyzer"
 max_tool_calls: 12
 
-source: "Synthetic composite inspired by public turbofan prognostics sensor-fault patterns; no proprietary engine data"
+source: "Synthetic composite inspired by NASA PCoE / C-MAPSS turbofan sensor-fault patterns; no proprietary engine data"
+source_url: "https://data.nasa.gov/dataset/cmapss-jet-engine-simulated-data"
 expert_validated: false
 tags: ["incomplete", "aerospace", "sensor_bias", "health_monitoring"]
 author: "EpiDebug Team"

@@ -140,10 +140,10 @@ available_tools:
 max_tool_calls: 12
 
 source: >
-  Synthetic composite inspired by OpenStack fault-injection timeout/retry
-  patterns and public payments-idempotency incident families. No proprietary
+  Synthetic composite inspired by Chaos Mesh / TaskFlow timeout-injection
+  plus retry-without-idempotency incident patterns. No lab runbook or
   processor text copied.
-source_url: "https://github.com/dessertlab/Fault-Injection-Dataset"
+source_url: "https://github.com/OnyiGlobal2025/taskflow-incident-lab"
 expert_validated: false
 tags:
   - "software_systems"

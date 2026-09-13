@@ -139,10 +139,10 @@ available_tools:
 max_tool_calls: 12
 
 source: >
-  Synthetic composite inspired by public JVM DNS-TTL / connection-pool
-  incident patterns and NASA MDP-style software-evaluation misfames. No
-  proprietary GC log copied.
-source_url: "https://github.com/klainfo/NASADefectDataset"
+  Synthetic composite inspired by TaskFlow / Chaos Mesh DNS-chaos patterns
+  and a flawed GC-pause evaluation frame (NASA MDP-style misfame). No lab
+  runbook or proprietary GC log copied.
+source_url: "https://github.com/OnyiGlobal2025/taskflow-incident-lab"
 expert_validated: false
 tags:
   - "software_systems"

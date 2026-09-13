@@ -132,9 +132,10 @@ available_tools:
 max_tool_calls: 12
 
 source: >
-  Synthetic composite inspired by public Kubernetes HPA and service-mesh
-  incident patterns plus OpenStack-style fault-injection telemetry lessons.
-source_url: "https://github.com/dessertlab/Fault-Injection-Dataset"
+  Synthetic composite inspired by Kubernetes HPA / sidecar-CPU metric-scope
+  incidents in public RCA labs (Coroot rca-lab, TaskFlow incident lab). No
+  lab scenario text copied.
+source_url: "https://github.com/coroot/rca-lab"
 expert_validated: false
 tags:
   - "kubernetes"

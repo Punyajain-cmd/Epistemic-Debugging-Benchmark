@@ -156,10 +156,10 @@ available_tools:
 max_tool_calls: 12
 
 source: >
-  Synthetic composite inspired by OpenStack / cloud fault-injection
-  observability patterns and public Prometheus counter-reset pitfalls. No
-  proprietary Grafana JSON copied.
-source_url: "https://github.com/dessertlab/Fault-Injection-Dataset"
+  Synthetic composite inspired by Prometheus counter-reset pitfalls and
+  Kubernetes RCA / Chaos Mesh timeout-plus-restart patterns (Coroot rca-lab,
+  Chaos Mesh, TaskFlow incident lab). No lab runbook or Grafana JSON copied.
+source_url: "https://github.com/chaos-mesh/chaos-mesh"
 expert_validated: false
 tags:
   - "software_systems"

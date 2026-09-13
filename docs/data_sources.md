@@ -51,8 +51,27 @@ and plausible alternatives.
 - SCANIA Component X PdM (https://doi.org/10.5878/jvb5-d390,
   https://www.nature.com/articles/s41597-025-04802-6) for oil-chemistry
   versus mechanical-wear manufacturing cases.
-- Kubernetes RCA labs (https://github.com/coroot/rca-lab), Chaos Mesh, and
-  taskflow-incident-lab for software/cloud metric and retry patterns.
+- Kubernetes RCA labs (https://github.com/coroot/rca-lab), Chaos Mesh
+  (https://github.com/chaos-mesh/chaos-mesh), and TaskFlow incident lab
+  (https://github.com/OnyiGlobal2025/taskflow-incident-lab) for
+  software/cloud metric, timeout, and retry patterns.
+
+## Coordinator-requested public pattern sources
+
+These lanes were named for the 2026-09 expansion. Use them as **pattern
+families only**: summarize mechanisms into original YAML travelers. Do not
+copy dataset rows, lab runbooks, or proprietary text.
+
+| Source | License / access | URL(s) | Synthetic cases |
+|--------|------------------|--------|-----------------|
+| NASA PCoE repository | NASA public; verify per file | https://www.nasa.gov/intelligent-systems-division/discovery-and-systems-health/pcoe/pcoe-data-set-repository/ | RF-012, RF-021, IN-019, PL-012, FH-016 |
+| NASA C-MAPSS turbofan | NASA public | https://data.nasa.gov/dataset/cmapss-jet-engine-simulated-data | IN-012, IN-016 (and PCoE sister notes) |
+| AI4I 2020 Predictive Maintenance | CC BY 4.0 | https://archive.ics.uci.edu/dataset/601/ai4i and https://archive.ics.uci.edu/ml/datasets/AI4I+2020+Predictive+Maintenance+Dataset | RF-009, RF-011, RF-016, PL-011 |
+| MetroPT-3 compressor | UCI public research set | https://archive.ics.uci.edu/dataset/791/metropt+3+dataset | IN-024 |
+| SCANIA Component X PdM | SND / Scientific Data; verify redistribution | https://doi.org/10.5878/jvb5-d390 and https://www.nature.com/articles/s41597-025-04802-6 | RF-023 |
+| Coroot RCA lab | Pattern inspiration | https://github.com/coroot/rca-lab | IN-021 |
+| Chaos Mesh | Apache-2.0 project; pattern inspiration | https://github.com/chaos-mesh/chaos-mesh | IN-020, PL-014 |
+| TaskFlow incident lab | Pattern inspiration | https://github.com/OnyiGlobal2025/taskflow-incident-lab | IN-020, IN-021, PL-014, FH-018 |
 
 ## Curation Rules
 
@@ -100,13 +119,13 @@ until domain review.
 
 | Lane | Cases that cite it |
 |------|--------------------|
-| UCI AI4I 2020 | RF-016, PL-011 (plus existing RF-009, RF-011) |
+| UCI AI4I 2020 (CC BY 4.0) | RF-016, PL-011 (plus existing RF-009, RF-011) |
 | MetroPT-3 compressor | IN-024 |
 | SCANIA Component X PdM | RF-023 |
 | NASA PCoE / C-MAPSS | RF-021, IN-019, PL-012, FH-016 (plus existing IN-012, IN-016, RF-012) |
 | NASA lessons learned | RF-018, PL-013, FH-017 |
 | EuRoC MAV / Kalibr | RF-017, IN-018, FH-015 |
-| OpenStack fault injection + K8s RCA labs / Prometheus | IN-020, IN-021, PL-014, FH-018 (plus existing IN-009) |
+| Coroot rca-lab / Chaos Mesh / TaskFlow incident lab | IN-020, IN-021, PL-014, FH-018 |
 | NASA MDP / PROMISE (evaluation misfame) | FH-018 |
 | USGS / EPA CWA methods | RF-022, PL-016 |
 | SDNET-style civil field campaigns | RF-019, IN-022, FH-019 (plus existing FH-009, PL-007) |

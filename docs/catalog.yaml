@@ -27,6 +27,8 @@ sources:
     name: "AI4I 2020 Predictive Maintenance Dataset"
     domain: "manufacturing"
     url: "https://archive.ics.uci.edu/dataset/601/ai4i"
+    related_urls:
+      - "https://archive.ics.uci.edu/ml/datasets/AI4I+2020+Predictive+Maintenance+Dataset"
     doi: "10.24432/C5HS5C"
     license: "CC BY 4.0"
     source_type: "tabular_predictive_maintenance"
@@ -41,6 +43,7 @@ sources:
     notes: >
       Good source for compact manufacturing cases where telemetry contains
       air temperature, process temperature, rotational speed, torque, and tool wear.
+      The legacy ML-archive URL is kept as related_urls for coordinators.
 
   - id: "sdnet2018"
     name: "SDNET2018 Concrete Crack Image Dataset"
@@ -234,8 +237,10 @@ sources:
       - "incomplete reference-probe records"
     curation_status: "safe_to_reference_with_attribution"
     notes: >
-      Sister lane to NASA PCoE. Existing IN-012 / IN-016 already use this
-      pattern family. Do not copy raw run files into YAML.
+      Sister lane to NASA PCoE
+      (https://www.nasa.gov/intelligent-systems-division/discovery-and-systems-health/pcoe/pcoe-data-set-repository/).
+      Existing IN-012 / IN-016 already use this pattern family. Do not copy
+      raw run files into YAML.
 
   - id: "metropt3"
     name: "MetroPT-3 Compressor Dataset"
@@ -273,6 +278,9 @@ sources:
     name: "Kubernetes RCA / Chaos-Mesh Incident Labs"
     domain: "software_systems"
     url: "https://github.com/coroot/rca-lab"
+    related_urls:
+      - "https://github.com/chaos-mesh/chaos-mesh"
+      - "https://github.com/OnyiGlobal2025/taskflow-incident-lab"
     license: "Varies by repo; treat as pattern inspiration"
     source_type: "fault_injection_labs"
     scale: "Community RCA labs, Chaos Mesh experiments, and taskflow incident sandboxes"
@@ -284,8 +292,10 @@ sources:
     curation_status: "use_as_source_pattern"
     notes: >
       Sister lane to OpenStack fault injection and Prometheus practice.
-      Also see Chaos Mesh and taskflow-incident-lab. Do not copy lab
-      scenario text.
+      Chaos Mesh (https://github.com/chaos-mesh/chaos-mesh) supplies timeout /
+      pod-restart / DNS-chaos patterns. TaskFlow
+      (https://github.com/OnyiGlobal2025/taskflow-incident-lab) supplies
+      Break-Detect-Fix runbook structure. Do not copy lab scenario text.
 
   - id: "calce_nasa_battery_aging"
     name: "CALCE / NASA Battery Aging and Formation Pattern Family"
