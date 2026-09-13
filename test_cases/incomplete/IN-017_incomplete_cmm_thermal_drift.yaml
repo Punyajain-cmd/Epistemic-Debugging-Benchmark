@@ -1,0 +1,155 @@
+id: "IN-017"
+title: "Incomplete CMM Record: False Rejects Without Probe Qualification"
+version: "1.0"
+
+domain: "manufacturing"
+subdomain: "dimensional_metrology"
+failure_category: "instrumentation_artifact"
+difficulty: "hard"
+information_regime: "incomplete"
+split: "development"
+
+objective: >
+  100% inspect a 6061 manifold bore of 22.000 +/- 0.008 mm on a shop-floor
+  CMM before weekend shipment. The line started rejecting 40% of parts that
+  had passed the in-process air gage.
+
+protocol:
+  - step: 1
+    action: "Run the production CMM program after a Monday restart"
+    details: "Granite CMM sits 1.2 m from an exterior door. The weekend shop was unheated."
+    notes: "No warm-up or ring-gage check is recorded on Monday's traveler."
+
+  - step: 2
+    action: "Compare CMM bores to the air gage and a bench micrometer"
+    details: "Air gage master is current; micrometer was checked on a 22 mm stack."
+    notes: "CMM reads 0.012-0.018 mm smaller than both references, uniformly around the clock."
+
+  - step: 3
+    action: "Re-measure five rejected parts after lunch"
+    details: "The same parts now measure 0.006 mm closer to the air gage."
+    notes: "The CMM room thermometer strip is faded; a data logger was added only after the holds."
+
+telemetry:
+  method_comparison:
+    description: "Bore diameter by CMM, air gage, and micrometer on five held parts"
+    data_type: "table"
+    values:
+      part: [12, 18, 24, 31, 40]
+      cmm_mm: [21.986, 21.984, 21.987, 21.983, 21.985]
+      air_gage_mm: [22.001, 21.999, 22.002, 21.998, 22.000]
+      micrometer_mm: [22.000, 21.998, 22.001, 21.997, 21.999]
+    observations:
+      - "CMM is systematically 0.013-0.015 mm low versus two independent references."
+      - "The offset is not a lobed bore; clocked CMM points share the same bias."
+
+  thermal:
+    description: "Shop and machine temperatures after a logger was added"
+    data_type: "table"
+    values:
+      location: ["granite_morning", "granite_afternoon", "air_gage_room", "part_bin"]
+      degC: [16.4, 20.1, 20.4, 20.2]
+    observations:
+      - "Monday morning granite is 16.4 C; the air-gage room is 20.4 C."
+      - "Aluminum parts stored in the 20 C bin are measured on a still-cold CMM."
+
+  probe_qualification:
+    description: "20 mm ruby stylus qualification versus the 20 mm master ball"
+    data_type: "table"
+    values:
+      last_qualification_hours_ago: 92
+      max_std_dev_um: 7.8
+      allowed_std_dev_um: 1.5
+      tip_diameter_offset_um: -11.2
+    observations:
+      - "The probe has not been qualified since Friday; residual is 7.8 um."
+      - "Reported tip diameter is 11 um small, which shrinks a bore measurement."
+    note: "This qualification report was not attached to the Monday traveler and is withheld from the model."
+
+contextual_clues:
+  - "The CMM sits by a door that was open during a Monday receiving rush."
+  - "ISO 10360 warm-up and daily ring-gage checks are in the quality manual but were skipped after the weekend."
+  - "The CNC tool offset was not changed over the weekend."
+  - "Rejected parts fit the go gage that matches the air-gage master."
+
+hidden_fields:
+  - "telemetry.probe_qualification"
+
+ground_truth:
+  root_cause: >
+    The CMM, not the parts, failed. A cold granite machine after an unheated
+    weekend plus a stale probe qualification with an 11 um small tip diameter
+    made bores look undersize. Air gage, micrometer, and go/no-go agree the
+    parts are in spec. The withheld qualification report is the cleanest
+    single smoking gun.
+  root_cause_category: "instrumentation_artifact"
+  causal_chain:
+    - "The shop was unheated over the weekend and the CMM sits by an exterior door"
+    - "Monday restart skipped warm-up and probe qualification"
+    - "Granite and scale were still near 16 C while 20 C aluminum parts were measured"
+    - "A stale stylus qualification reported a tip 11 um too small"
+    - "The CMM therefore reported bores about 0.014 mm undersize"
+    - "Air gage, micrometer, and go gage all pass the same parts"
+  intervention: >
+    Warm the CMM to 20 +/- 1 C, requalify the probe to <1.5 um residual, and
+    remeasure the held lot plus a 22.000 mm ring gage. If CMM, air gage, and
+    ring agree, release the parts and add a door interlock / morning artifact
+    check. Do not touch CNC offsets until the CMM is qualified.
+  key_evidence:
+    - "Two reference methods disagree with the CMM by a common offset"
+    - "Offset shrinks after the machine warms"
+    - "Go gage accepts the rejects"
+    - "Withheld probe residual is 7.8 um with an 11 um tip error"
+  alternative_diagnoses:
+    - "The CNC finish bore is truly undersize"
+    - "Air-gage master drifted"
+    - "Parts were still hot from machining"
+    - "Wrong CMM probe diameter was typed into the program"
+  why_alternatives_fail:
+    "The CNC finish bore is truly undersize": "Air gage, micrometer, and go gage all pass; only the CMM fails."
+    "Air-gage master drifted": "Micrometer on a checked stack agrees with the air gage."
+    "Parts were still hot from machining": "Parts sat in a 20 C bin; the CMM granite is the cold object."
+    "Wrong CMM probe diameter was typed into the program": "Possible contributor, but the stale qualification already reports an 11 um tip error and a Monday skip of the daily check."
+  difficulty_justification: >
+    Incomplete: the qualification sheet is withheld. The solver must trust the
+    method disagreement and ask for the missing probe/thermal record instead
+    of rewriting CNC offsets.
+
+scoring:
+  weights:
+    root_cause: 0.30
+    causal_chain: 0.40
+    intervention: 0.30
+  root_cause_keywords:
+    - "CMM"
+    - "probe"
+    - "qualification"
+    - "thermal"
+    - "temperature"
+    - "stylus"
+  partial_credit_causes:
+    "metrology error": 0.7
+    "cold CMM": 0.75
+    "true undersize bore": 0.2
+  evidence_keywords:
+    - "air gage"
+    - "granite"
+    - "offset"
+
+available_tools:
+  - "calibration_checker"
+  - "statistical_analyzer"
+  - "machine_failure_analyzer"
+max_tool_calls: 12
+
+source: >
+  Synthetic composite inspired by NIST shop-floor metrology / ISO 10360
+  thermal and probe-qualification patterns. No proprietary CMM program copied.
+source_url: "https://www.nist.gov/pml/dimensional-metrology"
+expert_validated: false
+tags:
+  - "manufacturing"
+  - "cmm"
+  - "metrology"
+  - "incomplete"
+author: "EpiDebug Team"

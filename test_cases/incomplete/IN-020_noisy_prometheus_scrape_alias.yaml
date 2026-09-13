@@ -1,0 +1,169 @@
+id: "IN-020"
+title: "Noisy Checkout Drop: Prometheus Scrape Aliasing of a Resetting Counter"
+version: "1.0"
+
+domain: "software_systems"
+subdomain: "metrics_backends"
+failure_category: "instrumentation_artifact"
+difficulty: "hard"
+information_regime: "noisy"
+split: "development"
+
+objective: >
+  Keep checkout success-rate SLI above 99.5% during a 20-minute canary of
+  payments-api v4.3. A Grafana panel showed a 7% drop and the canary was
+  aborted, but synthetic probes and payment-provider webhooks stayed green.
+
+protocol:
+  - step: 1
+    action: "Deploy payments-api v4.3 to 10% of pods and scrape Prometheus every 30 s"
+    details: "The success counter is a Prometheus Counter reset on each rolling restart."
+    notes: "The canary rollout restarted pods every 90-120 s because a readiness probe was too tight."
+
+  - step: 2
+    action: "Plot rate(checkout_success_total[1m]) / rate(checkout_attempts_total[1m])"
+    details: "The dashboard uses a 1-minute rate on a 30-second scrape."
+    notes: "Several scrapes returned empty during restarts; Grafana connected points with a downward spike."
+
+  - step: 3
+    action: "Compare to probe logs and provider webhooks after the abort"
+    details: "Probes use monotonic success/fail, not scraped counters."
+
+telemetry:
+  grafana_sli:
+    description: "Dashboard SLI over the canary, including missing scrapes"
+    data_type: "timeseries"
+    values: [0.997, 0.996, 0.81, 0.993, 0.62, 0.995, 0.79, 0.994]
+    units: "success fraction"
+    expected_range:
+      min: 0.995
+      max: 1.0
+    observations:
+      - "Deep dips align with pod restart timestamps, not with user-visible errors."
+      - "Some 30 s buckets have no sample; the panel interpolates."
+
+  scrape_health:
+    description: "Prometheus scrape status during the canary"
+    data_type: "table"
+    values:
+      scrapes_attempted: 40
+      scrapes_empty: 9
+      counter_resets_detected: 7
+      up_metric_mean: 0.78
+    observations:
+      - "Nine scrapes returned empty during rolling restarts."
+      - "increase() over 5 m is healthier than rate() over 1 m."
+
+  independent_probes:
+    description: "Synthetic checkout and provider webhooks"
+    data_type: "table"
+    values:
+      probe_success_percent: 99.7
+      webhook_ok_percent: 99.8
+      http_5xx_percent: 0.04
+      latency_p95_ms: 188
+    observations:
+      - "Probes and webhooks never leave the SLO."
+      - "Application logs show 12 expected 409s from retries, not a 7% outage."
+
+  hidden_raw_counter:
+    description: "Raw counter samples around one restart (withheld)"
+    data_type: "table"
+    values:
+      t_s: [0, 30, 60, 90, 120]
+      success_total: [41280, 41311, -1, 18, 47]
+      missing_scrape_sentinel: -1
+    observations:
+      - "The counter resets from 41311 to 18 after a restart; a 1-minute rate treats the reset as a massive drop."
+    note: "Raw samples were not exported to the incident channel."
+
+contextual_clues:
+  - "Readiness probe timeout was tightened in the same PR as v4.3, causing extra restarts."
+  - "The previous real checkout outage was a Stripe timeout, so on-call first opened the provider runbook."
+  - "Grafana's 'connect nulls' setting is on."
+  - "Pod CPU and JVM GC are unremarkable."
+
+hidden_fields:
+  - "telemetry.hidden_raw_counter"
+
+red_herrings:
+  - "A payment-provider status page listed a degraded region in another continent."
+  - "The canary AMI included a noisy debug sidecar."
+
+ground_truth:
+  root_cause: >
+    The apparent 7% SLI drop is a metrics artifact. Tight readiness probes
+    restarted canary pods, resetting Prometheus counters. A 1-minute rate()
+    on 30-second scrapes with dropped samples treated resets as failed
+    checkouts. Independent probes and webhooks show the API was healthy.
+  root_cause_category: "instrumentation_artifact"
+  causal_chain:
+    - "The canary readiness probe was too tight and restarted pods every 90-120 s"
+    - "Each restart reset checkout_success_total to zero"
+    - "Prometheus missed scrapes during restarts and Grafana interpolated nulls"
+    - "rate() over 1 m interpreted resets as a collapse in successes"
+    - "The dashboard SLI dipped to 0.62-0.81 while probes stayed at 99.7%"
+    - "The canary was aborted on a false signal"
+  intervention: >
+    Use increase() over a window longer than the restart interval, mark
+    counter resets, disable null interpolation, and relax the readiness probe.
+    Replay the canary. If Grafana SLI then matches probes without a code
+    revert, the scrape-aliasing diagnosis is confirmed.
+  key_evidence:
+    - "Dips line up with restarts, not 5xx"
+    - "Probes and webhooks stay green"
+    - "Nine empty scrapes and seven counter resets"
+    - "Withheld raw series shows 41311 -> 18"
+  alternative_diagnoses:
+    - "v4.3 drops 7% of checkouts"
+    - "The payment provider is degraded"
+    - "CPU throttling on the canary"
+    - "The debug sidecar steals request time"
+  why_alternatives_fail:
+    "v4.3 drops 7% of checkouts": "Probes, webhooks, and 5xx rates stay inside SLO."
+    "The payment provider is degraded": "The status-page incident is another region; webhooks for this merchant are 99.8%."
+    "CPU throttling on the canary": "CPU and latency p95 are normal."
+    "The debug sidecar steals request time": "Would show in latency, not in a reset-shaped success counter."
+  difficulty_justification: >
+    Hard and noisy: missing scrapes and a withheld raw reset series make the
+    dashboard look like a real outage. The solver must distrust rate() on
+    resetting counters.
+
+scoring:
+  weights:
+    root_cause: 0.30
+    causal_chain: 0.40
+    intervention: 0.30
+  root_cause_keywords:
+    - "Prometheus"
+    - "counter"
+    - "reset"
+    - "scrape"
+    - "rate"
+    - "alias"
+  partial_credit_causes:
+    "metrics artifact": 0.75
+    "pod restart telemetry": 0.7
+    "real checkout outage": 0.15
+  evidence_keywords:
+    - "scrape"
+    - "probe"
+    - "reset"
+
+available_tools:
+  - "trace_log_analyzer"
+  - "statistical_analyzer"
+max_tool_calls: 12
+
+source: >
+  Synthetic composite inspired by Prometheus counter-reset pitfalls and
+  Kubernetes RCA / Chaos Mesh timeout-plus-restart patterns (Coroot rca-lab,
+  Chaos Mesh, TaskFlow incident lab). No lab runbook or Grafana JSON copied.
+source_url: "https://github.com/chaos-mesh/chaos-mesh"
+expert_validated: false
+tags:
+  - "software_systems"
+  - "prometheus"
+  - "noisy"
+  - "sli"
+author: "EpiDebug Team"

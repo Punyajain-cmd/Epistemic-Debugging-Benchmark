@@ -1,0 +1,154 @@
+id: "RF-017"
+title: "Incomplete Robot Cell: Magnetic Encoder Drift After Nearby Grinding"
+version: "1.0"
+
+domain: "robotics"
+subdomain: "joint_sensing"
+failure_category: "reagent_material_flaw"
+difficulty: "hard"
+information_regime: "incomplete"
+split: "development"
+
+objective: >
+  Keep a six-axis pick cell's tool-flange pose within 0.15 mm of the taught
+  waypoint after a 4-hour production shift. Overnight, joint 4 began reporting
+  a slow 0.8 deg drift and the cell started dropping pouches at the place nest.
+
+protocol:
+  - step: 1
+    action: "Home the robot and run the standard 12-point circularity check"
+    details: "Absolute magnetic encoder on joint 4, 19-bit, ring magnet bonded to the output shaft."
+    notes: "Morning circularity was 0.09 mm; after four hours it opened to 0.41 mm, biased in yaw."
+
+  - step: 2
+    action: "Compare encoder counts to an independent laser tracker at the flange"
+    details: "Laser tracker is on a calibrated nest 1.8 m from the cell."
+    notes: "True flange motion is smooth; the encoder unwraps extra counts near mid-travel."
+
+  - step: 3
+    action: "Inspect joint 4 after the shift"
+    details: "No gearbox backlash change on the lock-to-lock test; grease looks normal."
+    notes: "A technician wiped a gray film off the encoder cover vent but did not bag the residue."
+
+telemetry:
+  pose_error:
+    description: "Tool-flange pose error versus the taught waypoint"
+    data_type: "timeseries"
+    values: [0.08, 0.11, 0.19, 0.28, 0.37, 0.41]
+    units: "mm RMS"
+    expected_range:
+      min: 0.0
+      max: 0.15
+    observations:
+      - "Error grows through the shift rather than appearing at power-up."
+      - "The growth is almost entirely joint-4 yaw, not a base-frame shift."
+
+  encoder_vs_tracker:
+    description: "Joint-4 angle: encoder minus laser-tracker reconstruction"
+    data_type: "table"
+    values:
+      commanded_deg: [-40, -20, 0, 20, 40]
+      encoder_minus_tracker_deg: [0.11, 0.42, 0.79, 0.38, 0.09]
+    observations:
+      - "Disagreement peaks near the mid-travel zone, not at the hard stops."
+      - "Repeating the same move without power cycling reproduces the hump."
+
+  gearbox_check:
+    description: "Mechanical health of joint 4"
+    data_type: "table"
+    values:
+      backlash_arcmin: 1.8
+      spec_arcmin: 3.0
+      winding_temp_C: 47
+      bus_voltage_V: 48.1
+    observations:
+      - "Backlash, temperature, and bus voltage stay in-family."
+
+contextual_clues:
+  - "A portable rail grinder was used on the neighboring cell for two hours that morning; sparks were visible over the shared aisle."
+  - "Joint 4's encoder is a magnetic ring with a vented cover, not an optical disk."
+  - "The teach pendant firmware was updated last month and has been stable on the other five joints."
+  - "Payload mass and TCP calibration were not changed."
+  - "The laser tracker battery was swapped at lunch; the afternoon survey still matches the morning tracker scale."
+
+hidden_fields:
+  - "contextual_clues"
+
+ground_truth:
+  root_cause: >
+    Ferrous grinding swarf contaminated the magnetic encoder ring on joint 4.
+    Local field distortion added a mid-travel count error that looked like
+    kinematic drift. The mechanical gearbox is healthy; the withheld clue is
+    the neighboring rail-grinder work over an unsealed magnetic encoder.
+  root_cause_category: "reagent_material_flaw"
+  causal_chain:
+    - "A nearby rail grinder threw ferrous swarf into the shared aisle"
+    - "Swarf entered the vented cover of the joint-4 magnetic encoder"
+    - "Embedded particles locally distorted the ring-magnet field"
+    - "The encoder reported extra mid-travel counts that the controller treated as true angle"
+    - "Tool-flange yaw drifted through the shift and pouch placement failed"
+    - "An independent laser tracker showed the arm itself was not moving as reported"
+  intervention: >
+    Power down, remove the encoder cover, clean the ring and read-head with a
+    non-residue solvent, and inspect for embedded swarf. Recalibrate joint 4
+    and rerun the circularity check. If the mid-travel encoder-minus-tracker
+    hump collapses below 0.05 deg, the contamination diagnosis is confirmed.
+    Add a sealed encoder or a magnetic shield when grinding is scheduled nearby.
+  key_evidence:
+    - "Laser tracker says the arm is smooth while the encoder is not"
+    - "Error is joint-4 specific and peaks at mid-travel"
+    - "Gearbox backlash and temperature are normal"
+    - "Error grows during a shift that included nearby grinding (withheld from the prompt)"
+  alternative_diagnoses:
+    - "Harmonic-drive backlash increased"
+    - "Teach-pendant firmware corrupted joint 4 kinematics"
+    - "Laser tracker nest moved"
+    - "Bus-voltage sag caused missing encoder clocks"
+  why_alternatives_fail:
+    "Harmonic-drive backlash increased": "Lock-to-lock backlash is 1.8 arcmin, inside spec, and the error is a mid-travel hump rather than endpoint slop."
+    "Teach-pendant firmware corrupted joint 4 kinematics": "The other five joints and the morning check were fine; firmware does not grow a mid-travel magnetic hump over four hours."
+    "Laser tracker nest moved": "The nest is fixed and afternoon scale still matches morning; the disagreement is encoder-specific."
+    "Bus-voltage sag caused missing encoder clocks": "Bus voltage is 48.1 V and a missing-clock fault would step, not form a repeatable mid-travel curve."
+  difficulty_justification: >
+    Incomplete: the grinding-swarf history is withheld. The solver must treat
+    encoder-versus-tracker disagreement as a sensing/material problem and ask
+    for the missing contamination record rather than retune kinematics.
+
+scoring:
+  weights:
+    root_cause: 0.30
+    causal_chain: 0.40
+    intervention: 0.30
+  root_cause_keywords:
+    - "swarf"
+    - "magnetic"
+    - "encoder"
+    - "contamination"
+    - "ferrous"
+    - "field"
+  partial_credit_causes:
+    "encoder contamination": 0.85
+    "magnetic interference": 0.7
+    "gearbox wear": 0.2
+  evidence_keywords:
+    - "tracker"
+    - "mid-travel"
+    - "joint 4"
+
+available_tools:
+  - "statistical_analyzer"
+  - "calibration_checker"
+  - "material_properties"
+max_tool_calls: 12
+
+source: >
+  Synthetic composite inspired by public robot-joint encoder failure patterns
+  and EuRoC / industrial-cell sensing lessons. No proprietary cell log copied.
+source_url: "https://projects.asl.ethz.ch/datasets/doku.php?id=kmavvisualinertialdatasets"
+expert_validated: false
+tags:
+  - "robotics"
+  - "encoder"
+  - "contamination"
+  - "incomplete"
+author: "EpiDebug Team"

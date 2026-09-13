@@ -1,0 +1,158 @@
+id: "IN-018"
+title: "Distractor-Heavy VIO Drift from an Uncalibrated Camera-IMU Time Offset"
+version: "1.0"
+
+domain: "robotics"
+subdomain: "visual_inertial_odometry"
+failure_category: "instrumentation_artifact"
+difficulty: "hard"
+information_regime: "distractor_heavy"
+split: "development"
+
+objective: >
+  Fly a research quadrotor through a 40 m warehouse aisle using visual-inertial
+  odometry and stay within 8 cm of motion-capture ground truth. After a camera
+  firmware flash, loop-closure error grew to 1.4 m and the vehicle brushed a rack.
+
+protocol:
+  - step: 1
+    action: "Flash the camera to a new rolling-shutter firmware and reboot the IMU driver"
+    details: "Firmware notes mention a 22 ms pipeline change; the VIO config still lists cam_imu_dt = 0.0 ms."
+    notes: "No Kalibr / time-offset recalibration was run after the flash."
+
+  - step: 2
+    action: "Fly the standard aisle trajectory at 1.4 m/s"
+    details: "Motion-capture, wheel-less optical flow, and a backup stereo pair are recorded."
+    notes: "The stereo pair was left with last month's exposure; several frames are saturated under skylights."
+
+  - step: 3
+    action: "Inspect residuals after the near-miss"
+    details: "IMU preintegration residuals spike at yaw changes; vision reprojection is only slightly worse."
+    notes: "A student first blamed glossy-floor reflections because the EuRoC-style calibration target looked washed out."
+
+telemetry:
+  ate:
+    description: "Absolute trajectory error versus motion capture"
+    data_type: "table"
+    values:
+      run: ["pre_flash", "post_flash_1.4mps", "post_flash_0.4mps"]
+      ate_m: [0.05, 1.41, 0.19]
+      yaw_rmse_deg: [0.8, 9.6, 2.1]
+    observations:
+      - "Slow flight after the flash is almost acceptable; fast flight is not."
+      - "Error is dominated by yaw during heading changes."
+
+  residuals:
+    description: "VIO residual statistics"
+    data_type: "table"
+    values:
+      imu_preint_chi2: 24.7
+      vision_reproj_px: 0.92
+      estimated_td_ms: 21.4
+      configured_td_ms: 0.0
+    observations:
+      - "IMU residuals are the outlier; vision reprojection stays near 0.9 px."
+      - "An offline time-offset estimator recovers 21.4 ms, matching the firmware note."
+
+  image_quality:
+    description: "Secondary stereo exposure (distractor)"
+    data_type: "text"
+    observations:
+      - "About 8% of stereo frames are saturated under skylights."
+      - "The primary VIO camera histogram is still well exposed."
+      - "Motion-capture markers are visible throughout."
+
+contextual_clues:
+  - "The firmware changelog lists a 22 ms ISP / rolling-shutter pipeline delay."
+  - "Kalibr cam-IMU time offset was last fit four months ago and left at 0.0 in the onboard YAML."
+  - "Warehouse floors are glossy and have fooled optical-flow demos in this lab before."
+  - "A new propeller set was installed the same morning."
+  - "Motion-capture cameras were re-aimed last week."
+
+red_herrings:
+  - "The backup stereo camera is overexposed under skylights."
+  - "A new carbon propeller set was balanced on a cheap hobby spinner."
+  - "Someone mentioned the motion-capture wand calibration was 'probably due'."
+  - "The safety pilot's RC link logged two 12 ms frame drops."
+  - "A forklift parked in an aisle changed the appearance of one loop-closure view."
+  - "The IMU datasheet revision on the wiki is a year old."
+
+ground_truth:
+  root_cause: >
+    The camera firmware added about 22 ms of pipeline delay that was never
+    written into the VIO time-offset. At 1.4 m/s the unmodeled camera-IMU lag
+    corrupts preintegration during yaw and grows a 1.4 m trajectory error.
+    Glossy floors, props, and mocap rumors are vivid but do not explain the
+    speed-dependent, IMU-residual-dominated failure or the 21.4 ms recovered
+    offset.
+  root_cause_category: "instrumentation_artifact"
+  causal_chain:
+    - "Camera firmware increased ISP / rolling-shutter latency by about 22 ms"
+    - "Onboard VIO still assumed a zero camera-IMU time offset"
+    - "During fast yaw, IMU preintegration was applied to images from an earlier pose"
+    - "Residuals concentrated in the IMU terms, not in vision reprojection"
+    - "Absolute trajectory error grew to 1.4 m at 1.4 m/s but stayed small at 0.4 m/s"
+    - "An offline estimator recovers 21.4 ms, matching the changelog"
+  intervention: >
+    Hold the vehicle on a Kalibr or equivalent cam-IMU time-offset procedure,
+    write the fitted delay into the VIO config, and rerun the 1.4 m/s aisle.
+    If ATE returns near 5 cm without changing props, exposure, or mocap, the
+    time-offset diagnosis is confirmed.
+  key_evidence:
+    - "Failure is strongly speed-dependent"
+    - "IMU chi-square is large while reprojection is not"
+    - "Recovered td is 21.4 ms versus a 22 ms firmware note"
+    - "Primary camera exposure is fine; the saturated stereo pair is unused by VIO"
+  alternative_diagnoses:
+    - "Glossy-floor feature corruption"
+    - "Unbalanced new propellers"
+    - "Motion-capture frame miscalibration"
+    - "Overexposed stereo camera broke VIO"
+  why_alternatives_fail:
+    "Glossy-floor feature corruption": "Primary-camera reprojection is 0.92 px and slow flights still work after the flash."
+    "Unbalanced new propellers": "Would shake both slow and fast flights and would not recover a 21 ms time offset."
+    "Motion-capture frame miscalibration": "Pre-flash ATE was 5 cm on the same mocap set."
+    "Overexposed stereo camera broke VIO": "VIO uses the well-exposed primary camera; the stereo pair is a backup log."
+  difficulty_justification: >
+    Hard and distractor-heavy: warehouse perception folklore is loud, but the
+    speed dependence and IMU residuals point at a firmware time offset.
+
+scoring:
+  weights:
+    root_cause: 0.30
+    causal_chain: 0.40
+    intervention: 0.30
+  root_cause_keywords:
+    - "time offset"
+    - "camera"
+    - "IMU"
+    - "latency"
+    - "firmware"
+    - "delay"
+  partial_credit_causes:
+    "sensor time sync": 0.8
+    "rolling shutter delay": 0.7
+    "bad features": 0.2
+  evidence_keywords:
+    - "21.4"
+    - "chi2"
+    - "firmware"
+
+available_tools:
+  - "statistical_analyzer"
+  - "calibration_checker"
+  - "trace_log_analyzer"
+max_tool_calls: 15
+
+source: >
+  Synthetic composite inspired by EuRoC / Kalibr camera-IMU calibration
+  patterns and public VIO time-offset failure modes. No proprietary flight
+  log copied.
+source_url: "https://projects.asl.ethz.ch/datasets/doku.php?id=kmavvisualinertialdatasets"
+expert_validated: false
+tags:
+  - "robotics"
+  - "vio"
+  - "time_offset"
+  - "distractor_heavy"
+author: "EpiDebug Team"

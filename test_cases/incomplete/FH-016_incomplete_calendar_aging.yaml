@@ -1,0 +1,147 @@
+id: "FH-016"
+title: "Incomplete Aging Study: Calendar Fade Misread as Cycle-Life Failure"
+version: "1.0"
+
+domain: "energy"
+subdomain: "battery_aging"
+failure_category: "flawed_hypothesis"
+difficulty: "hard"
+information_regime: "incomplete"
+split: "development"
+
+objective: >
+  Show that a new electrolyte raises 25 C cycle life to 80% capacity at
+  >600 cycles versus a 400-cycle baseline. After a summer storage gap, both
+  chemistries sat at 42-45% capacity before the first post-gap cycle.
+
+protocol:
+  - step: 1
+    action: "Form cells and begin C/3 cycling at 25 C"
+    details: "Both new and baseline electrolytes reached cycle 80 near 96% capacity."
+    notes: "The cycler lab shut for 11 weeks. Cells were left in a 40 C formation oven at 100% SOC 'to keep them dry'."
+
+  - step: 2
+    action: "Resume C/3 cycling after the shutdown"
+    details: "First discharge after storage is 43-46% for both electrolytes."
+    notes: "The team attributed the drop to the new electrolyte attacking the cathode."
+
+  - step: 3
+    action: "Run dQ/dV and electrode harvest on one cell"
+    details: "Loss of lithium inventory dominates; transition-metal dissolution is minor."
+
+telemetry:
+  capacity:
+    description: "Capacity through the shutdown"
+    data_type: "table"
+    values:
+      point: ["cyc80_new", "cyc80_base", "post_gap_new", "post_gap_base", "cyc90_new", "cyc90_base"]
+      capacity_percent: [96.2, 96.0, 44.8, 45.7, 44.1, 44.9]
+    observations:
+      - "Both chemistries lose ~50 points during the gap, then fade slowly again."
+      - "The drop is not unique to the new electrolyte."
+
+  dqdv:
+    description: "dQ/dV before and after the gap"
+    data_type: "text"
+    observations:
+      - "Graphite staging peaks lose area (LLI) with little peak shift that would indicate a bulk cathode crystal change."
+      - "A harvested anode shows a thick SEI; cathode lattice parameters are in family."
+
+  storage_record:
+    description: "Oven SOC and temperature during the shutdown (withheld)"
+    data_type: "table"
+    values:
+      storage_days: 77
+      oven_C: 40.2
+      soc_percent: 100
+      literature_calendar_loss_percent: 48
+    observations:
+      - "77 days at 40 C and 100% SOC is a known calendar-aging extreme."
+    note: "The oven SOC/temperature sheet was not attached to the aging report."
+
+contextual_clues:
+  - "Cells sat 11 weeks at 100% SOC in a 40 C oven."
+  - "Calendar aging of NMC/graphite at high SOC is often larger than modest cycle counts."
+  - "The new electrolyte's selling point was cycle life, so the team framed every fade as a cycle-life failure."
+  - "A control that stayed at 30% SOC in a 10 C fridge over the same gap lost only 2%."
+
+hidden_fields:
+  - "telemetry.storage_record"
+  - "contextual_clues"
+
+ground_truth:
+  root_cause: >
+    The scientific hypothesis — that post-gap fade is a cycle-life failure of
+    the new electrolyte — is wrong. Both chemistries calendar-aged at 100%
+    SOC and 40 C during the shutdown. The withheld oven record and the 30%
+    SOC fridge control are the discriminating facts.
+  root_cause_category: "flawed_hypothesis"
+  causal_chain:
+    - "The team hypothesized that the new electrolyte causes catastrophic cycle fade"
+    - "Cycling to cycle 80 was actually healthy for both electrolytes"
+    - "Cells then sat 11 weeks at 100% SOC and 40 C"
+    - "Calendar aging consumed lithium inventory in both chemistries"
+    - "Post-gap capacity sat near 45% before further cycling"
+    - "A 30% SOC / 10 C control barely faded, isolating storage, not the molecule"
+  intervention: >
+    Build matched cells: cycle continuously at 25 C, versus store 11 weeks at
+    100% SOC / 40 C versus 30% SOC / 10 C, for both electrolytes. If storage
+    condition predicts fade and electrolyte identity does not, the cycle-life
+    hypothesis is rejected.
+  key_evidence:
+    - "Baseline and new electrolyte drop together"
+    - "dQ/dV indicates LLI, not a unique cathode collapse"
+    - "Withheld: 77 days, 40 C, 100% SOC"
+    - "Fridge control at 30% SOC loses 2%"
+  alternative_diagnoses:
+    - "The new electrolyte etches the NMC"
+    - "Cycler current-sensor drift"
+    - "A wet glovebox poisoned only the new lot"
+    - "Formation was incomplete"
+  why_alternatives_fail:
+    "The new electrolyte etches the NMC": "The baseline bottle fades the same amount over the same gap."
+    "Cycler current-sensor drift": "dQ/dV shape and harvested SEI show real LLI."
+    "A wet glovebox poisoned only the new lot": "Both lots sit at 45% after shared storage."
+    "Formation was incomplete": "Cycle 80 was 96% for both before the gap."
+  difficulty_justification: >
+    Incomplete: storage SOC/temperature is withheld. The solver must notice
+    that both chemistries fail together after a time gap and ask for the
+    calendar-aging record instead of accepting the cycle-life story.
+
+scoring:
+  weights:
+    root_cause: 0.30
+    causal_chain: 0.40
+    intervention: 0.30
+  root_cause_keywords:
+    - "calendar"
+    - "storage"
+    - "SOC"
+    - "temperature"
+    - "aging"
+    - "electrolyte"
+  partial_credit_causes:
+    "storage fade": 0.85
+    "high-SOC hold": 0.8
+    "bad new electrolyte": 0.2
+  evidence_keywords:
+    - "gap"
+    - "both"
+    - "LLI"
+
+available_tools:
+  - "statistical_analyzer"
+  - "material_properties"
+max_tool_calls: 12
+
+source: >
+  Synthetic composite inspired by NASA/CALCE battery calendar-aging versus
+  cycle-life patterns. No proprietary aging table copied.
+source_url: "https://www.nasa.gov/intelligent-systems-division/discovery-and-systems-health/pcoe/pcoe-data-set-repository/"
+expert_validated: false
+tags:
+  - "battery"
+  - "calendar_aging"
+  - "flawed_hypothesis"
+  - "incomplete"
+author: "EpiDebug Team"

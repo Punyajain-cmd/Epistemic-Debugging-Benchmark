@@ -1,8 +1,8 @@
 # EpiDebug Test Case Manifest
 # Auto-generated index of all test cases
 
-version: "0.2.0"
-last_updated: "2026-09-10"
+version: "0.3.0"
+last_updated: "2026-09-13"
 
 categories:
   reagent_material_flaw:

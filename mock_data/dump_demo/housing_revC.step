@@ -1,0 +1,9 @@
+ISO-10303-21;
+HEADER;
+FILE_NAME('housing.step','2024-08-01T10:00:00');
+FILE_DESCRIPTION(('REV C bore fixture'),'2;1');
+FILE_SCHEMA(('AUTOMOTIVE_DESIGN'));
+ENDSEC;
+DATA;
+#1=PRODUCT('6082-T6-housing','part','');
+ENDSEC;

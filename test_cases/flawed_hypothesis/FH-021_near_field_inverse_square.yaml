@@ -1,0 +1,146 @@
+id: "FH-021"
+title: "Antenna Gain Error from Applying Inverse-Square in the Near Field"
+version: "1.0"
+
+domain: "physics"
+subdomain: "rf_metrology"
+failure_category: "flawed_hypothesis"
+difficulty: "hard"
+information_regime: "complete"
+split: "held_out"
+
+objective: >
+  Measure 2.45 GHz patch-antenna gain in an anechoic corner to +/-0.6 dB
+  using a 10 dBi standard horn. The team used Friis / inverse-square at
+  0.42 m separation and reported 2.1 dBi instead of the expected 6.5 dBi.
+
+protocol:
+  - step: 1
+    action: "Place the AUT and horn 0.42 m apart, boresight aligned"
+    details: "AUT aperture D = 0.18 m; far-field criterion 2D^2/lambda is 0.53 m. They used 0.42 m 'because the chamber is small'."
+    notes: "A range equation spreadsheet assumed far-field Friis."
+
+  - step: 2
+    action: "Record S21 and convert to gain with Friis"
+    details: "Cable and mismatch corrections are applied; they are not the 4 dB miss."
+    notes: "S21 versus distance from 0.25-1.20 m was later collected on a rail."
+
+  - step: 3
+    action: "Compare to a 1.10 m far-field point and a compact-range borrow"
+    details: "At 1.10 m the same Friis reduction gives 6.4 dBi; a compact range gives 6.6 dBi."
+
+telemetry:
+  gain_vs_range:
+    description: "Friis-derived apparent gain versus separation"
+    data_type: "table"
+    values:
+      r_m: [0.25, 0.42, 0.53, 0.80, 1.10]
+      apparent_dBi: [-0.8, 2.1, 4.4, 6.1, 6.4]
+      two_D2_lambda_m: 0.53
+    observations:
+      - "Apparent gain is a strong function of r below 0.8 m."
+      - "It asymptotes near 6.4 dBi once r exceeds ~1.5 x 2D^2/lambda."
+
+  phase:
+    description: "Aperture phase flatness from a near-field probe"
+    data_type: "text"
+    observations:
+      - "At 0.42 m the AUT aperture phase varies 38 deg peak-to-peak."
+      - "At 1.10 m the variation is 9 deg."
+      - "A spherical-wave / 1/r^2 assumption is invalid with that curvature."
+
+  rf_integrity:
+    description: "Cable, mismatch, and chamber checks"
+    data_type: "table"
+    values:
+      cable_loss_dB: 1.12
+      AUT_S11_dB: -14.8
+      horn_S11_dB: -22.1
+      chamber_reflectivity_dB: -38
+    observations:
+      - "Mismatch and cable terms are already in the reduction."
+      - "Chamber reflectivity cannot explain a smooth 4 dB range dependence."
+
+contextual_clues:
+  - "2D^2/lambda at 2.45 GHz for D = 0.18 m is 0.53 m; they measured at 0.42 m."
+  - "Friis assumes plane-wave / far-field incidence."
+  - "The chamber length limited the first setup."
+  - "A student argued the patch 'just has low gain' because of a new substrate lot."
+
+ground_truth:
+  root_cause: >
+    The measurement hypothesis — that received power follows inverse-square
+    Friis at 0.42 m — is invalid in the radiative near field. Aperture phase
+    curvature makes apparent gain range-dependent. The antenna is ~6.5 dBi
+    once a far-field distance or a near-field transform is used.
+  root_cause_category: "flawed_hypothesis"
+  causal_chain:
+    - "Far-field distance 2D^2/lambda is 0.53 m"
+    - "The team applied Friis at 0.42 m in a short chamber"
+    - "Aperture phase curvature was 38 deg"
+    - "Apparent Friis gain read 2.1 dBi"
+    - "The same reduction at 1.10 m and a compact range both give ~6.5 dBi"
+    - "Substrate-lot and mismatch stories do not produce this range curve"
+  intervention: >
+    Repeat S21 on a rail from 0.3-1.2 m and reduce gain only for r >= 1.0 m
+    (or run a near-field scan and transform). If gain asymptotes to 6.5 dBi
+    without changing the AUT, the far-field hypothesis is rejected. Do not
+    scrap the substrate lot first.
+  key_evidence:
+    - "Apparent gain versus r is not constant below 0.8 m"
+    - "2D^2/lambda = 0.53 m > 0.42 m"
+    - "38 deg aperture phase curvature"
+    - "1.10 m and compact-range gains agree"
+  alternative_diagnoses:
+    - "The new substrate lot lowered gain"
+    - "Uncorrected cable loss"
+    - "Chamber multipath"
+    - "Horn standard is 4 dB off"
+  why_alternatives_fail:
+    "The new substrate lot lowered gain": "The same AUT measures 6.4-6.6 dBi at a legal range."
+    "Uncorrected cable loss": "Cable loss is applied and would not create a smooth range-dependent gain."
+    "Chamber multipath": "Reflectivity is -38 dB and the curve is monotonic with r, not a ripple."
+    "Horn standard is 4 dB off": "The horn plus compact-range comparison agrees at far field."
+  difficulty_justification: >
+    Hard: Friis is the default mental model. The solver must apply the
+    2D^2/lambda criterion and read a range-dependent 'gain' as a near-field
+    artifact.
+
+scoring:
+  weights:
+    root_cause: 0.30
+    causal_chain: 0.40
+    intervention: 0.30
+  root_cause_keywords:
+    - "near field"
+    - "far field"
+    - "Friis"
+    - "inverse-square"
+    - "2D"
+    - "gain"
+  partial_credit_causes:
+    "range too short": 0.8
+    "invalid Friis": 0.85
+    "bad substrate": 0.2
+  evidence_keywords:
+    - "0.42"
+    - "0.53"
+    - "phase"
+
+available_tools:
+  - "spectrum_analyzer"
+  - "statistical_analyzer"
+  - "calibration_checker"
+max_tool_calls: 12
+
+source: >
+  Synthetic composite inspired by public antenna-range / NIST RF-metrology
+  near-field versus Friis pitfalls. No proprietary range log copied.
+source_url: "https://www.nist.gov/pml"
+expert_validated: false
+tags:
+  - "physics"
+  - "antenna"
+  - "near_field"
+  - "friis"
+author: "EpiDebug Team"

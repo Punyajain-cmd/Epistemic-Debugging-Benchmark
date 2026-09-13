@@ -1,0 +1,145 @@
+id: "PL-013"
+title: "Access-Panel Rivnut Failures from lbf-in versus N-m Torque Mix-Up"
+version: "1.0"
+
+domain: "aerospace"
+subdomain: "ground_operations"
+failure_category: "protocol_human_loophole"
+difficulty: "easy"
+information_regime: "complete"
+split: "held_out"
+
+objective: >
+  Install 12 stainless screws into aluminum rivnuts on a research-aircraft
+  access panel. Residual clamp should be 3.5-4.5 kN and no rivnut should
+  spin at 150% of installation torque.
+
+protocol:
+  - step: 1
+    action: "Torque the #8-32 screws to the drawing value"
+    details: "Drawing note: 20 lbf-in. The digital wrench was left in N-m from the previous metric job."
+    notes: "The technician entered 20 and clicked 20 N-m (177 lbf-in), about 9x the specified torque."
+
+  - step: 2
+    action: "Inspect after the first taxi vibration survey"
+    details: "Three rivnuts spun in the skin; two screws showed necking."
+    notes: "A click-wrench in lbf-in later installed the remaining fasteners without damage."
+
+  - step: 3
+    action: "Download the digital-wrench log and measure rivnut holes"
+    details: "Log units column is N-m; peak 20.1 N-m on the failed holes."
+
+telemetry:
+  wrench_log:
+    description: "Digital wrench records for the 12 holes"
+    data_type: "table"
+    values:
+      hole: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
+      logged_value: [20.0, 20.1, 19.8, 20.0, 20.2, 19.9, 2.26, 2.25, 2.27, 2.24, 2.26, 2.25]
+      units: ["N-m", "N-m", "N-m", "N-m", "N-m", "N-m", "N-m", "N-m", "N-m", "N-m", "N-m", "N-m"]
+    observations:
+      - "Holes 1-6 were clicked at 20 N-m."
+      - "Holes 7-12 were reset to 2.26 N-m (20 lbf-in) after the first failures were noticed."
+
+  damage:
+    description: "Rivnut spin and screw condition"
+    data_type: "table"
+    values:
+      hole: [1, 2, 3, 4, 5, 6, 7, 8]
+      rivnut_spun: [true, true, true, false, false, false, false, false]
+      screw_necked: [true, false, true, false, false, false, false, false]
+    observations:
+      - "Damage is only on the 20 N-m holes."
+      - "20 lbf-in holes are intact after the same taxi survey."
+
+  drawing:
+    description: "Specification versus applied torque"
+    data_type: "table"
+    values:
+      specified_lbf_in: 20
+      applied_first_six_lbf_in: 177
+      specified_N_m: 2.26
+    observations:
+      - "20 N-m is 177 lbf-in, not 20 lbf-in."
+
+contextual_clues:
+  - "The previous job on the bench was a metric avionics tray at 20 N-m."
+  - "The wrench beeps the same way in either unit; the display unit is a small 'N-m' legend."
+  - "Rivnuts and screws are the correct dash numbers."
+  - "A structures engineer first suspected undersized rivnut grip length."
+
+ground_truth:
+  root_cause: >
+    The technician applied 20 N-m instead of 20 lbf-in because the digital
+    wrench was left in SI units. The fasteners were over-torqued by about
+    9x, spinning rivnuts and necking screws. Grip length and part numbers
+    are correct.
+  root_cause_category: "protocol_human_loophole"
+  causal_chain:
+    - "The wrench was still in N-m from a metric job"
+    - "The drawing called for 20 lbf-in"
+    - "The technician entered 20 without checking the unit legend"
+    - "Holes 1-6 received 177 lbf-in"
+    - "Rivnuts spun and two screws necked"
+    - "Holes 7-12 at the correct 2.26 N-m survived the taxi survey"
+  intervention: >
+    Replace damaged rivnuts, set the wrench to lbf-in (or 2.26 N-m), and
+    install a witness set. If the new set survives 150% installation torque
+    and the taxi survey, the unit-mix-up diagnosis is confirmed. Add a unit
+    interlock on the wrench job card.
+  key_evidence:
+    - "Wrench log units are N-m at 20 on the failed holes"
+    - "Corrected 2.26 N-m holes are undamaged"
+    - "Drawing specifies 20 lbf-in"
+    - "Part numbers match"
+  alternative_diagnoses:
+    - "Wrong rivnut grip length"
+    - "Counterfeit screws"
+    - "Taxi loads exceeded design"
+    - "Aluminum skin was too thin"
+  why_alternatives_fail:
+    "Wrong rivnut grip length": "The same dash number holds when torqued correctly."
+    "Counterfeit screws": "Necking appears only on the 20 N-m holes from the same box."
+    "Taxi loads exceeded design": "Correctly torqued holes on the same panel are fine."
+    "Aluminum skin was too thin": "Skin gage matches the drawing; damage tracks torque, not location."
+  difficulty_justification: >
+    Easy: the wrench log and the 9x unit conversion are direct, but unit
+    mix-ups are still missed when people read only the number 20.
+
+scoring:
+  weights:
+    root_cause: 0.30
+    causal_chain: 0.40
+    intervention: 0.30
+  root_cause_keywords:
+    - "torque"
+    - "unit"
+    - "lbf-in"
+    - "N-m"
+    - "wrench"
+    - "over"
+  partial_credit_causes:
+    "over-torque": 0.7
+    "unit mix-up": 0.95
+    "wrong rivnut": 0.2
+  evidence_keywords:
+    - "20 N-m"
+    - "lbf-in"
+    - "log"
+
+available_tools:
+  - "statistical_analyzer"
+  - "calibration_checker"
+max_tool_calls: 8
+
+source: >
+  Synthetic composite inspired by NASA lessons-learned unit-conversion and
+  NTSB-style maintenance loopholes. No accident-report text copied.
+source_url: "https://www.nasa.gov/nasa-lessons-learned/"
+expert_validated: false
+tags:
+  - "aerospace"
+  - "torque"
+  - "units"
+  - "human_factors"
+author: "EpiDebug Team"

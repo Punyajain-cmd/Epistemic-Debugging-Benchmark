@@ -1,0 +1,149 @@
+id: "PL-016"
+title: "Incomplete Nutrient Run: Nitrate Crash Without the Cooler Log"
+version: "1.0"
+
+domain: "environmental_science"
+subdomain: "field_sampling"
+failure_category: "protocol_human_loophole"
+difficulty: "hard"
+information_regime: "incomplete"
+split: "development"
+
+objective: >
+  Deliver 24-hour composite river samples for nitrate+nitrite within EPA
+  hold time (48 h, <=6 C). Results should match the in-situ nitrate sensor
+  within 15%. The lab reported 0.18 mg-N/L while the sensor read 1.42 mg-N/L.
+
+protocol:
+  - step: 1
+    action: "Collect a 1 L composite and place it in a cooler for courier pickup"
+    details: "SOP: ice to the shoulder, temperature blank, 48 h hold."
+    notes: "Pickup was delayed to the next afternoon after a missed courier."
+
+  - step: 2
+    action: "Filter and analyze by cadmium-reduction colorimetry at the contract lab"
+    details: "Lab LCS and CCV passed. Sample temperature on receipt was 19.4 C."
+    notes: "The field temperature-blank sheet was not in the cooler."
+
+  - step: 3
+    action: "Compare to the in-situ UV nitrate sensor and a later resample"
+    details: "A resample iced correctly the following week matched the sensor at 1.38 mg-N/L."
+
+telemetry:
+  concentrations:
+    description: "Nitrate+nitrite comparison"
+    data_type: "table"
+    values:
+      method: ["in_situ_sensor", "warm_lab_sample", "later_iced_resample", "lab_LCS"]
+      mg_N_L: [1.42, 0.18, 1.38, 1.01]
+    observations:
+      - "The warm sample is an order of magnitude below the sensor and the iced resample."
+      - "Lab LCS recovery is 101% — the instrument is not biased low."
+
+  receipt:
+    description: "Sample condition at the lab"
+    data_type: "table"
+    values:
+      receipt_temp_C: 19.4
+      hold_hours: 41
+      bottle_headspace: "half full"
+      odor: "slightly sour"
+    observations:
+      - "Receipt temperature is 19.4 C, far above 6 C."
+      - "Hold time is still inside 48 h, so a 'hold-time OK' checkbox was ticked."
+
+  cooler_log:
+    description: "Field cooler temperature blank (withheld)"
+    data_type: "timeseries"
+    values: [1.8, 3.4, 8.9, 14.2, 18.6, 20.1]
+    units: "C at 6-hour marks"
+    observations:
+      - "Ice was gone by hour 12; the bottle sat near 20 C overnight."
+    note: "The temperature-blank logger printout never reached the case file."
+
+contextual_clues:
+  - "A missed courier left the cooler in a sun-facing dock for a night."
+  - "Unfiltered samples at 20 C lose nitrate to biological uptake within hours."
+  - "The in-situ sensor passed a weekly KNO3 check."
+  - "Someone suggested a new industrial discharge stripped the river."
+
+hidden_fields:
+  - "telemetry.cooler_log"
+  - "contextual_clues"
+
+ground_truth:
+  root_cause: >
+    The sample was not kept at <=6 C. After a missed courier the ice melted
+    and biological activity consumed nitrate in the bottle, so the lab result
+    is real chemistry on a spoiled sample, not a river crash. The withheld
+    cooler logger and dock-sun history are the missing protocol record.
+  root_cause_category: "protocol_human_loophole"
+  causal_chain:
+    - "SOP requires iced hold at <=6 C"
+    - "The courier miss left the cooler on a warm dock"
+    - "Ice melted; receipt temperature was 19.4 C"
+    - "Microbes in the unfiltered composite consumed nitrate"
+    - "The lab measured 0.18 mg-N/L on a spoiled bottle"
+    - "The in-situ sensor and a later iced resample both read ~1.4 mg-N/L"
+  intervention: >
+    Resample with a temperature blank, ice to the shoulder, and a tracked
+    courier. Split one bottle: iced versus 20 C bench hold for 24 h. If only
+    the warm split crashes while the iced split matches the sensor, the hold-
+    temperature diagnosis is confirmed.
+  key_evidence:
+    - "Receipt temperature 19.4 C"
+    - "Sensor and iced resample agree"
+    - "Lab LCS is accurate"
+    - "Withheld cooler log shows ice gone by hour 12"
+  alternative_diagnoses:
+    - "The river truly lost nitrate overnight"
+    - "The colorimeter calibration failed"
+    - "The in-situ sensor is fouled high"
+    - "Wrong preservative acid"
+  why_alternatives_fail:
+    "The river truly lost nitrate overnight": "The later iced resample and the sensor still read 1.4 mg-N/L."
+    "The colorimeter calibration failed": "LCS recovery is 101%."
+    "The in-situ sensor is fouled high": "Weekly KNO3 check passed and the iced resample matches."
+    "Wrong preservative acid": "This SOP is unacidified, refrigerated nitrate; the failure mode is temperature, not acid."
+  difficulty_justification: >
+    Incomplete: clues and the cooler logger are withheld. The solver must
+    treat a 19.4 C receipt as a broken hold-temperature protocol and ask for
+    the missing ice record rather than invent a river event.
+
+scoring:
+  weights:
+    root_cause: 0.30
+    causal_chain: 0.40
+    intervention: 0.30
+  root_cause_keywords:
+    - "hold"
+    - "ice"
+    - "temperature"
+    - "cooler"
+    - "nitrate"
+    - "courier"
+  partial_credit_causes:
+    "sample spoilage": 0.75
+    "warm hold": 0.85
+    "real river crash": 0.2
+  evidence_keywords:
+    - "19.4"
+    - "sensor"
+    - "resample"
+
+available_tools:
+  - "statistical_analyzer"
+  - "calibration_checker"
+max_tool_calls: 12
+
+source: >
+  Synthetic composite inspired by USGS / EPA nutrient hold-time and cooler-
+  temperature QA patterns. No proprietary chain-of-custody form copied.
+source_url: "https://www.epa.gov/cwa-methods"
+expert_validated: false
+tags:
+  - "environmental"
+  - "hold_time"
+  - "nitrate"
+  - "incomplete"
+author: "EpiDebug Team"

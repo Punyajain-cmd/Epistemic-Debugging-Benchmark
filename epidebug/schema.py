@@ -658,6 +658,7 @@ class ExperimentArtifact(BaseModel):
     filename: str
     kind: ArtifactKind = ArtifactKind.OTHER
     role: ArtifactRole = ArtifactRole.OTHER
+    suggested_role: Optional[ArtifactRole] = None
     mime_type: str = "application/octet-stream"
     size_bytes: int = 0
     caption: str = ""
