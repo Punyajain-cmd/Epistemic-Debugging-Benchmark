@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import uuid
 from datetime import datetime, timezone
+from pathlib import Path
 from typing import Any, Optional
 
 from pydantic import BaseModel, Field
@@ -14,7 +15,7 @@ from epidebug.schema import Diagnosis, ExperimentInput, TestCase
 class FollowUpRecord(BaseModel):
     intervention: str
     outcome: str
-    timestamp: str
+    timestamp: str = ""
 
 
 class DiagnosisSession(BaseModel):
@@ -31,10 +32,14 @@ class DiagnosisSession(BaseModel):
 
 
 class SessionStore:
-    """In-memory session store for the prototype."""
+    """Session store. Optionally persists JSON under ``persist_dir``."""
 
-    def __init__(self) -> None:
+    def __init__(self, persist_dir: Path | str | None = None) -> None:
         self._sessions: dict[str, DiagnosisSession] = {}
+        self.persist_dir = Path(persist_dir) if persist_dir else None
+        if self.persist_dir:
+            self.persist_dir.mkdir(parents=True, exist_ok=True)
+            self._load()
 
     def create(
         self,
@@ -48,8 +53,7 @@ class SessionStore:
             title=case.title if case else (experiment.title if experiment else "Untitled session"),
             experiment=experiment,
         )
-        self._sessions[session.session_id] = session
-        return session
+        return self.save(session)
 
     def get(self, session_id: str) -> DiagnosisSession:
         if session_id not in self._sessions:
@@ -61,4 +65,20 @@ class SessionStore:
 
     def save(self, session: DiagnosisSession) -> DiagnosisSession:
         self._sessions[session.session_id] = session
+        if self.persist_dir is not None:
+            path = self.persist_dir / f"{session.session_id}.json"
+            tmp = path.with_suffix(".json.tmp")
+            tmp.write_text(session.model_dump_json(), encoding="utf-8")
+            tmp.replace(path)
         return session
+
+    def _load(self) -> None:
+        assert self.persist_dir is not None
+        for path in self.persist_dir.glob("*.json"):
+            try:
+                session = DiagnosisSession.model_validate_json(
+                    path.read_text(encoding="utf-8")
+                )
+            except (OSError, ValueError):
+                continue
+            self._sessions[session.session_id] = session
