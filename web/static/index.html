@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Serif:ital,wght@0,500;0,600;1,500&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="/assets/styles.css?v=6" />
+  <link rel="stylesheet" href="/assets/styles.css?v=7" />
 </head>
 <body>
   <a class="skip" href="#workspace">Skip to diagnosis</a>
@@ -40,8 +40,17 @@
           <h2>Your experiment</h2>
           <button id="sampleFill" type="button" class="ghost compact">Sample fill</button>
         </div>
-        <p class="hint">Notes, photos, CAD, sensor files, logs, datasheets — whatever was produced while the work ran.</p>
+        <p class="hint">Dump the full record — materials, process, CAD, sensors, logs, photos, datasheets — then diagnose. Missing types stay optional but are listed so you can see the holes.</p>
       </header>
+
+      <aside class="panel coverage" aria-label="Dump checklist">
+        <div class="coverage-head">
+          <h3>Dump checklist</h3>
+          <span class="file-count" id="coverageScore">0 / 10</span>
+        </div>
+        <ul id="coverageList" class="coverage-list"></ul>
+        <p class="hint" id="coverageHint">Fill what you have. A complete dump lets competing hypotheses fight the evidence instead of the gaps.</p>
+      </aside>
 
       <div class="panel panel-essential">
         <h3>What happened</h3>
@@ -74,43 +83,98 @@
         </div>
       </div>
 
-      <details class="panel disclose">
+      <details class="panel disclose" open>
         <summary>
           <span>
-            <strong>Materials, process &amp; setup</strong>
-            <em>Optional — sharpens the causal ranking</em>
+            <strong>Materials</strong>
+            <em>Alloy, chemistry, lots, CoA / SDS</em>
           </span>
         </summary>
         <label for="materials">Materials in play
-          <textarea id="materials" rows="2" placeholder="One item per line. Alloy, lot, resin, cell chemistry, fasteners, coolant…"></textarea>
+          <textarea id="materials" rows="3" placeholder="One item per line. Alloy, lot, resin, cell chemistry, fasteners, coolant…"></textarea>
         </label>
-        <label for="processing">How it was processed / protocol
+        <button type="button" class="ghost compact attach-btn" data-attach="material_doc">Attach CoA / SDS / BOM</button>
+      </details>
+
+      <details class="panel disclose" open>
+        <summary>
+          <span>
+            <strong>Process / protocol</strong>
+            <em>Feeds, charge recipe, SOP, G-code</em>
+          </span>
+        </summary>
+        <label for="processing">How it was processed
           <textarea id="processing" rows="3" placeholder="Feeds and speeds, cure cycle, charge protocol, pipette steps, torque sequence…"></textarea>
         </label>
+        <label for="protocol">Protocol / traveler (if different)
+          <textarea id="protocol" rows="2" placeholder="Step list, traveler, SOP notes. Leave blank if the process field is enough."></textarea>
+        </label>
+        <button type="button" class="ghost compact attach-btn" data-attach="process_doc">Attach traveler / G-code / SOP</button>
+      </details>
+
+      <details class="panel disclose" open>
+        <summary>
+          <span>
+            <strong>Setup &amp; CAD</strong>
+            <em>Fixture, revision, environment</em>
+          </span>
+        </summary>
         <label for="setup">Setup — rig, CAD intent, environment
           <textarea id="setup" rows="3" placeholder="Describe the physical setup, fixture, sensors, CAD revision, room conditions."></textarea>
         </label>
+        <div class="attach-row">
+          <button type="button" class="ghost compact attach-btn" data-attach="cad">Attach STEP / STL / DXF</button>
+          <button type="button" class="ghost compact attach-btn" data-attach="datasheet">Attach drawing / datasheet</button>
+        </div>
       </details>
 
-      <details class="panel disclose">
+      <details class="panel disclose" open>
         <summary>
           <span>
-            <strong>Telemetry &amp; background</strong>
-            <em>Numbers, logs, and contextual clues</em>
+            <strong>Sensors</strong>
+            <em>CSV / JSON tables or typed readings</em>
           </span>
         </summary>
-        <label for="telemetry">Sensor readings or observations you can type
-          <textarea id="telemetry" rows="3" placeholder="Paste numbers, error messages, or what you saw. Files below are better for long logs."></textarea>
+        <label for="telemetry">Readings you can type
+          <textarea id="telemetry" rows="3" placeholder="Bore 11.82 mm vs 12.00. Cell can 78 °C. Paste short numbers here; attach files for long tables."></textarea>
         </label>
+        <button type="button" class="ghost compact attach-btn" data-attach="sensor">Attach CSV / JSON</button>
+      </details>
+
+      <details class="panel disclose" open>
+        <summary>
+          <span>
+            <strong>Logs</strong>
+            <em>CNC, charger, robot, serial, console</em>
+          </span>
+        </summary>
+        <label for="logs">Console or alarm lines
+          <textarea id="logs" rows="3" placeholder="ERROR overheat pack_main; ALM-401 spindle load…"></textarea>
+        </label>
+        <button type="button" class="ghost compact attach-btn" data-attach="log">Attach machine / console log</button>
+      </details>
+
+      <details class="panel disclose" open>
+        <summary>
+          <span>
+            <strong>Background</strong>
+            <em>Operator, humidity, reused tool, leftover bottle</em>
+          </span>
+        </summary>
         <label for="context">Anything else in the background
-          <textarea id="context" rows="2" placeholder="New operator, humidity, reused tool, leftover electrolyte bottle…"></textarea>
+          <textarea id="context" rows="2" placeholder="New night-shift operator, electrolyte bottle left uncapped…"></textarea>
         </label>
       </details>
 
       <div class="panel panel-files">
         <div class="panel-files-head">
-          <h3>Evidence files</h3>
+          <h3>Photos &amp; all files</h3>
           <span class="file-count" id="fileCount">No files yet</span>
+        </div>
+        <p class="hint">Roles are guessed from the name, then you can correct them. Section buttons above pre-assign a role.</p>
+        <div class="attach-row wrap">
+          <button type="button" class="ghost compact attach-btn" data-attach="setup_photo">Setup photo</button>
+          <button type="button" class="ghost compact attach-btn" data-attach="result_image">Failure / result photo</button>
         </div>
         <div id="dropzone" class="dropzone" tabindex="0" role="button" aria-label="Drop files or browse">
           <span class="drop-icon" aria-hidden="true">
@@ -119,12 +183,21 @@
               <path d="M20 16v12M15 20l5-4 5 4" fill="none" />
             </svg>
           </span>
-          <strong>Drop files here</strong>
+          <strong>Drop anything here</strong>
           <span>or <label class="filepick">browse<input id="fileInput" type="file" multiple /></label></span>
-          <small>Photos, CAD (STEP/STL/DXF), CSV/JSON sensors, logs, PDFs, notebooks. 25 MB each.</small>
+          <small>Photos, CAD (STEP/STL/DXF/IGES), CSV/JSON, logs, PDFs, notebooks. 25 MB each.</small>
         </div>
         <div id="fileList" class="file-list"></div>
       </div>
+
+      <input id="attach-material_doc" class="role-file" data-role="material_doc" type="file" multiple hidden accept=".pdf,.md,.txt,.yaml,.yml,.csv,.bom,.docx" />
+      <input id="attach-process_doc" class="role-file" data-role="process_doc" type="file" multiple hidden accept=".pdf,.md,.txt,.nc,.gcode,.tap,.cnc,.ngc,.yaml,.yml,.docx" />
+      <input id="attach-cad" class="role-file" data-role="cad" type="file" multiple hidden accept=".step,.stp,.stl,.iges,.igs,.dxf,.obj,.3mf,.ply" />
+      <input id="attach-sensor" class="role-file" data-role="sensor" type="file" multiple hidden accept=".csv,.tsv,.json,.txt,.dat" />
+      <input id="attach-log" class="role-file" data-role="log" type="file" multiple hidden accept=".log,.txt,.out,.err,.serial,.nmea,.ulog,.asc" />
+      <input id="attach-datasheet" class="role-file" data-role="datasheet" type="file" multiple hidden accept=".pdf,.md,.txt,.html" />
+      <input id="attach-setup_photo" class="role-file" data-role="setup_photo" type="file" multiple hidden accept="image/*" />
+      <input id="attach-result_image" class="role-file" data-role="result_image" type="file" multiple hidden accept="image/*" />
 
       <div class="actions" id="actionsDock">
         <button id="diagnoseBtn" class="primary" type="button">
@@ -221,8 +294,13 @@
         </div>
 
         <article class="ingest-card">
-          <h3>What was ingested</h3>
-          <div id="ingested" class="chips"></div>
+          <div class="section-head">
+            <h3>What was ingested</h3>
+            <p class="muted" id="ingestMeta">File summaries and dump coverage from this session.</p>
+          </div>
+          <ul id="ingestCoverage" class="coverage-list compact"></ul>
+          <div id="gallery" class="gallery"></div>
+          <div id="ingested" class="chips" hidden></div>
         </article>
 
         <div class="grid">
@@ -291,6 +369,7 @@
               <label class="file-attach" for="moreFiles">Attach more files
                 <input id="moreFiles" type="file" multiple />
               </label>
+              <div id="moreFileList" class="file-list"></div>
               <button type="button" id="moreFilesBtn" class="ghost">Add to this diagnosis</button>
             </div>
             <div class="hitl-pane" data-hitl-pane="follow">
@@ -308,6 +387,6 @@
       </div>
     </section>
   </main>
-  <script src="/assets/app.js?v=6"></script>
+  <script src="/assets/app.js?v=7"></script>
 </body>
 </html>

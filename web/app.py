@@ -27,7 +27,7 @@ if str(ROOT) not in sys.path:
 
 from epidebug.engine import EpistemicDebuggingEngine
 from epidebug.engine.ingest import ingest_bytes
-from epidebug.engine.present import session_payload
+from epidebug.engine.present import EVIDENCE_SLOTS, VIEW_CONTRACT, session_payload
 from epidebug.engine.session import SessionStore
 from epidebug.schema import ExperimentArtifact, ExperimentInput, TestCase
 from epidebug.tools import TOOL_REGISTRY, invoke_tool, list_tools
@@ -171,7 +171,7 @@ def create_app(
     app = FastAPI(
         title="EpiDebug",
         description="Dump the experiment. Diagnose competing causes.",
-        version="0.4.0",
+        version="0.5.0",
     )
     app.add_middleware(
         CORSMiddleware,
@@ -195,7 +195,13 @@ def create_app(
         if len(data) > MAX_FILE_BYTES:
             raise HTTPException(413, f"{upload.filename} exceeds 25 MB")
         filename = upload.filename or "untitled.bin"
-        artifact = ingest_bytes(filename, data, role=role, caption=caption)
+        artifact = ingest_bytes(
+            filename,
+            data,
+            role=role,
+            caption=caption,
+            content_type=getattr(upload, "content_type", None),
+        )
         dest = upload_dir / artifact.id
         dest.mkdir(parents=True, exist_ok=True)
         path = dest / filename
@@ -220,13 +226,22 @@ def create_app(
             "llm_available": engine.llm.available,
             "engine_mode": "llm" if engine.llm.available else "heuristic",
             "accepts": ACCEPTS,
-            "contract_version": "0.4",
+            "contract_version": VIEW_CONTRACT,
+            "evidence_slots": EVIDENCE_SLOTS,
+            "max_file_bytes": MAX_FILE_BYTES,
             "session_payload": [
                 "session_id",
                 "diagnosis",
                 "experiment",
                 "history",
                 "view",
+            ],
+            "view_fields": [
+                "artifacts",
+                "gallery",
+                "ingest",
+                "hypotheses",
+                "lead",
             ],
             "hitl": [
                 "POST /api/sessions/{id}/reject",
@@ -286,6 +301,7 @@ def create_app(
         processing: str = Form(""),
         protocol: str = Form(""),
         telemetry: str = Form(""),
+        logs: str = Form(""),
         context: str = Form(""),
         roles: str = Form("[]"),
         captions: str = Form("[]"),
@@ -314,7 +330,7 @@ def create_app(
             materials=_split_lines(materials),
             processing=_split_lines(processing),
             protocol=_split_lines(protocol) or _split_lines(processing),
-            telemetry_notes=_split_lines(telemetry),
+            telemetry_notes=_split_lines(telemetry) + _split_lines(logs),
             contextual_clues=_split_lines(context),
             artifacts=artifacts,
         )
