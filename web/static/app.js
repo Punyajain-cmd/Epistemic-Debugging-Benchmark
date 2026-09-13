@@ -129,7 +129,7 @@ function renderSession(data) {
   $("leadTitle").textContent = data.title || "Diagnosis";
   $("leadCause").textContent = d.leading_cause || "No leading cause yet — competing hypotheses are listed below.";
   const conf = u.confidence;
-  $("confidenceValue").textContent = conf == null ? "—" : conf.toFixed(2);
+  $("confidenceValue").textContent = conf == null ? "—" : `${Math.round(conf * 100)}%`;
   $("uncertaintyNote").textContent = u.note || "";
   $("entropyValue").textContent = u.entropy == null ? "—" : Number(u.entropy).toFixed(2);
   const activeCount = (d.hypotheses || []).filter((h) => h.status === "active").length;

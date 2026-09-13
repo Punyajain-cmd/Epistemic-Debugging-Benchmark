@@ -29,6 +29,7 @@
 }
 
 * { box-sizing: border-box; }
+[hidden] { display: none !important; }
 
 html, body {
   margin: 0;
@@ -551,7 +552,7 @@ label {
   display: grid;
   place-items: center;
   font-family: var(--mono);
-  font-size: 1.15rem;
+  font-size: 1.05rem;
   color: var(--accent);
 }
 
