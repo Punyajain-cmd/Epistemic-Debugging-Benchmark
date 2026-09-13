@@ -42,6 +42,17 @@ and plausible alternatives.
   idempotency incident families for software/cloud cases.
 - CALCE / NASA battery aging tables for formation-rest, anode-moisture,
   calendar-versus-cycle, and BMS shunt-temperature cases.
+- NASA C-MAPSS jet-engine simulated data
+  (https://data.nasa.gov/dataset/cmapss-jet-engine-simulated-data) for
+  sensor-bias versus true-degradation aerospace cases.
+- MetroPT-3 compressor dataset
+  (https://archive.ics.uci.edu/dataset/791/metropt+3+dataset) for analog
+  pressure / load-unload leak-detector artifacts.
+- SCANIA Component X PdM (https://doi.org/10.5878/jvb5-d390,
+  https://www.nature.com/articles/s41597-025-04802-6) for oil-chemistry
+  versus mechanical-wear manufacturing cases.
+- Kubernetes RCA labs (https://github.com/coroot/rca-lab), Chaos Mesh, and
+  taskflow-incident-lab for software/cloud metric and retry patterns.
 
 ## Curation Rules
 
@@ -79,8 +90,26 @@ and plausible alternatives.
 
 ## 2026-09 domain-expansion batch
 
-A first synthetic batch toward those targets is now in-tree (28 new cases).
-Remaining gaps worth a later pass: clinical/biotech sample-handling volume,
-more manufacturing SPC/overstrain modes, and additional civil NDE composites.
-Each new case records a public pattern-family URL in `source_url` and remains
-`expert_validated: false` until domain review.
+A first synthetic batch toward those targets is now in-tree (30 new cases).
+Remaining gaps worth a later pass: clinical/biotech sample-handling volume
+and additional civil NDE composites. Each new case records a public
+pattern-family URL in `source_url` and remains `expert_validated: false`
+until domain review.
+
+### Case-to-source-lane map (new IDs)
+
+| Lane | Cases that cite it |
+|------|--------------------|
+| UCI AI4I 2020 | RF-016, PL-011 (plus existing RF-009, RF-011) |
+| MetroPT-3 compressor | IN-024 |
+| SCANIA Component X PdM | RF-023 |
+| NASA PCoE / C-MAPSS | RF-021, IN-019, PL-012, FH-016 (plus existing IN-012, IN-016, RF-012) |
+| NASA lessons learned | RF-018, PL-013, FH-017 |
+| EuRoC MAV / Kalibr | RF-017, IN-018, FH-015 |
+| OpenStack fault injection + K8s RCA labs / Prometheus | IN-020, IN-021, PL-014, FH-018 (plus existing IN-009) |
+| NASA MDP / PROMISE (evaluation misfame) | FH-018 |
+| USGS / EPA CWA methods | RF-022, PL-016 |
+| SDNET-style civil field campaigns | RF-019, IN-022, FH-019 (plus existing FH-009, PL-007) |
+| ASM failure-analysis patterns | RF-020, PL-015, FH-020 |
+| NIST dimensional metrology | IN-017 |
+| NIST PML instrumentation / RF | IN-023, PL-017, FH-021 |

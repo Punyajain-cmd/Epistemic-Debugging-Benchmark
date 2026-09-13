@@ -1,0 +1,146 @@
+id: "IN-024"
+title: "False Air-Leak Alarm from a Drifting Analog Pressure Transmitter"
+version: "1.0"
+
+domain: "manufacturing"
+subdomain: "compressed_air"
+failure_category: "instrumentation_artifact"
+difficulty: "medium"
+information_regime: "complete"
+split: "held_out"
+
+objective: >
+  Detect real reservoir leaks on a MetroPT-style oil-injected screw compressor
+  skid. A 0.4 bar/min unload decay should flag a leak; the monitor should not
+  page on a healthy receiver.
+
+protocol:
+  - step: 1
+    action: "Log analog reservoir pressure at 1 Hz during load/unload cycles"
+    details: "The 4-20 mA transmitter was reused from a previous skid; last zero was 14 months ago."
+    notes: "A second, calibrated digital gauge was added only after three night pages."
+
+  - step: 2
+    action: "Run the leak detector on unload decay"
+    details: "Detector uses a linear fit to the analog channel while the compressor is unloaded."
+    notes: "Pages occurred on nights when receiver temperature swung 12 C after shutdown."
+
+  - step: 3
+    action: "Soap-test fittings and compare analog versus digital gauges"
+    details: "No bubbles. Digital gauge decay is 0.04 bar/min; analog channel shows 0.46 bar/min."
+
+telemetry:
+  unload_decay:
+    description: "Unload-segment apparent leak rate"
+    data_type: "table"
+    values:
+      night: [1, 2, 3]
+      analog_bar_per_min: [0.41, 0.46, 0.44]
+      digital_bar_per_min: [0.03, 0.04, 0.05]
+      receiver_dT_C: [11.2, 12.8, 10.6]
+    observations:
+      - "Analog-derived leak rate exceeds the 0.4 bar/min page threshold."
+      - "The calibrated digital gauge stays an order of magnitude lower."
+
+  transmitter:
+    description: "4-20 mA transmitter check against a deadweight tester"
+    data_type: "table"
+    values:
+      applied_bar: [0.0, 6.0, 12.0]
+      analog_bar: [0.18, 6.31, 12.47]
+      digital_bar: [0.01, 6.00, 12.01]
+    observations:
+      - "The analog transmitter has a +0.18 to +0.47 bar offset that grows with temperature."
+      - "Zero has not been performed in 14 months."
+
+  soap_and_current:
+    description: "Physical leak and motor current"
+    data_type: "text"
+    observations:
+      - "Soap test of fittings, drain, and safety valve is dry."
+      - "Motor current and oil temperature traces match a tight system."
+      - "MetroPT-3-style current/pressure residual is normal once the digital gauge is used."
+
+contextual_clues:
+  - "MetroPT-3 public compressor logs pair analog pressure with motor current; a biased pressure channel creates false leak labels."
+  - "The receiver is outdoors; nights were 12 C colder than the afternoon zero implicit in the last calibration."
+  - "No air-use valves were opened overnight."
+  - "Operations first ordered a full hose replacement."
+
+ground_truth:
+  root_cause: >
+    The analog reservoir transmitter is biased and temperature-sensitive, so
+    unload decay computed from that channel looks like a 0.4 bar/min leak.
+    A calibrated digital gauge, soap tests, and motor-current residuals show
+    the receiver is tight.
+  root_cause_category: "instrumentation_artifact"
+  causal_chain:
+    - "A 14-month-old 4-20 mA transmitter was reused without a zero"
+    - "Nighttime receiver temperature dropped about 12 C"
+    - "The analog channel developed a growing offset"
+    - "The leak detector's linear fit on that channel exceeded 0.4 bar/min"
+    - "The skid paged three nights in a row"
+    - "A digital gauge and soap test show no real leak"
+  intervention: >
+    Zero or replace the analog transmitter, log analog and digital gauges in
+    parallel for one unload night, and only then touch fittings. If analog
+    decay collapses to the digital 0.04 bar/min, the sensor diagnosis is
+    confirmed.
+  key_evidence:
+    - "Analog versus digital decay disagree by 10x"
+    - "Deadweight test shows analog offset"
+    - "Soap test dry"
+    - "Motor current residuals in-family"
+  alternative_diagnoses:
+    - "A real receiver leak"
+    - "Drain trap stuck open"
+    - "Unload solenoid leaking internally"
+    - "Software used the wrong time base"
+  why_alternatives_fail:
+    "A real receiver leak": "Soap test is dry and the digital gauge decay is 0.04 bar/min."
+    "Drain trap stuck open": "Would empty the receiver on both gauges."
+    "Unload solenoid leaking internally": "Would show in current/pressure residuals and on the digital gauge."
+    "Software used the wrong time base": "Both channels are sampled at 1 Hz; only analog amplitude is wrong."
+  difficulty_justification: >
+    Medium: a leak page is vivid, but a two-gauge comparison isolates the
+    analog transmitter.
+
+scoring:
+  weights:
+    root_cause: 0.30
+    causal_chain: 0.40
+    intervention: 0.30
+  root_cause_keywords:
+    - "transmitter"
+    - "analog"
+    - "pressure"
+    - "offset"
+    - "calibration"
+    - "sensor"
+  partial_credit_causes:
+    "sensor drift": 0.85
+    "bad leak metric": 0.7
+    "real leak": 0.2
+  evidence_keywords:
+    - "digital"
+    - "soap"
+    - "deadweight"
+
+available_tools:
+  - "calibration_checker"
+  - "machine_failure_analyzer"
+  - "statistical_analyzer"
+max_tool_calls: 12
+
+source: >
+  Synthetic composite inspired by the MetroPT-3 metro compressor public
+  dataset (analog pressure, motor current, load/unload cycles) and common
+  4-20 mA transmitter drift. No dataset rows copied.
+source_url: "https://archive.ics.uci.edu/dataset/791/metropt+3+dataset"
+expert_validated: false
+tags:
+  - "manufacturing"
+  - "compressor"
+  - "pressure_sensor"
+  - "metropt3"
+author: "EpiDebug Team"

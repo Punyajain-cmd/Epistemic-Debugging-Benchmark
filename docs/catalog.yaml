@@ -221,6 +221,72 @@ sources:
       Combine with the OpenStack fault-injection dataset lane for timeout/retry
       composites. Do not copy vendor postmortems.
 
+  - id: "nasa_cmapss"
+    name: "NASA C-MAPSS Jet Engine Simulated Data"
+    domain: "aerospace"
+    url: "https://data.nasa.gov/dataset/cmapss-jet-engine-simulated-data"
+    license: "NASA public dataset; verify per snapshot"
+    source_type: "run_to_failure_and_degradation"
+    scale: "Simulated turbofan sensor time series with labeled degradation"
+    useful_for:
+      - "sensor bias versus true degradation"
+      - "health-index disagreements"
+      - "incomplete reference-probe records"
+    curation_status: "safe_to_reference_with_attribution"
+    notes: >
+      Sister lane to NASA PCoE. Existing IN-012 / IN-016 already use this
+      pattern family. Do not copy raw run files into YAML.
+
+  - id: "metropt3"
+    name: "MetroPT-3 Compressor Dataset"
+    domain: "manufacturing"
+    url: "https://archive.ics.uci.edu/dataset/791/metropt+3+dataset"
+    license: "See UCI dataset page; public research dataset"
+    source_type: "compressor_telemetry"
+    scale: "Oil-injected screw compressor analog pressure, motor current, and load/unload cycles"
+    useful_for:
+      - "false air-leak alarms"
+      - "analog transmitter drift"
+      - "load/unload residual analysis"
+    curation_status: "use_as_source_pattern"
+    notes: >
+      Summarize analog-versus-digital pressure disagreements. Do not copy
+      dataset rows.
+
+  - id: "scania_component_x"
+    name: "SCANIA Component X Predictive Maintenance Dataset"
+    domain: "manufacturing"
+    url: "https://doi.org/10.5878/jvb5-d390"
+    license: "See SND / Scientific Data article; verify before redistribution"
+    source_type: "predictive_maintenance"
+    scale: "Heavy-vehicle air-system / component-X endurance with oil and wear labels"
+    useful_for:
+      - "oil chemistry versus mechanical wear"
+      - "air-drier cartridge poisoning"
+      - "silicone / contaminant separation"
+    curation_status: "use_as_source_pattern"
+    notes: >
+      Paper: https://www.nature.com/articles/s41597-025-04802-6. Use the
+      oil-versus-wear pattern only; do not copy tables.
+
+  - id: "k8s_rca_labs"
+    name: "Kubernetes RCA / Chaos-Mesh Incident Labs"
+    domain: "software_systems"
+    url: "https://github.com/coroot/rca-lab"
+    license: "Varies by repo; treat as pattern inspiration"
+    source_type: "fault_injection_labs"
+    scale: "Community RCA labs, Chaos Mesh experiments, and taskflow incident sandboxes"
+    useful_for:
+      - "HPA / sidecar metric mistakes"
+      - "Prometheus scrape and counter-reset artifacts"
+      - "retry/timeout idempotency loopholes"
+      - "DNS-TTL connection storms"
+    curation_status: "use_as_source_pattern"
+    notes: >
+      Sister lane to OpenStack fault injection and Prometheus practice.
+      Also see Chaos Mesh and taskflow-incident-lab. Do not copy lab
+      scenario text.
+
   - id: "calce_nasa_battery_aging"
     name: "CALCE / NASA Battery Aging and Formation Pattern Family"
     domain: "energy"
