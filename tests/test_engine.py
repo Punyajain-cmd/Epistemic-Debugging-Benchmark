@@ -116,6 +116,60 @@ def test_engine_scores_as_model(all_cases):
     assert score.epistemic.evidence_grounding is not None
 
 
+@pytest.mark.parametrize(
+    "case_id,category,keywords",
+    [
+        (
+            "IN-023",
+            "instrumentation_artifact",
+            ("saturat", "photodiode", "clip", "rail", "detector", "tia"),
+        ),
+        (
+            "FH-021",
+            "flawed_hypothesis",
+            ("near field", "friis", "inverse", "far field", "gain", "2d"),
+        ),
+        (
+            "PL-017",
+            "protocol_human_loophole",
+            ("phase", "lock-in", "lock in", "quadrature", "auto-phase"),
+        ),
+        (
+            "RF-023",
+            "reagent_material_flaw",
+            ("silicon", "oil", "desiccant", "contaminat", "dew"),
+        ),
+        (
+            "IN-020",
+            "instrumentation_artifact",
+            ("prometheus", "counter", "reset", "scrape", "grafana"),
+        ),
+    ],
+)
+def test_heuristic_covers_new_domain_cases(all_cases, case_id, category, keywords):
+    case = next(c for c in all_cases if c.id == case_id)
+    engine = EpistemicDebuggingEngine(prefer_llm=False)
+    diagnosis = engine.diagnose_case(case)
+    top = diagnosis.hypotheses[:3]
+    assert top, f"{case_id} produced no hypotheses"
+    blob = " ".join(
+        " ".join(
+            [
+                h.statement,
+                h.category or "",
+                " ".join(h.causal_chain),
+            ]
+        )
+        for h in top
+    ).lower()
+    category_hit = any(h.category == category for h in top)
+    keyword_hit = any(token in blob for token in keywords)
+    assert category_hit or keyword_hit, (
+        f"{case_id} top hypotheses missed category {category} and keywords {keywords}: "
+        + " | ".join(f"{h.id}:{h.category}" for h in top)
+    )
+
+
 def test_tools_registry():
     from epidebug.tools import TOOL_REGISTRY, get_tool, list_tools
 

@@ -10,6 +10,8 @@ FAILURE_WORDS = (
     "fail", "faint", "unexpected", "low yield", "no band", "error", "drift",
     "leak", "skew", "artifact", "false", "below", "poor", "noisy", "bimodal",
     "overheat", "hemolys", "carryover", "alias", "contamination", "did not bind",
+    "saturat", "clip", "rail", "scrape", "counter reset", "dew point", "tramp oil",
+    "shunt", "friis", "lock-in", "desiccant", "near field",
 )
 
 
