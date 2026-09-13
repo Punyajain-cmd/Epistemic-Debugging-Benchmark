@@ -12,6 +12,8 @@ from __future__ import annotations
 
 import math
 import re
+from datetime import datetime, timezone
+from pathlib import Path
 from typing import Iterable
 
 from epidebug.engine.anomalies import anomalies_from_case, anomalies_from_freeform
@@ -113,10 +115,17 @@ def _snippet_hits(blob: str, keywords: list[str], limit: int = 3) -> list[str]:
 class EpistemicDebuggingEngine:
     """Generate competing, evidence-grounded diagnoses of experimental failures."""
 
-    def __init__(self, llm: EngineLLM | None = None, prefer_llm: bool = True):
+    def __init__(
+        self,
+        llm: EngineLLM | None = None,
+        prefer_llm: bool = True,
+        sessions: SessionStore | None = None,
+        cases: dict[str, TestCase] | None = None,
+    ):
         self.llm = llm or EngineLLM()
         self.prefer_llm = prefer_llm
-        self.sessions = SessionStore()
+        self.sessions = sessions or SessionStore()
+        self._cases = cases
 
     def diagnose_case(
         self,
@@ -205,22 +214,46 @@ class EpistemicDebuggingEngine:
 
     def record_followup(self, session_id: str, intervention: str, outcome: str) -> DiagnosisSession:
         session = self.sessions.get(session_id)
-        session.followups.append(FollowUpRecord(intervention=intervention, outcome=outcome, timestamp=""))
+        session.followups.append(
+            FollowUpRecord(
+                intervention=intervention,
+                outcome=outcome,
+                timestamp=datetime.now(timezone.utc).isoformat(),
+            )
+        )
         session.history.append({"event": "followup", "intervention": intervention, "outcome": outcome})
         return self._rediagnose(session)
 
-    def _rediagnose(self, session: DiagnosisSession) -> DiagnosisSession:
-        if session.case_id:
-            from epidebug.schema import TestCase
-            from pathlib import Path
-
+    def _case_by_id(self, case_id: str) -> TestCase:
+        if self._cases is None:
             root = Path(__file__).resolve().parents[2] / "test_cases"
-            case = next((c for c in TestCase.load_all(root) if c.id == session.case_id), None)
-            if case is None:
-                raise KeyError(session.case_id)
+            self._cases = {c.id: c for c in TestCase.load_all(root)}
+        case = self._cases.get(case_id)
+        if case is None:
+            raise KeyError(case_id)
+        return case
+
+    def _extras_from_session(self, session: DiagnosisSession) -> list[str]:
+        extra = list(session.extra_information)
+        if session.experiment is None:
+            return extra
+        # Catalog sessions can grow an experiment sidecar when the researcher
+        # attaches files or notes. Fold that evidence into the re-rank.
+        exp = session.experiment
+        if exp.unexpected_outcome and exp.unexpected_outcome != "Additional evidence attached.":
+            extra.append(f"Unexpected outcome: {exp.unexpected_outcome}")
+        extra.extend(exp.telemetry_notes)
+        extra.extend(exp.contextual_clues)
+        extra.extend(artifact_blob(artifact) for artifact in exp.artifacts)
+        return extra
+
+    def _rediagnose(self, session: DiagnosisSession) -> DiagnosisSession:
+        extra = self._extras_from_session(session)
+        if session.case_id:
+            case = self._case_by_id(session.case_id)
             session.diagnosis = self.diagnose_case(
                 case,
-                extra_information=session.extra_information,
+                extra_information=extra,
                 rejected=session.rejected,
                 followups=session.followups,
             )

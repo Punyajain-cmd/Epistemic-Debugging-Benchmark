@@ -69,6 +69,29 @@ def test_engine_hitl_reject_and_add_info(all_cases):
     assert "Blank reading was 0.08 AU after a dirty pedestal" in session.extra_information
 
 
+def test_catalog_session_uses_attached_artifacts(all_cases, tmp_path):
+    from epidebug.engine.ingest import ingest_bytes
+    from epidebug.engine.session import SessionStore
+
+    case = next(c for c in all_cases if c.id == "RF-001")
+    engine = EpistemicDebuggingEngine(
+        prefer_llm=False,
+        sessions=SessionStore(tmp_path / "sessions"),
+        cases={c.id: c for c in all_cases},
+    )
+    session = engine.open_session(case=case)
+    csv = b"time_s,ph\n0,8.0\n1,6.4\n2,6.2\n"
+    artifact = ingest_bytes("bench_ph.csv", csv, caption="Aged Tris buffer pH probe")
+    session = engine.add_artifacts(session.session_id, [artifact])
+    blob = " ".join(h.statement for h in session.diagnosis.hypotheses).lower()
+    assert session.experiment is not None
+    assert session.experiment.artifacts[0].filename == "bench_ph.csv"
+    assert any(tok in blob for tok in ("ph", "buffer", "probe", "tris"))
+    restored = SessionStore(tmp_path / "sessions").get(session.session_id)
+    assert restored.diagnosis is not None
+    assert restored.experiment.artifacts[0].filename == "bench_ph.csv"
+
+
 def test_engine_freeform_experiment():
     engine = EpistemicDebuggingEngine(prefer_llm=False)
     exp = ExperimentInput(
