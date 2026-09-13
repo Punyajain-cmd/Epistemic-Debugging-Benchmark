@@ -1,0 +1,140 @@
+id: "PL-012"
+title: "Formation Gas and Low CE from Skipping the Mandatory Open-Circuit Rest"
+version: "1.0"
+
+domain: "energy"
+subdomain: "cell_formation"
+failure_category: "protocol_human_loophole"
+difficulty: "medium"
+information_regime: "complete"
+split: "held_out"
+
+objective: >
+  Form 2 Ah graphite/NMC pouch cells with first-cycle CE above 90% and
+  post-formation thickness swell below 6%. A weekend shift ran formation
+  'straight through' to free cycler channels.
+
+protocol:
+  - step: 1
+    action: "Fill and vacuum-seal pouches from the qualified electrolyte lot"
+    details: "Electrolyte KF is 19 ppm; electrodes were dried to 110 ppm water."
+    notes: "Materials match last week's passing lot."
+
+  - step: 2
+    action: "Run C/20 charge to 4.2 V"
+    details: "SOP then requires a 12-hour open-circuit rest at 25 C before C/20 discharge."
+    notes: "The operator set rest = 0 in the cycler recipe to finish before Monday."
+
+  - step: 3
+    action: "Compare gas, CE, and dQ/dV to last week's rested cells"
+    details: "Three unrested cells versus two rested retains from the same build."
+
+telemetry:
+  formation_table:
+    description: "CE, swell, and rest duration"
+    data_type: "table"
+    values:
+      cell: ["wknd_a", "wknd_b", "wknd_c", "retain_a", "retain_b"]
+      rest_h: [0, 0, 0, 12, 12]
+      ce_percent: [84.1, 83.6, 84.8, 91.4, 91.0]
+      swell_percent: [12.7, 13.4, 11.9, 4.8, 5.1]
+    observations:
+      - "Only the zero-rest weekend cells miss CE and swell gates."
+      - "Materials are shared with the rested retains."
+
+  dqdv:
+    description: "First-charge dQ/dV features"
+    data_type: "text"
+    observations:
+      - "Unrested cells show a suppressed graphite staging peak and extra high-voltage current."
+      - "Rested retains show the usual staging set."
+
+  impedance:
+    description: "10 s DCIR after formation"
+    data_type: "table"
+    values:
+      unrested_mohm: [28.4, 29.1, 27.8]
+      rested_mohm: [16.2, 16.6]
+    observations:
+      - "Unrested DCIR is about 70% higher."
+
+contextual_clues:
+  - "The cycler recipe comment still says '12 h OCV rest — do not skip'."
+  - "Channel time is scarce on weekends; this skip has happened once before and was written up."
+  - "Chamber temperature was 25.2 C, not a 45 C abuse condition."
+  - "A rumor blamed a new separator lot, but the retains used the same roll."
+
+ground_truth:
+  root_cause: >
+    The weekend operator deleted the mandatory 12-hour open-circuit rest
+    after the first charge. SEI was not allowed to relax and interphase
+    gases were not given time to dissolve/vent before discharge, so CE
+    fell and pouches swelled. Electrodes and electrolyte are the passing
+    lots.
+  root_cause_category: "protocol_human_loophole"
+  causal_chain:
+    - "SOP requires a 12-hour rest after the first C/20 charge"
+    - "The weekend recipe set rest = 0 to free cycler channels"
+    - "The SEI did not relax and residual reactive species stayed in the pore space"
+    - "Immediate discharge plus extra high-voltage current generated gas"
+    - "CE fell to ~84% and swell exceeded 11%"
+    - "Same-build retains with the 12-hour rest pass"
+  intervention: >
+    Form matched cells from the same build with rest = 0 versus rest = 12 h
+    and nothing else changed. If only the rested set clears 90% CE and 6%
+    swell, the skipped-rest diagnosis is confirmed. Lock the cycler recipe.
+  key_evidence:
+    - "Rest duration is the only protocol difference"
+    - "Retains from the same build pass"
+    - "dQ/dV staging is suppressed only on unrested cells"
+    - "Materials KF and dryness are in spec"
+  alternative_diagnoses:
+    - "Wet electrolyte"
+    - "A bad separator lot"
+    - "Chamber over-temperature"
+    - "Overly aggressive C/20 (too fast)"
+  why_alternatives_fail:
+    "Wet electrolyte": "KF is 19 ppm and rested retains use the same bottle."
+    "A bad separator lot": "The same roll is in the passing retains."
+    "Chamber over-temperature": "25.2 C is the SOP temperature."
+    "Overly aggressive C/20 (too fast)": "C/20 is unchanged from the passing recipe; only rest was removed."
+  difficulty_justification: >
+    Medium: materials look like the usual battery-contamination story, but
+    the retain split isolates a skipped rest.
+
+scoring:
+  weights:
+    root_cause: 0.30
+    causal_chain: 0.40
+    intervention: 0.30
+  root_cause_keywords:
+    - "rest"
+    - "formation"
+    - "OCV"
+    - "skip"
+    - "SEI"
+    - "protocol"
+  partial_credit_causes:
+    "skipped rest": 0.9
+    "rushed formation": 0.7
+    "wet electrolyte": 0.2
+  evidence_keywords:
+    - "12 h"
+    - "retain"
+    - "swell"
+
+available_tools:
+  - "statistical_analyzer"
+max_tool_calls: 10
+
+source: >
+  Synthetic composite inspired by NASA/CALCE formation-protocol patterns and
+  public lithium-ion rest/SEI practice. No proprietary cycler recipe copied.
+source_url: "https://www.nasa.gov/intelligent-systems-division/discovery-and-systems-health/pcoe/pcoe-data-set-repository/"
+expert_validated: false
+tags:
+  - "battery"
+  - "formation"
+  - "rest"
+  - "protocol"
+author: "EpiDebug Team"

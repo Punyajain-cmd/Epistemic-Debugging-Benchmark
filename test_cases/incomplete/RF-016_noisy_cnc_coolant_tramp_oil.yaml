@@ -1,0 +1,195 @@
+id: "RF-016"
+title: "Noisy CNC Finish: Tramp-Oil Coolant Causes Flash Rust and Ra Scatter"
+version: "1.0"
+
+domain: "manufacturing"
+subdomain: "cnc_turning"
+failure_category: "reagent_material_flaw"
+difficulty: "hard"
+information_regime: "noisy"
+split: "development"
+
+objective: >
+  Finish-turn a lot of 4140 steel hydraulic sleeves to 38.10 +/- 0.02 mm OD,
+  Ra 0.8 um max, and no flash rust after a 24-hour shop-floor hold. Early pieces
+  passed; later pieces show rust bloom and a wide Ra scatter that the team first
+  blamed on the new insert grade.
+
+protocol:
+  - step: 1
+    action: "Load certified 4140 bar and a fresh CNMG insert"
+    details: "Hardness 28-30 HRC; insert grade is the newly approved P25 coating."
+    notes: "The same bar heat produced both passing and failing pieces."
+
+  - step: 2
+    action: "Run the validated finish pass with flood coolant"
+    details: "180 m/min, 0.12 mm/rev, 0.20 mm DOC, emulsion target 8%."
+    notes: "Refractometer reads 8.2% Brix-equivalent after the usual 1.8x oil factor."
+
+  - step: 3
+    action: "Measure OD, Ra, and rust after a 24-hour uncovered hold"
+    details: "Ra is taken at three axial stations with a portable profilometer."
+    notes: "Ra repeats on the same part disagree by up to 0.35 um; rust appears as orange bloom near the chuck end."
+
+  - step: 4
+    action: "Skim the coolant sump and inspect the tramp-oil layer"
+    details: "A 6 mm floating oil layer is visible; the sump smells rancid."
+    notes: "A dip-slide culture was taken but the plate-count sheet was not attached to the traveler."
+
+telemetry:
+  dimensional_and_finish:
+    description: "OD and Ra on successive pieces, three Ra repeats each"
+    data_type: "table"
+    values:
+      piece: [4, 8, 12, 16, 20, 24]
+      od_mm: [38.102, 38.098, 38.101, 38.097, 38.104, 38.099]
+      ra_um_a: [0.54, 0.61, 0.88, 1.42, 0.71, 1.67]
+      ra_um_b: [0.58, 0.49, 1.19, 0.92, 1.38, 1.21]
+      ra_um_c: [0.51, 0.72, 0.64, 1.55, 0.83, 1.94]
+    observations:
+      - "OD stays inside tolerance; the reject mode is finish and rust, not size."
+      - "Ra repeats on the same piece scatter widely after piece 12."
+      - "The scatter is larger than the historical 0.08 um repeatability of this profilometer."
+
+  rust_hold:
+    description: "24-hour uncovered shop-floor rust hold"
+    data_type: "table"
+    values:
+      piece: [4, 8, 12, 16, 20, 24]
+      rust_spots: [0, 0, 3, 11, 9, 18]
+    observations:
+      - "Flash rust appears first near the chuck jaw marks."
+      - "Parts wiped with solvent immediately after cut still rust, but more slowly."
+
+  coolant_chemistry:
+    description: "Sump chemistry after the failed lot"
+    data_type: "table"
+    values:
+      refractometer_percent: 8.2
+      target_percent: 8.0
+      tramp_oil_mm: 6.4
+      pH: 7.1
+      expected_pH_min: 8.6
+      conductivity_uS_cm: 4120
+    observations:
+      - "Refractometer concentration looks acceptable, but pH has fallen from the 8.8-9.2 window."
+      - "A thick tramp-oil layer sits on the sump; the mix smells sour."
+    note: "Dip-slide CFU is in telemetry.microbial_count and was not copied onto the shop traveler."
+
+  microbial_count:
+    description: "Dip-slide aerobic count from the sump"
+    data_type: "numeric"
+    values: [7800000]
+    units: "CFU/mL"
+    expected_range:
+      min: 0
+      max: 100000
+    observations:
+      - "Aerobic count is almost two orders of magnitude above the shop limit."
+
+  insert_wear:
+    description: "Insert inspection after the lot"
+    data_type: "text"
+    observations:
+      - "Flank wear is 0.11 mm, below the 0.20 mm change-out limit."
+      - "No built-up edge or cratering that would explain Ra scatter of this magnitude."
+
+contextual_clues:
+  - "The adjacent bandsaw leaks way-lube into a floor trench that drains toward this lathe."
+  - "A new insert grade was approved last week, so the operator's first guess was coating chemistry."
+  - "Shop humidity was 41% and temperature 21 C, inside the usual band."
+  - "The profilometer tip was not recalibrated mid-lot; historical gage R&R is 0.08 um."
+  - "The same 4140 heat produced in-spec rust-free parts on the sister lathe with a freshly dumped sump."
+
+hidden_fields:
+  - "telemetry.microbial_count"
+
+red_herrings:
+  - "A new P25 insert coating was introduced the week of the failure."
+  - "The building compressed-air dryer alarmed once during the shift."
+
+ground_truth:
+  root_cause: >
+    The finish coolant was loaded with tramp way-lube and biologically degraded.
+    The refractometer still read near 8% because floating oil inflates Brix, while
+    true emulsion pH collapsed. Degraded, oil-rich coolant left an uneven, chloride-
+    and acid-bearing film that produced flash rust and a patchy finish. Ra scatter
+    is real process variation plus noisy stylus tracking on stained surfaces, not
+    insert-grade failure.
+  root_cause_category: "reagent_material_flaw"
+  causal_chain:
+    - "Way-lube from the adjacent bandsaw accumulated as tramp oil in the lathe sump"
+    - "Tramp oil and low pH let bacteria bloom and break the emulsion"
+    - "Refractometer still read about 8% because floating oil inflates the optical reading"
+    - "The degraded film left an acidic, uneven residue on the turned surface"
+    - "Flash rust bloomed during the 24-hour hold, especially at chuck marks"
+    - "Patchy residue and rust made Ra repeats noisy and often above 0.8 um"
+    - "Insert wear stayed in-family, so the new grade was a distractor"
+  intervention: >
+    Dump, clean, and recharge the sump with fresh emulsion at verified pH 8.8-9.2
+    and tramp oil below 1 mm. Machine a short confirmation lot from the same 4140
+    heat with the same insert. If rust spots return to zero and Ra repeats collapse
+    below 0.8 um, the coolant diagnosis is confirmed. Add a tramp-oil skimmer and
+    weekly dip-slides.
+  key_evidence:
+    - "OD is in spec while rust and Ra fail"
+    - "pH 7.1 with a 6 mm tramp-oil layer despite an 8.2% refractometer reading"
+    - "Sister lathe with a fresh sump runs the same heat cleanly"
+    - "Insert flank wear is below the change-out limit"
+    - "Ra repeats disagree more than gage R&R, consistent with a patchy surface film"
+  alternative_diagnoses:
+    - "The new P25 insert coating leaves a rough finish"
+    - "The 4140 heat is dirty or out of hardness"
+    - "The profilometer is out of calibration"
+    - "Shop humidity caused flash rust by itself"
+  why_alternatives_fail:
+    "The new P25 insert coating leaves a rough finish": "Flank wear is low, OD is stable, and the sister machine with the same insert grade and a clean sump is fine."
+    "The 4140 heat is dirty or out of hardness": "The same certified heat produced clean parts on the sister lathe."
+    "The profilometer is out of calibration": "Early pieces still read 0.5-0.6 um consistently; later scatter tracks rust, not a sudden gage jump."
+    "Shop humidity caused flash rust by itself": "Humidity was 41% and the sister-lathe parts sat in the same aisle without rust."
+  difficulty_justification: >
+    Hard and noisy: concentration looks fine on a refractometer, Ra data scatter,
+    and the microbial count is withheld. The solver must distrust Brix, connect
+    tramp oil and pH collapse to rust, and not stop at the new insert.
+
+scoring:
+  weights:
+    root_cause: 0.30
+    causal_chain: 0.40
+    intervention: 0.30
+  root_cause_keywords:
+    - "tramp oil"
+    - "coolant"
+    - "emulsion"
+    - "pH"
+    - "bacteria"
+    - "rust"
+  partial_credit_causes:
+    "degraded coolant": 0.8
+    "contaminated cutting fluid": 0.75
+    "insert wear": 0.2
+  evidence_keywords:
+    - "tramp"
+    - "pH"
+    - "refractometer"
+    - "rust"
+
+available_tools:
+  - "machine_failure_analyzer"
+  - "statistical_analyzer"
+  - "material_properties"
+max_tool_calls: 12
+
+source: >
+  Synthetic composite inspired by AI4I-style process telemetry, ISO 230 / shop
+  metrology scatter, and public CNC coolant-maintenance failure patterns. No
+  proprietary traveler text.
+source_url: "https://archive.ics.uci.edu/dataset/601/ai4i"
+expert_validated: false
+tags:
+  - "manufacturing"
+  - "cnc"
+  - "coolant"
+  - "tramp_oil"
+  - "noisy"
+author: "EpiDebug Team"

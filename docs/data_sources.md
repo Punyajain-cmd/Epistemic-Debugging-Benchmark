@@ -29,6 +29,19 @@ and plausible alternatives.
   where a model or engineering workflow failed because assumptions did not hold.
 - Concrete crack image datasets such as SDNET-like collections, used carefully
   to build validation-leakage or field-generalization cases.
+- EuRoC-style visual-inertial flight logs and MEMS Allan-deviation plots, used
+  for robotics time-offset and IMU-model cases.
+- NIST dimensional-metrology and Physical Measurement Laboratory practice notes
+  for CMM thermal/probe errors, lock-in setup, detector saturation, and RF
+  near-field versus Friis mistakes.
+- USGS water-quality monitoring and EPA Clean Water Act method hold-time /
+  blank tables for environmental sampling cases.
+- ASM-style materials failure-analysis pattern families (hydrogen embrittlement,
+  weld interpass, overaging) summarized into original travelers only.
+- Kubernetes HPA, Prometheus `rate()` / counter-reset, and payments
+  idempotency incident families for software/cloud cases.
+- CALCE / NASA battery aging tables for formation-rest, anode-moisture,
+  calendar-versus-cycle, and BMS shunt-temperature cases.
 
 ## Curation Rules
 
@@ -63,3 +76,11 @@ and plausible alternatives.
 - 10 civil/structural cases from inspection, materials, and model-validation failures.
 - 10 clinical/biotech cases focused on sample handling, assay artifacts, and protocol gaps.
 - 10 expert-level cross-domain cases where the obvious explanation is wrong.
+
+## 2026-09 domain-expansion batch
+
+A first synthetic batch toward those targets is now in-tree (28 new cases).
+Remaining gaps worth a later pass: clinical/biotech sample-handling volume,
+more manufacturing SPC/overstrain modes, and additional civil NDE composites.
+Each new case records a public pattern-family URL in `source_url` and remains
+`expert_validated: false` until domain review.

@@ -1,0 +1,143 @@
+id: "FH-015"
+title: "Warehouse Localization Divergence from a White-Noise IMU Model"
+version: "1.0"
+
+domain: "robotics"
+subdomain: "state_estimation"
+failure_category: "flawed_hypothesis"
+difficulty: "hard"
+information_regime: "complete"
+split: "development"
+
+objective: >
+  Keep a differential-drive AMR localized to 5 cm / 1 deg over a 30-minute
+  aisle circuit using wheel odometry plus a cheap IMU, with lidar used only
+  for obstacle avoidance, not for localization.
+
+protocol:
+  - step: 1
+    action: "Tune an EKF that treats gyro and accel noise as white and bias as a random constant"
+    details: "Process model uses datasheet white-noise densities only; bias random walk is set to zero because 'we zero the IMU at startup'."
+    notes: "Startup bias is subtracted, then held fixed."
+
+  - step: 2
+    action: "Drive 30 minutes at 1.1 m/s with occasional 90 deg pivots"
+    details: "Motion-capture ground truth is available in the test aisle."
+    notes: "Heading error grows almost linearly after each long straight."
+
+  - step: 3
+    action: "Log Allan deviation of the same IMU on a granite block"
+    details: "The lab had the Allan plot from incoming inspection but did not use it in the EKF."
+
+telemetry:
+  ate:
+    description: "Localization error versus time"
+    data_type: "table"
+    values:
+      minute: [5, 10, 15, 20, 25, 30]
+      heading_err_deg: [0.9, 2.4, 4.1, 6.0, 8.2, 10.7]
+      cross_track_m: [0.04, 0.11, 0.22, 0.35, 0.51, 0.68]
+    observations:
+      - "Heading error grows roughly linearly, not as a random walk around zero."
+      - "Cross-track error is the kinematic consequence of the heading drift."
+
+  allan:
+    description: "Gyro Allan deviation at 25 C"
+    data_type: "table"
+    values:
+      tau_s: [0.1, 1, 10, 100, 1000]
+      adev_deg_s: [0.012, 0.0038, 0.0019, 0.0028, 0.0061]
+    observations:
+      - "A rising limb after 100 s indicates bias instability / random walk, not white noise only."
+      - "The EKF Q matrix used only the 0.1 s white-noise point."
+
+  residuals:
+    description: "EKF innovation behavior"
+    data_type: "text"
+    observations:
+      - "Gyro innovations are consistent in the first minute and then become biased."
+      - "Zeroing at startup removes the constant but not the subsequent walk."
+      - "A later run that estimated bias random walk kept 30-minute heading error at 1.3 deg."
+
+contextual_clues:
+  - "The IMU datasheet headline '0.01 deg/s/sqrt(Hz)' is the white-noise density only."
+  - "Wheel diameters were remeasured; scale error is 0.2%, too small for 0.68 m cross-track."
+  - "Lidar localization was disabled by design for this experiment."
+  - "The floor is not perfectly level; a 0.4 deg slope exists but is mapped."
+
+ground_truth:
+  root_cause: >
+    The estimator assumed IMU noise was white with a constant bias that could
+    be zeroed at startup. The real gyro has bias instability and random walk
+    visible in the Allan plot, so heading integrated off by 10 deg in 30
+    minutes. The kinematics and wheels are not the primary error.
+  root_cause_category: "flawed_hypothesis"
+  causal_chain:
+    - "The EKF set gyro bias random walk to zero after a startup zero"
+    - "Allan deviation shows a rising limb after 100 s"
+    - "True bias walked during the 30-minute circuit"
+    - "Integrated heading error grew almost linearly to 10.7 deg"
+    - "Cross-track error followed from the heading error"
+    - "Estimating bias random walk on a later run cut heading error to 1.3 deg"
+  intervention: >
+    Rebuild the EKF with bias random-walk process noise from the Allan plot
+    (or a 3-state bias model) and rerun the 30-minute circuit. If heading
+    stays near 1 deg without enabling lidar localization, the white-noise
+    hypothesis is refuted.
+  key_evidence:
+    - "Linear heading growth, not zero-mean scatter"
+    - "Allan rising limb after 100 s"
+    - "Wheel scale error is 0.2%"
+    - "Bias-walk EKF recovers performance"
+  alternative_diagnoses:
+    - "Wheel diameter scale error"
+    - "A sloped floor unmodeled in the map"
+    - "Magnetic distortion of the IMU"
+    - "EKF linearization around 90 deg pivots"
+  why_alternatives_fail:
+    "Wheel diameter scale error": "0.2% scale cannot produce 0.68 m cross-track on this path; heading, not distance, is the growing state."
+    "A sloped floor unmodeled in the map": "The slope is mapped and would not create a 10 deg yaw walk."
+    "Magnetic distortion of the IMU": "This gyro is MEMS rate, not a magnetometer heading; no mag is fused."
+    "EKF linearization around 90 deg pivots": "Error also grows on long straights between pivots."
+  difficulty_justification: >
+    Hard: the datasheet white-noise number looks official, and wheel/floor
+    stories are tempting. The solver must treat the Allan plot as evidence
+    against the process model.
+
+scoring:
+  weights:
+    root_cause: 0.30
+    causal_chain: 0.40
+    intervention: 0.30
+  root_cause_keywords:
+    - "bias"
+    - "Allan"
+    - "white noise"
+    - "random walk"
+    - "IMU"
+    - "heading"
+  partial_credit_causes:
+    "bad IMU model": 0.8
+    "unmodeled bias": 0.85
+    "wheel slip": 0.25
+  evidence_keywords:
+    - "Allan"
+    - "heading"
+    - "100 s"
+
+available_tools:
+  - "statistical_analyzer"
+  - "calibration_checker"
+max_tool_calls: 12
+
+source: >
+  Synthetic composite inspired by EuRoC / public MEMS Allan-deviation and
+  VIO/EKF modeling failures. No proprietary AMR log copied.
+source_url: "https://projects.asl.ethz.ch/datasets/doku.php?id=kmavvisualinertialdatasets"
+expert_validated: false
+tags:
+  - "robotics"
+  - "imu"
+  - "allan_variance"
+  - "ekf"
+author: "EpiDebug Team"

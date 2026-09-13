@@ -1,0 +1,144 @@
+id: "PL-015"
+title: "HAZ Cracking from Unchecked Weld Interpass Temperature"
+version: "1.0"
+
+domain: "materials_science"
+subdomain: "welding"
+failure_category: "protocol_human_loophole"
+difficulty: "medium"
+information_regime: "complete"
+split: "held_out"
+
+objective: >
+  Qualify a 3-pass GMAW procedure on 10 mm 4130 plate. Welds must be crack-
+  free, HAZ hardness below 380 HV, and Charpy at -20 C above 27 J.
+
+protocol:
+  - step: 1
+    action: "Preheat to 150 C and weld three stringer passes"
+    details: "WPS max interpass is 200 C. The welder stacked passes 40 s apart to beat a shift end."
+    notes: "No contact pyrometer reading was written after pass 1 or 2."
+
+  - step: 2
+    action: "PT and macroetch the qualification coupon"
+    details: "Toe cracks in the HAZ of passes 2 and 3; interpass color is dark blue/straw."
+    notes: "A sister coupon welded the next morning with 3-minute pauses passed PT."
+
+  - step: 3
+    action: "Hardness traverse and reconstruct interpass from a taped IR clip"
+    details: "IR on the rushed coupon shows 285-310 C at the start of passes 2 and 3."
+
+telemetry:
+  hardness:
+    description: "HV10 traverse across the HAZ"
+    data_type: "table"
+    values:
+      location_mm: [-4, -2, 0, 2, 4]
+      rushed_HV: [268, 412, 398, 355, 271]
+      paused_HV: [255, 332, 318, 301, 249]
+    observations:
+      - "Rushed HAZ exceeds 380 HV; the paused sister does not."
+
+  interpass:
+    description: "IR-reconstructed interpass temperature"
+    data_type: "table"
+    values:
+      pass: [1, 2, 3]
+      rushed_start_C: [152, 294, 308]
+      paused_start_C: [148, 176, 188]
+      wps_max_C: 200
+    observations:
+      - "Rushed passes 2 and 3 start 90-100 C above the WPS cap."
+
+  toughness:
+    description: "Charpy at -20 C in the HAZ"
+    data_type: "numeric"
+    values: [11, 14, 9]
+    units: "J"
+    expected_range:
+      min: 27
+      max: 80
+    observations:
+      - "Rushed HAZ Charpy is 9-14 J. The paused sister averaged 38 J."
+
+contextual_clues:
+  - "The WPS bold-faces a 200 C interpass maximum and a 2-minute minimum pause on this thickness."
+  - "Filler lot and gas are the same as the passing sister coupon."
+  - "Hydrogen in the shielding gas is <0.5%, not a damp-rod story."
+  - "A metallurgist initially blamed a high-carbon heat; chemistry is 0.31 C."
+
+ground_truth:
+  root_cause: >
+    The welder stacked passes without measuring or waiting for interpass
+    temperature, exceeding the 200 C WPS limit. The HAZ stayed too hot,
+    coarsened, and cracked on cool-down with hardness above 380 HV. The
+    sister coupon with pauses passes.
+  root_cause_category: "protocol_human_loophole"
+  causal_chain:
+    - "The WPS requires <=200 C interpass and a pause on 10 mm 4130"
+    - "Passes were stacked 40 s apart with no pyrometer log"
+    - "IR shows 294-308 C at the start of later passes"
+    - "The HAZ coarsened and remained hard"
+    - "Toe cracks formed and Charpy collapsed"
+    - "A paused sister coupon from the same plate and filler is clean"
+  intervention: >
+    Weld a new coupon with contact-pyrometer holds until the start of each
+    pass is 150-190 C. If PT is clean, HAZ HV <380, and Charpy >27 J, the
+    interpass diagnosis is confirmed. Add a mandatory interpass field on the
+    traveler.
+  key_evidence:
+    - "IR interpass 294-308 C versus 200 C cap"
+    - "Sister coupon with pauses passes"
+    - "HAZ hardness and Charpy track the rushed coupon only"
+    - "Chemistry and filler are shared"
+  alternative_diagnoses:
+    - "High-carbon heat"
+    - "Wet consumables / hydrogen cracking only"
+    - "Wrong filler wire"
+    - "Insufficient preheat"
+  why_alternatives_fail:
+    "High-carbon heat": "Chemistry is 0.31 C and the sister from the same plate is fine."
+    "Wet consumables / hydrogen cracking only": "Gas moisture is low and the paused coupon uses the same wire; the hardness pattern matches heat input, not just H2."
+    "Wrong filler wire": "Same lot on the passing sister."
+    "Insufficient preheat": "Preheat was 150 C; the failure is later-pass interpass, not a cold start."
+  difficulty_justification: >
+    Medium: hydrogen and chemistry are the usual suspects, but the IR log and
+    sister coupon isolate a skipped interpass wait.
+
+scoring:
+  weights:
+    root_cause: 0.30
+    causal_chain: 0.40
+    intervention: 0.30
+  root_cause_keywords:
+    - "interpass"
+    - "temperature"
+    - "WPS"
+    - "HAZ"
+    - "pause"
+    - "weld"
+  partial_credit_causes:
+    "too hot between passes": 0.85
+    "procedure skipped": 0.7
+    "hydrogen only": 0.3
+  evidence_keywords:
+    - "294"
+    - "sister"
+    - "HV"
+
+available_tools:
+  - "material_properties"
+  - "statistical_analyzer"
+max_tool_calls: 12
+
+source: >
+  Synthetic composite inspired by ASM weld-procedure loopholes and public
+  4130 interpass practice. No proprietary WPS text copied.
+source_url: "https://www.asminternational.org/results/-/journal_content/56/10192/FAILURE_ANALYSIS"
+expert_validated: false
+tags:
+  - "materials"
+  - "welding"
+  - "interpass"
+  - "protocol"
+author: "EpiDebug Team"

@@ -1,0 +1,143 @@
+id: "RF-020"
+title: "High-Strength Bolt Failures After Zinc Plate Without a Hydrogen Bake"
+version: "1.0"
+
+domain: "materials_science"
+subdomain: "electroplating"
+failure_category: "reagent_material_flaw"
+difficulty: "medium"
+information_regime: "complete"
+split: "held_out"
+
+objective: >
+  Cadmium-free zinc-plate a lot of Grade 10.9 M10 bolts for a fixture kit.
+  Bolts must hold 80% of specified proof load for 200 hours with no delayed
+  fracture, then meet 1040 MPa tensile and 38 HRC hardness.
+
+protocol:
+  - step: 1
+    action: "Alkaline zinc-plate the degreased 10.9 bolts"
+    details: "Acid pickle 40 s, electroplate 18 um Zn, no post-plate bake was entered on the traveler."
+    notes: "The plater treated them like Grade 8.8 hardware, which the shop does not bake."
+
+  - step: 2
+    action: "Torque a 12-bolt fixture to 80% proof and hold"
+    details: "First pop failures occurred at 14-31 hours; fracture is under the head."
+    notes: "Unplated bolts from the same heat survived a parallel fixture."
+
+  - step: 3
+    action: "Run hardness, tensile, and SEM on failed heads"
+    details: "Hardness 39-40 HRC; SEM shows intergranular facets near the surface and a ductile core."
+    notes: "A 24-hour 190 C bake was applied to leftover plated bolts after the failures."
+
+telemetry:
+  delayed_fracture:
+    description: "Hours to first crack on the plated versus unplated fixtures"
+    data_type: "table"
+    values:
+      condition: ["plated_no_bake", "plated_no_bake", "unplated", "plated_then_baked"]
+      hours_to_pop: [14, 31, 200, 200]
+      failed: [true, true, false, false]
+    observations:
+      - "Only as-plated, unbaked bolts fail inside 200 hours."
+      - "A post-failure 190 C bake on leftover parts survives the same hold."
+
+  mechanical:
+    description: "Hardness and tensile versus specification"
+    data_type: "table"
+    values:
+      hardness_HRC: [39.4, 39.8, 40.1]
+      tensile_MPa: [1095, 1110, 1088]
+      spec_min_MPa: 1040
+    observations:
+      - "Strength and hardness meet 10.9; this is not a soft-heat story."
+
+  fractography:
+    description: "SEM of the head-to-shank origin"
+    data_type: "text"
+    observations:
+      - "Intergranular facets occupy the outer 0.2-0.3 mm."
+      - "No corrosion pits or quench cracks in the unplated sister bolts."
+      - "Hydrogen bake after plating restores ductile rupture on a leftover bolt broken in tensile."
+
+contextual_clues:
+  - "ASTM B850 / typical aerospace practice bakes ≥10.9 electroplated steel within 4 hours."
+  - "The pickle was 40 s in 50% HCl, longer than the 15 s used for 8.8."
+  - "The same heat in the unplated condition survives the fixture."
+  - "The zinc bath iron content is in spec; this is not a brittle-bath contamination."
+
+ground_truth:
+  root_cause: >
+    The Grade 10.9 bolts picked up diffusible hydrogen during the long acid
+    pickle and zinc electroplate, and they were never baked. Hydrogen
+    concentrated under the head, producing delayed intergranular fracture
+    under sustained tensile stress. The steel heat itself meets strength.
+  root_cause_category: "reagent_material_flaw"
+  causal_chain:
+    - "10.9 bolts were acid-pickled longer than the 8.8 practice"
+    - "Electroplated zinc trapped diffusible hydrogen in the high-strength martensite"
+    - "No B850-style bake was performed"
+    - "Sustained 80% proof stress drove hydrogen to the head fillet"
+    - "Delayed intergranular cracks popped at 14-31 hours"
+    - "Unplated sisters and later-baked leftovers survive"
+  intervention: >
+    Plate a fresh set from the same heat with pickle time cut to 15 s and a
+    190 C / 8-24 h bake started within 4 hours of plating. Repeat the 200-hour
+    hold. If the baked set survives and thermal-desorption or glycerin tests
+    show low residual hydrogen, the embrittlement diagnosis is confirmed.
+  key_evidence:
+    - "Only unbaked plated bolts fail"
+    - "Intergranular surface, ductile core"
+    - "Unplated same-heat bolts survive"
+    - "Post-plate bake on leftovers restores life"
+  alternative_diagnoses:
+    - "The heat was over-hardened and quench-cracked"
+    - "Zinc-bath contamination embrittled the coating"
+    - "The fixture was over-torqued"
+    - "Stress-corrosion from shop humidity"
+  why_alternatives_fail:
+    "The heat was over-hardened and quench-cracked": "Hardness is 39-40 HRC in spec and unplated sisters from the same heat survive."
+    "Zinc-bath contamination embrittled the coating": "Bath iron is in spec and a bake after plating removes the delayed-fracture mode."
+    "The fixture was over-torqued": "Unplated bolts in the same fixture last 200 hours."
+    "Stress-corrosion from shop humidity": "Fracture is delayed-hydrogen intergranular, not branched SCC, and bake recovery is diagnostic."
+  difficulty_justification: >
+    Medium: the bake omission and SEM pattern are classic, but the solver must
+    separate hydrogen from over-hardening or a bad heat.
+
+scoring:
+  weights:
+    root_cause: 0.30
+    causal_chain: 0.40
+    intervention: 0.30
+  root_cause_keywords:
+    - "hydrogen"
+    - "embrittlement"
+    - "bake"
+    - "plate"
+    - "pickle"
+    - "10.9"
+  partial_credit_causes:
+    "plating hydrogen": 0.85
+    "missed bake": 0.75
+    "over-hard steel": 0.25
+  evidence_keywords:
+    - "intergranular"
+    - "bake"
+    - "unplated"
+
+available_tools:
+  - "material_properties"
+  - "statistical_analyzer"
+max_tool_calls: 12
+
+source: >
+  Synthetic composite inspired by ASM-style hydrogen-embrittlement case
+  patterns and ASTM B850 bake practice. No paid handbook text copied.
+source_url: "https://www.asminternational.org/results/-/journal_content/56/10192/FAILURE_ANALYSIS"
+expert_validated: false
+tags:
+  - "materials"
+  - "hydrogen_embrittlement"
+  - "plating"
+  - "fasteners"
+author: "EpiDebug Team"

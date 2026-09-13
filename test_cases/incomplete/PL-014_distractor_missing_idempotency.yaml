@@ -1,0 +1,153 @@
+id: "PL-014"
+title: "Distractor-Heavy Double Charges from Retries Without Idempotency Keys"
+version: "1.0"
+
+domain: "software_systems"
+subdomain: "payments_api"
+failure_category: "protocol_human_loophole"
+difficulty: "hard"
+information_regime: "distractor_heavy"
+split: "development"
+
+objective: >
+  Charge each checkout exactly once under a 2% injected gateway timeout fault.
+  After a 'resilient retry' library was enabled, finance reported 3.4% of
+  orders with two captures and a wave of customer tickets.
+
+protocol:
+  - step: 1
+    action: "Enable the shared HTTP retry wrapper on /v1/capture"
+    details: "Wrapper retries twice on 504/timeout with the same JSON body."
+    notes: "No Idempotency-Key header was added; the gateway treats each POST as a new capture."
+
+  - step: 2
+    action: "Run the fault-injection canary at 500 rps for 15 minutes"
+    details: "Toxiproxy drops 2% of gateway responses after the gateway has already committed."
+    notes: "Client logs say 'retry succeeded'; ledger says two captures."
+
+  - step: 3
+    action: "Reconcile order IDs, gateway IDs, and customer last-four"
+    details: "Pairs share order_id and amount but have distinct gateway_charge_id values 800-1200 ms apart."
+
+telemetry:
+  reconciliation:
+    description: "Duplicate captures during the canary"
+    data_type: "table"
+    values:
+      orders: 45000
+      duplicate_pairs: 1532
+      duplicate_rate_percent: 3.40
+      timeout_inject_percent: 2.0
+      mean_pair_gap_ms: 940
+    observations:
+      - "Duplicate rate is about 1.7x the injected timeout rate, matching retry-on-timeout plus a second try."
+      - "Each pair has two gateway IDs, not a replay of the same ID."
+
+  traces:
+    description: "Distributed trace of a sample duplicate"
+    data_type: "text"
+    observations:
+      - "Span A: POST /v1/capture returns 504 to the client after the gateway committed."
+      - "Span B: retry POST 940 ms later returns 200 with a new charge_id."
+      - "No Idempotency-Key on either request."
+
+  controls:
+    description: "Same canary with keys forced on a shadow header"
+    data_type: "table"
+    values:
+      keyed_orders: 8000
+      keyed_duplicates: 1
+    observations:
+      - "A late shadow path that sent Idempotency-Key almost eliminated duplicates."
+    note: "The shadow path was a one-box experiment, not the default."
+
+contextual_clues:
+  - "The retry RFC in the repo says 'must send Idempotency-Key' in a collapsed comment."
+  - "A real Stripe-like outage last quarter trained the team to retry aggressively."
+  - "The payments pod was also given a new JVM GC flag the same day."
+  - "A product manager asked whether users were double-clicking Pay."
+
+red_herrings:
+  - "G1GC pause logs show a 38 ms p99, which someone circled in the incident doc."
+  - "A CDN cache purge ran during the canary window."
+  - "The mobile app shipped a double-tap debounce 'fix' that is only on iOS."
+  - "Kafka consumer lag on the email topic hit 12 s — finance first blamed 'async capture'."
+  - "A teammate mentioned clock skew on the trace collector from an older incident."
+  - "Feature flag checkout_v3 was 5% on, unrelated to capture."
+
+ground_truth:
+  root_cause: >
+    The retry wrapper repeated POST /v1/capture after timeouts without an
+    idempotency key. The gateway had already captured, so the retry created a
+    second charge_id. GC, CDN, and double-click stories do not produce paired
+    gateway IDs 940 ms apart at 1.7x the injected timeout rate.
+  root_cause_category: "protocol_human_loophole"
+  causal_chain:
+    - "Fault injection dropped 2% of capture responses after commit"
+    - "The new retry library retried the same body without an Idempotency-Key"
+    - "The gateway issued a second charge_id"
+    - "Finance saw 3.4% duplicate captures"
+    - "A shadow path that added keys dropped duplicates to near zero"
+    - "User double-clicks and GC pauses do not match the paired-ID timing"
+  intervention: >
+    Require a stable Idempotency-Key per order, make retries send that key,
+    and replay the 2% timeout canary. If duplicate_pairs fall to ~0 while
+    success rate stays high, the protocol diagnosis is confirmed. Refund the
+    already-duplicated charges.
+  key_evidence:
+    - "Two gateway IDs per order_id, ~940 ms apart"
+    - "Duplicate rate tracks injected timeouts times retries"
+    - "Traces show 504 then 200 with no key"
+    - "Keyed shadow path almost eliminates duplicates"
+  alternative_diagnoses:
+    - "Users double-clicked Pay"
+    - "JVM GC caused duplicate submits"
+    - "Kafka double-consumed a capture event"
+    - "Clock-skewed traces invented the story"
+  why_alternatives_fail:
+    "Users double-clicked Pay": "This is a synthetic canary with no users; iOS debounce is irrelevant."
+    "JVM GC caused duplicate submits": "38 ms p99 GC cannot create a second gateway charge_id."
+    "Kafka double-consumed a capture event": "Duplicates exist at the gateway, before the email topic."
+    "Clock-skewed traces invented the story": "The ledger, not the trace backend, holds two charge IDs."
+  difficulty_justification: >
+    Hard and distractor-heavy: a recent real outage and GC folklore compete
+    with a missing, unglamorous header.
+
+scoring:
+  weights:
+    root_cause: 0.30
+    causal_chain: 0.40
+    intervention: 0.30
+  root_cause_keywords:
+    - "idempoten"
+    - "retry"
+    - "timeout"
+    - "duplicate"
+    - "capture"
+    - "key"
+  partial_credit_causes:
+    "retries without safety": 0.7
+    "missing idempotency": 0.95
+    "user double click": 0.15
+  evidence_keywords:
+    - "charge_id"
+    - "504"
+    - "shadow"
+
+available_tools:
+  - "trace_log_analyzer"
+  - "statistical_analyzer"
+max_tool_calls: 12
+
+source: >
+  Synthetic composite inspired by OpenStack fault-injection timeout/retry
+  patterns and public payments-idempotency incident families. No proprietary
+  processor text copied.
+source_url: "https://github.com/dessertlab/Fault-Injection-Dataset"
+expert_validated: false
+tags:
+  - "software_systems"
+  - "idempotency"
+  - "retry"
+  - "distractor_heavy"
+author: "EpiDebug Team"

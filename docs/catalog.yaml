@@ -1,5 +1,5 @@
-version: "0.1.0"
-last_updated: "2026-06-02"
+version: "0.2.0"
+last_updated: "2026-09-13"
 description: >
   Candidate public and synthetic data sources for expanding EpiDebug. Entries
   track whether the source can be used directly, should be converted into
@@ -124,3 +124,116 @@ sources:
     notes: >
       Good for eventual human-expert case authoring. Avoid sensitive cockpit audio
       or personal details; use sanitized composites.
+
+  - id: "euroc_mav"
+    name: "EuRoC MAV Visual-Inertial Datasets"
+    domain: "robotics"
+    url: "https://projects.asl.ethz.ch/datasets/doku.php?id=kmavvisualinertialdatasets"
+    license: "Creative Commons; verify per-file terms"
+    source_type: "robotics_sensor_logs"
+    scale: "Machine-hall and Vicon-room flights with stereo, IMU, and motion-capture ground truth"
+    useful_for:
+      - "camera-IMU time offset"
+      - "visual-inertial odometry drift"
+      - "Allan-deviation / IMU noise modeling"
+    curation_status: "use_as_source_pattern"
+    notes: >
+      Use summarized calibration and residual patterns. Do not bundle raw bags
+      unless dataset terms and storage are reviewed.
+
+  - id: "nist_dimensional_metrology"
+    name: "NIST Dimensional Metrology / Shop-Floor Measurement Guidance"
+    domain: "manufacturing"
+    url: "https://www.nist.gov/pml/dimensional-metrology"
+    license: "US government public information; verify figure reuse"
+    source_type: "metrology_guidance"
+    scale: "CMM, probe qualification, and thermal-error practice notes"
+    useful_for:
+      - "CMM thermal drift"
+      - "probe qualification skips"
+      - "method disagreement (CMM vs air gage)"
+    curation_status: "use_as_source_pattern"
+    notes: >
+      Convert ISO 10360-style warm-up and qualification loopholes into synthetic
+      travelers. Do not copy NIST figure captions verbatim.
+
+  - id: "usgs_epa_water_quality"
+    name: "USGS Water-Quality Monitoring and EPA CWA Methods"
+    domain: "environmental_science"
+    url: "https://www.usgs.gov/mission-areas/water-resources/science/water-quality-monitoring"
+    license: "US government public information"
+    source_type: "field_sampling_qa"
+    scale: "National water-quality methods, hold times, blanks, and cooler-temperature practice"
+    useful_for:
+      - "filter-blank contamination"
+      - "nutrient hold-time / ice-melt spoilage"
+      - "sensor versus grab-sample disagreement"
+    curation_status: "safe_to_reference_with_attribution"
+    notes: >
+      Pair with https://www.epa.gov/cwa-methods for hold-time tables. Summarize
+      QA patterns; do not copy lab SOP text.
+
+  - id: "nist_pml_instrumentation"
+    name: "NIST Physical Measurement Laboratory Instrumentation Practice"
+    domain: "physics"
+    url: "https://www.nist.gov/pml"
+    license: "US government public information; verify figure reuse"
+    source_type: "instrumentation_guidance"
+    scale: "Optical detectors, lock-in measurement, and RF / antenna-range metrology notes"
+    useful_for:
+      - "photodiode saturation"
+      - "lock-in phase setting"
+      - "near-field versus Friis antenna gain"
+    curation_status: "use_as_source_pattern"
+    notes: >
+      Use as pattern families for physics/instrumentation cases. Do not copy
+      procedure manuals or calibration-report prose.
+
+  - id: "asm_failure_analysis_patterns"
+    name: "ASM Failure-Analysis Case Pattern Family"
+    domain: "materials_science"
+    url: "https://www.asminternational.org/results/-/journal_content/56/10192/FAILURE_ANALYSIS"
+    license: "Generally copyrighted; summarize only"
+    source_type: "failure_analysis_narratives"
+    scale: "Published hydrogen-embrittlement, weld HAZ, and heat-treat case families"
+    useful_for:
+      - "plating hydrogen bake skips"
+      - "weld interpass temperature"
+      - "overaging versus Hall-Petch misattribution"
+    curation_status: "use_as_source_pattern"
+    notes: >
+      Licensing does not permit copying handbook or journal text. Write original
+      synthetic travelers that preserve only the public mechanism pattern.
+
+  - id: "k8s_prometheus_incident_patterns"
+    name: "Kubernetes HPA and Prometheus Counter-Reset Incident Patterns"
+    domain: "software_systems"
+    url: "https://prometheus.io/docs/practices/histograms/"
+    license: "Public documentation; Apache-2.0 for Prometheus itself"
+    source_type: "observability_practice"
+    scale: "Community incident families around rate() on resetting counters, scrape gaps, and pod-sum CPU"
+    useful_for:
+      - "Prometheus scrape aliasing"
+      - "HPA sidecar CPU"
+      - "retry/idempotency protocol loopholes"
+    curation_status: "use_as_source_pattern"
+    notes: >
+      Combine with the OpenStack fault-injection dataset lane for timeout/retry
+      composites. Do not copy vendor postmortems.
+
+  - id: "calce_nasa_battery_aging"
+    name: "CALCE / NASA Battery Aging and Formation Pattern Family"
+    domain: "energy"
+    url: "https://calce.umd.edu/battery-data"
+    license: "Verify per dataset; NASA PCoE battery sets are public"
+    source_type: "battery_aging_tables"
+    scale: "Public lithium-ion cycle, calendar-aging, and impedance records"
+    useful_for:
+      - "anode moisture"
+      - "formation rest skips"
+      - "calendar aging versus cycle-life misattribution"
+      - "BMS current-shunt temperature coefficient"
+    curation_status: "use_as_source_pattern"
+    notes: >
+      Overlaps NASA PCoE battery files. Use summarized KF, CE, and SOC patterns;
+      do not redistribute raw cycling files unless terms allow.

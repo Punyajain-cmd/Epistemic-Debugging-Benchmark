@@ -1,0 +1,143 @@
+id: "RF-022"
+title: "False River Phosphate Spike from a Contaminated Filter Lot"
+version: "1.0"
+
+domain: "environmental_science"
+subdomain: "water_quality"
+failure_category: "reagent_material_flaw"
+difficulty: "medium"
+information_regime: "complete"
+split: "development"
+
+objective: >
+  Measure dissolved reactive phosphorus on a weekly river transect. Field
+  duplicates should agree within 8% and blanks should stay below 2 ug-P/L so
+  the 12 ug-P/L ecological trigger is trustworthy.
+
+protocol:
+  - step: 1
+    action: "Filter 100 mL grab samples through 0.45 um cellulose-acetate membranes"
+    details: "A new filter lot, CA-4419, replaced the exhausted lot CA-3902."
+    notes: "Filters were not rinsed; the SOP rinse step is easy to skip when the boat is rolling."
+
+  - step: 2
+    action: "Collect field blanks with the same lot and bottle set"
+    details: "18 MOhm water poured through a CA-4419 filter in the field."
+    notes: "The blank looked clear, so the crew did not flag it."
+
+  - step: 3
+    action: "Analyze colorimetrically by ascorbic-acid molybdenum blue"
+    details: "Calibration from a fresh NIST-traceable phosphate standard is linear (r = 0.999)."
+
+telemetry:
+  transect:
+    description: "Dissolved reactive P at three stations, new versus old filter lots"
+    data_type: "table"
+    values:
+      station: ["up", "mid", "down", "up_rerun_old_lot"]
+      ug_P_L: [27.4, 31.8, 29.1, 9.6]
+      field_dup_ug_P_L: [26.1, 33.0, 28.4, 9.2]
+    observations:
+      - "New-lot values sit above the 12 ug-P/L trigger at every station."
+      - "Re-filtering leftover up-station water through the old lot drops the result to 9.6 ug-P/L."
+
+  blanks:
+    description: "Filter and bottle blanks"
+    data_type: "table"
+    values:
+      blank: ["CA4419_field", "CA4419_lab", "CA3902_lab", "bottle_only"]
+      ug_P_L: [18.7, 17.9, 0.8, 0.6]
+    observations:
+      - "Both field and lab blanks on CA-4419 are high."
+      - "Bottle-only and old-lot blanks are below 1 ug-P/L."
+
+  extract:
+    description: "Acid extract of unused filters"
+    data_type: "numeric"
+    values: [1.42, 1.38]
+    units: "ug P per filter"
+    observations:
+      - "Unused CA-4419 disks release about 1.4 ug P, enough to raise a 100 mL sample by ~14 ug-P/L."
+
+contextual_clues:
+  - "A wastewater plant 8 km upstream had a minor bypass two days earlier, so the first narrative was a real pulse."
+  - "Turbidity and nitrate on the same bottles look seasonal, not like a sewage slug."
+  - "The molybdenum-blue calibration checks with an independent standard."
+  - "CA-4419 was stored in a box that previously held fertilizer-trial filters in the same fridge."
+
+ground_truth:
+  root_cause: >
+    Filter lot CA-4419 was phosphate-contaminated, likely from storage next to
+    fertilizer-trial membranes and from skipping the SOP rinse. Each disk
+    added about 14 ug-P/L to a 100 mL sample, creating a false river exceedance.
+    The wastewater bypass is a plausible but unsupported red herring.
+  root_cause_category: "reagent_material_flaw"
+  causal_chain:
+    - "A new cellulose-acetate lot was used without the required rinse"
+    - "Unused disks leach about 1.4 ug P"
+    - "That mass in 100 mL raises dissolved P by roughly 14 ug-P/L"
+    - "Field and lab blanks on CA-4419 both exceed 17 ug-P/L"
+    - "Re-filtering the same water through the old lot returns in-season values"
+    - "The upstream bypass story does not match nitrate or the blank pattern"
+  intervention: >
+    Rinse CA-4419 with 250 mL of 18 MOhm water, re-extract unused disks, and
+    reanalyze archived bottles through rinsed new-lot and old-lot filters. If
+    blanks fall below 2 ug-P/L and station values collapse to the old-lot
+    numbers, the filter-lot diagnosis is confirmed. Quarantine CA-4419.
+  key_evidence:
+    - "CA-4419 blanks are high in both field and lab"
+    - "Old-lot re-filter of the same water is ~10 ug-P/L"
+    - "Unused-disk extract matches the offset"
+    - "Nitrate and turbidity are not sewage-like"
+  alternative_diagnoses:
+    - "A real wastewater phosphorus pulse"
+    - "Dirty sample bottles"
+    - "Calibration bias in the colorimeter"
+    - "Matrix interference from tannins"
+  why_alternatives_fail:
+    "A real wastewater phosphorus pulse": "Nitrate is seasonal and re-filtering the same bottle through a clean lot removes the spike."
+    "Dirty sample bottles": "Bottle-only blanks are 0.6 ug-P/L."
+    "Calibration bias in the colorimeter": "The curve is linear against a fresh standard and old-lot samples run on the same curve are low."
+    "Matrix interference from tannins": "Lab blanks using 18 MOhm water through CA-4419 are equally high."
+  difficulty_justification: >
+    Medium: a timely wastewater bypass is a strong narrative, but blanks and
+    a same-bottle lot swap isolate the filter.
+
+scoring:
+  weights:
+    root_cause: 0.30
+    causal_chain: 0.40
+    intervention: 0.30
+  root_cause_keywords:
+    - "filter"
+    - "phosphate"
+    - "blank"
+    - "contamination"
+    - "lot"
+    - "rinse"
+  partial_credit_causes:
+    "contaminated filters": 0.9
+    "unrinsed membranes": 0.75
+    "wastewater pulse": 0.25
+  evidence_keywords:
+    - "blank"
+    - "CA-4419"
+    - "extract"
+
+available_tools:
+  - "statistical_analyzer"
+  - "calibration_checker"
+max_tool_calls: 12
+
+source: >
+  Synthetic composite inspired by USGS / EPA nutrient-method blank and hold-
+  time patterns and public river-monitoring QA failures. No proprietary lab
+  report copied.
+source_url: "https://www.usgs.gov/mission-areas/water-resources/science/water-quality-monitoring"
+expert_validated: false
+tags:
+  - "environmental"
+  - "phosphorus"
+  - "filter_blank"
+  - "water_quality"
+author: "EpiDebug Team"
