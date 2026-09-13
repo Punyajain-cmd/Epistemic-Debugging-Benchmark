@@ -1,0 +1,142 @@
+id: "FH-020"
+title: "Strength Drop Blamed on Grain Growth After an Overaging Mistake"
+version: "1.0"
+
+domain: "materials_science"
+subdomain: "precipitation_hardening"
+failure_category: "flawed_hypothesis"
+difficulty: "hard"
+information_regime: "complete"
+split: "held_out"
+
+objective: >
+  Peak-age 7075-T6 plate to 500-540 MPa yield. A furnace-controller glitch
+  held the age at 180 C for 36 hours instead of 24. Yield fell to 412 MPa
+  and the team wrote 'Hall-Petch: grains grew'.
+
+protocol:
+  - step: 1
+    action: "Solution treat, quench, and age at 180 C"
+    details: "Intended 24 h T6; controller logged 36 h 12 min at 180 C."
+    notes: "A witness coupon pulled at 24 h was already 518 MPa."
+
+  - step: 2
+    action: "Measure yield, hardness, and grain size"
+    details: "Linear intercept grain size is 38 um before and 39 um after the extra 12 h."
+    notes: "Hall-Petch would need a several-x grain-size change to explain 100 MPa."
+
+  - step: 3
+    action: "TEM / DSC the 24 h versus 36 h coupons"
+    details: "36 h shows coarsened eta' / eta precipitates and a lost DSC peak."
+
+telemetry:
+  tensile:
+    description: "Yield and hardness versus age time"
+    data_type: "table"
+    values:
+      hours: [12, 24, 36]
+      yield_MPa: [471, 518, 412]
+      hardness_HV: [168, 181, 149]
+    observations:
+      - "Strength peaks at 24 h and falls by 106 MPa at 36 h."
+      - "The 24 h witness from the same plate is still at peak."
+
+  grain_size:
+    description: "Optical grain size"
+    data_type: "table"
+    values:
+      condition: ["as_quenched", "24h", "36h"]
+      intercept_um: [37.8, 38.1, 39.0]
+    observations:
+      - "Grain size is unchanged within measurement error."
+      - "A Hall-Petch estimate using k ~ 0.12 MPa m^0.5 predicts <5 MPa change."
+
+  precipitates:
+    description: "TEM/DSC"
+    data_type: "text"
+    observations:
+      - "24 h: fine eta' needles, strong DSC dissolution peak."
+      - "36 h: coarsened eta, depleted fine eta', lost DSC peak."
+      - "No recrystallized grains or abnormal growth fronts."
+
+contextual_clues:
+  - "7075 ages by precipitation, not by Hall-Petch grain refinement, at 180 C."
+  - "180 C is far below the recrystallization range for this plate."
+  - "The team had just finished a grain-size study on a different alloy and reused the narrative."
+  - "Furnace air thermocouple is in spec; the extra time is real."
+
+ground_truth:
+  root_cause: >
+    The Hall-Petch grain-growth hypothesis is false. The extra 12 hours
+    overaged the 7075, coarsening strengthening precipitates while grains
+    stayed ~38 um. Precipitation kinetics, not grain size, explain the
+    106 MPa drop.
+  root_cause_category: "flawed_hypothesis"
+  causal_chain:
+    - "The controller held 180 C for 36 h instead of 24 h"
+    - "The team attributed the strength loss to Hall-Petch grain growth"
+    - "Measured grain size did not change"
+    - "TEM/DSC show coarsened eta and lost eta'"
+    - "Yield fell from 518 to 412 MPa, matching overaging"
+    - "A 24 h witness from the same plate remains at peak"
+  intervention: >
+    Re-age a solution-treated coupon to 24 h (peak) versus 36 h (overage)
+    with grain-size and DSC in parallel. If strength tracks precipitate
+    state at constant grain size, reject Hall-Petch. Optionally re-solution
+    and re-peak the soft plate.
+  key_evidence:
+    - "Grain size 38 vs 39 um"
+    - "TEM coarsening and lost DSC peak"
+    - "24 h witness is still 518 MPa"
+    - "Hall-Petch estimate is <5 MPa"
+  alternative_diagnoses:
+    - "Grains grew and Hall-Petch explains the drop"
+    - "The quench was slow and retained soft phases"
+    - "Wrong alloy heat"
+    - "Tensile grips slipped"
+  why_alternatives_fail:
+    "Grains grew and Hall-Petch explains the drop": "Grain size is unchanged and the k-estimate is tiny versus 106 MPa."
+    "The quench was slow and retained soft phases": "The 24 h witness from the same quench is 518 MPa."
+    "Wrong alloy heat": "Chemistry and the witness coupon are the same plate."
+    "Tensile grips slipped": "Hardness falls in lockstep with yield."
+  difficulty_justification: >
+    Hard: Hall-Petch is a real mechanism taught in the same course sequence,
+    but it is the wrong mechanism at 180 C for 7075.
+
+scoring:
+  weights:
+    root_cause: 0.30
+    causal_chain: 0.40
+    intervention: 0.30
+  root_cause_keywords:
+    - "overag"
+    - "precipitat"
+    - "Hall-Petch"
+    - "grain"
+    - "eta"
+    - "7075"
+  partial_credit_causes:
+    "overaging": 0.9
+    "wrong strengthening mechanism": 0.75
+    "grain growth": 0.2
+  evidence_keywords:
+    - "DSC"
+    - "38"
+    - "518"
+
+available_tools:
+  - "material_properties"
+  - "statistical_analyzer"
+max_tool_calls: 12
+
+source: >
+  Synthetic composite inspired by ASM precipitation-hardening versus Hall-
+  Petch misattribution patterns. No handbook figure copied.
+source_url: "https://www.asminternational.org/results/-/journal_content/56/10192/FAILURE_ANALYSIS"
+expert_validated: false
+tags:
+  - "materials"
+  - "overaging"
+  - "hall_petch"
+  - "7075"
+author: "EpiDebug Team"

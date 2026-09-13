@@ -1,0 +1,149 @@
+id: "RF-018"
+title: "Actuator Drift from Phosphate-Ester Fluid in a Mineral-Oil Seal Stack"
+version: "1.0"
+
+domain: "aerospace"
+subdomain: "hydraulic_actuation"
+failure_category: "reagent_material_flaw"
+difficulty: "medium"
+information_regime: "complete"
+split: "held_out"
+
+objective: >
+  Qualify a research-lab electrohydraulic elevator actuator for a 4-hour
+  ground-endurance run. Rod leak-off should stay below 8 mL/h and null bias
+  below 0.4% of stroke after 100 cycles.
+
+protocol:
+  - step: 1
+    action: "Fill the test cart from the hangar's shared hydraulic bowser"
+    details: "Drawing calls for mineral-oil MIL-PRF-5606. The bowser tag was overwritten with 'Skydrol residual — flush pending'."
+    notes: "A night-shift tech topped the cart from the nearest drum to save time."
+
+  - step: 2
+    action: "Install the actuator with the as-designed NBR / nitrile seal kit"
+    details: "Seals are compatible with mineral oil, not phosphate-ester fluids."
+    notes: "No swell check was done on a coupon before the endurance run."
+
+  - step: 3
+    action: "Run 100 command cycles and a 4-hour hold at 21 MPa"
+    details: "Supply pressure and command waveform match the test plan."
+    notes: "Leak-off rose through the run; the rod gland felt gummy at teardown."
+
+telemetry:
+  leakoff_and_bias:
+    description: "Rod leak-off and null bias versus cycle count"
+    data_type: "table"
+    values:
+      cycle: [10, 30, 50, 70, 100]
+      leakoff_mL_h: [3.1, 6.8, 14.2, 27.5, 41.0]
+      null_bias_percent: [0.12, 0.28, 0.61, 0.94, 1.33]
+    observations:
+      - "Leak-off and null bias grow together, not as a single-cycle step."
+      - "Command tracking is otherwise smooth; no servo-valve chatter."
+
+  fluid_id:
+    description: "Used-fluid identification after the run"
+    data_type: "table"
+    values:
+      density_g_mL: 1.062
+      phosphate_ester_IR_peak: true
+      water_ppm: 410
+      particle_ISO: "16/14/11"
+    observations:
+      - "Density and IR match a phosphate-ester (Skydrol-family) fluid, not MIL-PRF-5606 (~0.87 g/mL)."
+      - "Particle counts are acceptable; this is not a classic contamination-wear story."
+
+  seal_teardown:
+    description: "Gland and piston-seal inspection"
+    data_type: "text"
+    observations:
+      - "Nitrile rod seal is swollen 11% on cross-section and has lost durometer."
+      - "No cutting or extrusion lip typical of over-pressure."
+      - "A nitrile coupon soaked 4 hours in the used fluid gains 9.4% mass."
+
+contextual_clues:
+  - "The hangar bowser still contained residual phosphate-ester from a transport-aircraft cart and had not been flushed."
+  - "The servo valve is a recently overhauled unit with a clean bench curve."
+  - "Ambient temperature in the lab was 22 C; no thermal soak was applied."
+  - "A second actuator built the previous month with a dedicated 5606 drum completed the same endurance with 2.4 mL/h leak-off."
+
+ground_truth:
+  root_cause: >
+    The test cart was filled with residual phosphate-ester hydraulic fluid
+    instead of mineral-oil MIL-PRF-5606. Phosphate-ester swells and softens
+    nitrile seals, raising rod leak-off and shifting null bias. Particles and
+    the servo valve are not the drivers.
+  root_cause_category: "reagent_material_flaw"
+  causal_chain:
+    - "The shared bowser still held phosphate-ester residue and was not flushed"
+    - "The night shift filled a mineral-oil-designed actuator from that bowser"
+    - "Phosphate-ester is incompatible with the nitrile seal stack"
+    - "Seals swelled and lost durometer during the 4-hour, 21 MPa hold"
+    - "Rod leak-off and null bias grew through the cycle count"
+    - "IR and density identify the fluid; a 5606-filled sister unit does not leak"
+  intervention: >
+    Drain and flush the cart with the specified mineral oil, replace the seal
+    kit, and repeat the endurance run from a dedicated 5606 drum. In parallel,
+    soak a fresh nitrile coupon in the suspect fluid versus 5606. If leak-off
+    returns below 8 mL/h only on 5606, the fluid-incompatibility diagnosis is
+    confirmed.
+  key_evidence:
+    - "Fluid density 1.062 g/mL and phosphate-ester IR, not 5606"
+    - "Nitrile seal swell of about 11% and coupon mass gain"
+    - "Sister unit on dedicated 5606 passes"
+    - "Particle counts are not in a wear-failure regime"
+  alternative_diagnoses:
+    - "Servo-valve null shift from a dirty overhaul"
+    - "Abrasive particle wear of the rod gland"
+    - "Over-pressure extrusion of the seal"
+    - "Water hydrolysis of the fluid alone"
+  why_alternatives_fail:
+    "Servo-valve null shift from a dirty overhaul": "The bench curve was clean and command tracking is smooth; leak-off is at the rod gland."
+    "Abrasive particle wear of the rod gland": "ISO 16/14/11 is acceptable and the seal is swollen, not cut."
+    "Over-pressure extrusion of the seal": "Supply pressure matches the plan and there is no extrusion lip."
+    "Water hydrolysis of the fluid alone": "410 ppm water is not extreme for this test; swell and IR identify the wrong fluid family."
+  difficulty_justification: >
+    Medium: fluid ID and seal swell are direct, but the solver must ignore a
+    plausible servo-valve and particle story and treat the bowser mix-up as the
+    reagent fault.
+
+scoring:
+  weights:
+    root_cause: 0.30
+    causal_chain: 0.40
+    intervention: 0.30
+  root_cause_keywords:
+    - "phosphate"
+    - "Skydrol"
+    - "nitrile"
+    - "seal"
+    - "swell"
+    - "fluid"
+  partial_credit_causes:
+    "wrong hydraulic fluid": 0.9
+    "incompatible seals": 0.7
+    "dirty servo valve": 0.2
+  evidence_keywords:
+    - "density"
+    - "IR"
+    - "swell"
+
+available_tools:
+  - "material_properties"
+  - "statistical_analyzer"
+  - "calibration_checker"
+max_tool_calls: 12
+
+source: >
+  Synthetic composite inspired by NASA lessons-learned hydraulic-fluid
+  incompatibility patterns and public seal-swell guidance. No accident-report
+  text copied.
+source_url: "https://www.nasa.gov/nasa-lessons-learned/"
+expert_validated: false
+tags:
+  - "aerospace"
+  - "hydraulics"
+  - "seal_swell"
+  - "fluid_compatibility"
+author: "EpiDebug Team"

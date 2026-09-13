@@ -1,0 +1,142 @@
+id: "IN-019"
+title: "False Pack SOC Collapse from an Uncompensated Current-Shunt Tempco"
+version: "1.0"
+
+domain: "energy"
+subdomain: "battery_management"
+failure_category: "instrumentation_artifact"
+difficulty: "medium"
+information_regime: "complete"
+split: "development"
+
+objective: >
+  Validate a 12s NMC module BMS on a 2-hour 1C drive cycle in a 0 C chamber.
+  Coulomb-counted SOC should stay within 2% of a reference Ah integrator and
+  a mid-pack OCV check after a 40-minute rest.
+
+protocol:
+  - step: 1
+    action: "Install the production 50 uOhm shunt without the planned software tempco table"
+    details: "Shunt TCR is +1100 ppm/C; firmware still assumes 25 C."
+    notes: "A chamber soak brought the bus bar to 1.2 C before the cycle."
+
+  - step: 2
+    action: "Run the 1C drive cycle and log BMS SOC, current, and a clamp-on reference"
+    details: "Reference clamp is on the same cable and is temperature-compensated."
+    notes: "BMS current reads high throughout the cold cycle."
+
+  - step: 3
+    action: "Rest 40 minutes and compare OCV-based SOC to the BMS coulomb count"
+    details: "Cell voltages are measured with a calibrated DMM on sense leads."
+
+telemetry:
+  soc_compare:
+    description: "SOC after the 2-hour cycle"
+    data_type: "table"
+    values:
+      method: ["BMS_coulomb", "reference_clamp", "OCV_rest"]
+      soc_percent: [31.4, 48.9, 49.6]
+    observations:
+      - "BMS coulomb count is about 18 points below OCV and the clamp integrator."
+      - "OCV and the clamp agree within 1%."
+
+  current_error:
+    description: "BMS shunt versus compensated clamp at three temperatures"
+    data_type: "table"
+    values:
+      bus_temp_C: [24.8, 10.1, 1.2]
+      bms_current_A: [24.96, 25.38, 25.71]
+      clamp_A: [25.01, 25.00, 24.98]
+    observations:
+      - "At 25 C the shunt matches the clamp."
+      - "At 1.2 C the BMS over-reads current by about 0.73 A (3%)."
+
+  cell_health:
+    description: "Module voltages and temperatures"
+    data_type: "text"
+    observations:
+      - "No cell is below 3.55 V at rest; spread is 8 mV."
+      - "Thermistors on cells agree with the chamber within 1 C."
+      - "No isolation or contact-weld alarm."
+
+contextual_clues:
+  - "The firmware ticket for shunt TCR compensation is still open."
+  - "The same module on a 25 C bench cycle yesterday tracked OCV within 1.1%."
+  - "A technician suggested a weak cell because the dashboard SOC looks alarming."
+  - "Sense-lead crimps were re-seated and voltages did not change."
+
+ground_truth:
+  root_cause: >
+    The BMS current shunt was read without a temperature-coefficient table.
+    At 1 C the +1100 ppm/C manganin-like shunt increased resistance, so the
+    firmware over-reported discharge current and under-counted SOC. The pack
+    itself is healthy; OCV and a compensated clamp agree.
+  root_cause_category: "instrumentation_artifact"
+  causal_chain:
+    - "The module was soaked to about 1 C in the chamber"
+    - "Shunt resistance rose with the uncompensated +1100 ppm/C TCR"
+    - "Firmware converted voltage to current as if the shunt were still 25 C"
+    - "Reported current ran about 3% high for two hours"
+    - "Coulomb-counted SOC fell to 31% while true SOC stayed near 49%"
+    - "Rest OCV and a compensated clamp confirm the pack was not depleted"
+  intervention: >
+    Enable the shunt tempco table or apply an offline correction using the
+    measured bus temperature, then replay the same 0 C cycle. If BMS SOC
+    returns within 2% of OCV without changing cells, the instrumentation
+    diagnosis is confirmed.
+  key_evidence:
+    - "Error appears only when cold"
+    - "Current error tracks bus temperature"
+    - "OCV and clamp agree"
+    - "Cell voltages are healthy at rest"
+  alternative_diagnoses:
+    - "A weak cell lost capacity"
+    - "Sense-lead high resistance"
+    - "Reference clamp is biased"
+    - "Coulomb-count leak from a software integer overflow"
+  why_alternatives_fail:
+    "A weak cell lost capacity": "Rest voltages are 3.55 V with 8 mV spread and OCV SOC is 50%."
+    "Sense-lead high resistance": "DMM on the leads matches the BMS voltages; the error is in current, not voltage."
+    "Reference clamp is biased": "The clamp matches 25 C BMS data and rest OCV."
+    "Coulomb-count leak from a software integer overflow": "The error magnitude matches the TCR times delta-T, not a wrap-around."
+  difficulty_justification: >
+    Medium: the dashboard looks like a dying pack, but a three-way SOC
+    comparison isolates an uncompensated shunt.
+
+scoring:
+  weights:
+    root_cause: 0.30
+    causal_chain: 0.40
+    intervention: 0.30
+  root_cause_keywords:
+    - "shunt"
+    - "temperature"
+    - "TCR"
+    - "SOC"
+    - "current"
+    - "compensation"
+  partial_credit_causes:
+    "current sensor error": 0.75
+    "cold shunt": 0.8
+    "weak cell": 0.2
+  evidence_keywords:
+    - "OCV"
+    - "clamp"
+    - "tempco"
+
+available_tools:
+  - "calibration_checker"
+  - "statistical_analyzer"
+max_tool_calls: 12
+
+source: >
+  Synthetic composite inspired by NASA battery-prognostics instrumentation
+  patterns and public BMS current-sense temperature-coefficient issues.
+source_url: "https://www.nasa.gov/intelligent-systems-division/discovery-and-systems-health/pcoe/pcoe-data-set-repository/"
+expert_validated: false
+tags:
+  - "battery"
+  - "BMS"
+  - "shunt"
+  - "SOC"
+author: "EpiDebug Team"

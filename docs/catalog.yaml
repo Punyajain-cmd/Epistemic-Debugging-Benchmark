@@ -1,5 +1,5 @@
-version: "0.1.0"
-last_updated: "2026-06-02"
+version: "0.2.0"
+last_updated: "2026-09-13"
 description: >
   Candidate public and synthetic data sources for expanding EpiDebug. Entries
   track whether the source can be used directly, should be converted into
@@ -27,6 +27,8 @@ sources:
     name: "AI4I 2020 Predictive Maintenance Dataset"
     domain: "manufacturing"
     url: "https://archive.ics.uci.edu/dataset/601/ai4i"
+    related_urls:
+      - "https://archive.ics.uci.edu/ml/datasets/AI4I+2020+Predictive+Maintenance+Dataset"
     doi: "10.24432/C5HS5C"
     license: "CC BY 4.0"
     source_type: "tabular_predictive_maintenance"
@@ -41,6 +43,7 @@ sources:
     notes: >
       Good source for compact manufacturing cases where telemetry contains
       air temperature, process temperature, rotational speed, torque, and tool wear.
+      The legacy ML-archive URL is kept as related_urls for coordinators.
 
   - id: "sdnet2018"
     name: "SDNET2018 Concrete Crack Image Dataset"
@@ -124,3 +127,189 @@ sources:
     notes: >
       Good for eventual human-expert case authoring. Avoid sensitive cockpit audio
       or personal details; use sanitized composites.
+
+  - id: "euroc_mav"
+    name: "EuRoC MAV Visual-Inertial Datasets"
+    domain: "robotics"
+    url: "https://projects.asl.ethz.ch/datasets/doku.php?id=kmavvisualinertialdatasets"
+    license: "Creative Commons; verify per-file terms"
+    source_type: "robotics_sensor_logs"
+    scale: "Machine-hall and Vicon-room flights with stereo, IMU, and motion-capture ground truth"
+    useful_for:
+      - "camera-IMU time offset"
+      - "visual-inertial odometry drift"
+      - "Allan-deviation / IMU noise modeling"
+    curation_status: "use_as_source_pattern"
+    notes: >
+      Use summarized calibration and residual patterns. Do not bundle raw bags
+      unless dataset terms and storage are reviewed.
+
+  - id: "nist_dimensional_metrology"
+    name: "NIST Dimensional Metrology / Shop-Floor Measurement Guidance"
+    domain: "manufacturing"
+    url: "https://www.nist.gov/pml/dimensional-metrology"
+    license: "US government public information; verify figure reuse"
+    source_type: "metrology_guidance"
+    scale: "CMM, probe qualification, and thermal-error practice notes"
+    useful_for:
+      - "CMM thermal drift"
+      - "probe qualification skips"
+      - "method disagreement (CMM vs air gage)"
+    curation_status: "use_as_source_pattern"
+    notes: >
+      Convert ISO 10360-style warm-up and qualification loopholes into synthetic
+      travelers. Do not copy NIST figure captions verbatim.
+
+  - id: "usgs_epa_water_quality"
+    name: "USGS Water-Quality Monitoring and EPA CWA Methods"
+    domain: "environmental_science"
+    url: "https://www.usgs.gov/mission-areas/water-resources/science/water-quality-monitoring"
+    license: "US government public information"
+    source_type: "field_sampling_qa"
+    scale: "National water-quality methods, hold times, blanks, and cooler-temperature practice"
+    useful_for:
+      - "filter-blank contamination"
+      - "nutrient hold-time / ice-melt spoilage"
+      - "sensor versus grab-sample disagreement"
+    curation_status: "safe_to_reference_with_attribution"
+    notes: >
+      Pair with https://www.epa.gov/cwa-methods for hold-time tables. Summarize
+      QA patterns; do not copy lab SOP text.
+
+  - id: "nist_pml_instrumentation"
+    name: "NIST Physical Measurement Laboratory Instrumentation Practice"
+    domain: "physics"
+    url: "https://www.nist.gov/pml"
+    license: "US government public information; verify figure reuse"
+    source_type: "instrumentation_guidance"
+    scale: "Optical detectors, lock-in measurement, and RF / antenna-range metrology notes"
+    useful_for:
+      - "photodiode saturation"
+      - "lock-in phase setting"
+      - "near-field versus Friis antenna gain"
+    curation_status: "use_as_source_pattern"
+    notes: >
+      Use as pattern families for physics/instrumentation cases. Do not copy
+      procedure manuals or calibration-report prose.
+
+  - id: "asm_failure_analysis_patterns"
+    name: "ASM Failure-Analysis Case Pattern Family"
+    domain: "materials_science"
+    url: "https://www.asminternational.org/results/-/journal_content/56/10192/FAILURE_ANALYSIS"
+    license: "Generally copyrighted; summarize only"
+    source_type: "failure_analysis_narratives"
+    scale: "Published hydrogen-embrittlement, weld HAZ, and heat-treat case families"
+    useful_for:
+      - "plating hydrogen bake skips"
+      - "weld interpass temperature"
+      - "overaging versus Hall-Petch misattribution"
+    curation_status: "use_as_source_pattern"
+    notes: >
+      Licensing does not permit copying handbook or journal text. Write original
+      synthetic travelers that preserve only the public mechanism pattern.
+
+  - id: "k8s_prometheus_incident_patterns"
+    name: "Kubernetes HPA and Prometheus Counter-Reset Incident Patterns"
+    domain: "software_systems"
+    url: "https://prometheus.io/docs/practices/histograms/"
+    license: "Public documentation; Apache-2.0 for Prometheus itself"
+    source_type: "observability_practice"
+    scale: "Community incident families around rate() on resetting counters, scrape gaps, and pod-sum CPU"
+    useful_for:
+      - "Prometheus scrape aliasing"
+      - "HPA sidecar CPU"
+      - "retry/idempotency protocol loopholes"
+    curation_status: "use_as_source_pattern"
+    notes: >
+      Combine with the OpenStack fault-injection dataset lane for timeout/retry
+      composites. Do not copy vendor postmortems.
+
+  - id: "nasa_cmapss"
+    name: "NASA C-MAPSS Jet Engine Simulated Data"
+    domain: "aerospace"
+    url: "https://data.nasa.gov/dataset/cmapss-jet-engine-simulated-data"
+    license: "NASA public dataset; verify per snapshot"
+    source_type: "run_to_failure_and_degradation"
+    scale: "Simulated turbofan sensor time series with labeled degradation"
+    useful_for:
+      - "sensor bias versus true degradation"
+      - "health-index disagreements"
+      - "incomplete reference-probe records"
+    curation_status: "safe_to_reference_with_attribution"
+    notes: >
+      Sister lane to NASA PCoE
+      (https://www.nasa.gov/intelligent-systems-division/discovery-and-systems-health/pcoe/pcoe-data-set-repository/).
+      Existing IN-012 / IN-016 already use this pattern family. Do not copy
+      raw run files into YAML.
+
+  - id: "metropt3"
+    name: "MetroPT-3 Compressor Dataset"
+    domain: "manufacturing"
+    url: "https://archive.ics.uci.edu/dataset/791/metropt+3+dataset"
+    license: "See UCI dataset page; public research dataset"
+    source_type: "compressor_telemetry"
+    scale: "Oil-injected screw compressor analog pressure, motor current, and load/unload cycles"
+    useful_for:
+      - "false air-leak alarms"
+      - "analog transmitter drift"
+      - "load/unload residual analysis"
+    curation_status: "use_as_source_pattern"
+    notes: >
+      Summarize analog-versus-digital pressure disagreements. Do not copy
+      dataset rows.
+
+  - id: "scania_component_x"
+    name: "SCANIA Component X Predictive Maintenance Dataset"
+    domain: "manufacturing"
+    url: "https://doi.org/10.5878/jvb5-d390"
+    license: "See SND / Scientific Data article; verify before redistribution"
+    source_type: "predictive_maintenance"
+    scale: "Heavy-vehicle air-system / component-X endurance with oil and wear labels"
+    useful_for:
+      - "oil chemistry versus mechanical wear"
+      - "air-drier cartridge poisoning"
+      - "silicone / contaminant separation"
+    curation_status: "use_as_source_pattern"
+    notes: >
+      Paper: https://www.nature.com/articles/s41597-025-04802-6. Use the
+      oil-versus-wear pattern only; do not copy tables.
+
+  - id: "k8s_rca_labs"
+    name: "Kubernetes RCA / Chaos-Mesh Incident Labs"
+    domain: "software_systems"
+    url: "https://github.com/coroot/rca-lab"
+    related_urls:
+      - "https://github.com/chaos-mesh/chaos-mesh"
+      - "https://github.com/OnyiGlobal2025/taskflow-incident-lab"
+    license: "Varies by repo; treat as pattern inspiration"
+    source_type: "fault_injection_labs"
+    scale: "Community RCA labs, Chaos Mesh experiments, and taskflow incident sandboxes"
+    useful_for:
+      - "HPA / sidecar metric mistakes"
+      - "Prometheus scrape and counter-reset artifacts"
+      - "retry/timeout idempotency loopholes"
+      - "DNS-TTL connection storms"
+    curation_status: "use_as_source_pattern"
+    notes: >
+      Sister lane to OpenStack fault injection and Prometheus practice.
+      Chaos Mesh (https://github.com/chaos-mesh/chaos-mesh) supplies timeout /
+      pod-restart / DNS-chaos patterns. TaskFlow
+      (https://github.com/OnyiGlobal2025/taskflow-incident-lab) supplies
+      Break-Detect-Fix runbook structure. Do not copy lab scenario text.
+
+  - id: "calce_nasa_battery_aging"
+    name: "CALCE / NASA Battery Aging and Formation Pattern Family"
+    domain: "energy"
+    url: "https://calce.umd.edu/battery-data"
+    license: "Verify per dataset; NASA PCoE battery sets are public"
+    source_type: "battery_aging_tables"
+    scale: "Public lithium-ion cycle, calendar-aging, and impedance records"
+    useful_for:
+      - "anode moisture"
+      - "formation rest skips"
+      - "calendar aging versus cycle-life misattribution"
+      - "BMS current-shunt temperature coefficient"
+    curation_status: "use_as_source_pattern"
+    notes: >
+      Overlaps NASA PCoE battery files. Use summarized KF, CE, and SOC patterns;
+      do not redistribute raw cycling files unless terms allow.

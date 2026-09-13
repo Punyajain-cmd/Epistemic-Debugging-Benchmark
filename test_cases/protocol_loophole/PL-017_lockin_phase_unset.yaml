@@ -1,0 +1,146 @@
+id: "PL-017"
+title: "Chopped Photocurrent Vanishes Because the Lock-In Phase Was Left at 90 deg"
+version: "1.0"
+
+domain: "physics"
+subdomain: "lock_in_detection"
+failure_category: "protocol_human_loophole"
+difficulty: "medium"
+information_regime: "complete"
+split: "held_out"
+
+objective: >
+  Measure a 17 Hz chopped photocurrent of about 2.4 nA on a new photodiode
+  test structure. The lock-in X channel should report that current with SNR
+  above 40.
+
+protocol:
+  - step: 1
+    action: "Chop the 635 nm beam at 17 Hz and feed the TIA output to a lock-in"
+    details: "Reference is the chopper TTL. The previous user left the phase at 90 deg for a quadrature noise study."
+    notes: "The SOP says 'Auto-Phase on a strong signal, then hold'; that step is unchecked."
+
+  - step: 2
+    action: "Record X, Y, and R for 60 s"
+    details: "X is near zero; R is 2.38 nA; Y is -2.37 nA."
+    notes: "The student reported 'no photocurrent' because the spreadsheet plots X only."
+
+  - step: 3
+    action: "Check optical power and TIA on a scope"
+    details: "Scope shows a clean 17 Hz square photocurrent of 2.4 nA p-p equivalent."
+
+telemetry:
+  lockin:
+    description: "Lock-in channels with phase = 90 deg"
+    data_type: "table"
+    values:
+      X_nA: 0.04
+      Y_nA: -2.37
+      R_nA: 2.38
+      phase_deg: 90.0
+      time_constant_s: 1.0
+    observations:
+      - "R matches the expected 2.4 nA; X does not."
+      - "Phase is 90.0 deg, not near 0."
+
+  after_autophase:
+    description: "Same alignment after Auto-Phase"
+    data_type: "table"
+    values:
+      X_nA: 2.39
+      Y_nA: 0.03
+      R_nA: 2.39
+      phase_deg: 0.7
+    observations:
+      - "Auto-Phase recovers X without touching optics."
+
+  optical:
+    description: "Independent beam diagnostics"
+    data_type: "text"
+    observations:
+      - "Power meter reads 1.02 mW, the usual value."
+      - "Scope at the TIA shows a 17 Hz square wave."
+      - "Dark X with the beam blocked is 0.01 nA."
+
+contextual_clues:
+  - "The previous experiment used Y-channel quadrature at 90 deg and posted a sticky note that fell off."
+  - "The analysis notebook imports column 'X' only."
+  - "The photodiode lot is new, so the first story was a dead diode."
+  - "Room lights are DC; they do not alias into 17 Hz."
+
+ground_truth:
+  root_cause: >
+    The lock-in phase was left at 90 deg from a quadrature study, so the
+    photocurrent sat on Y while the student plotted X. The diode, beam, and
+    TIA are fine. Auto-Phase restores X without any device change.
+  root_cause_category: "protocol_human_loophole"
+  causal_chain:
+    - "The previous user set lock-in phase to 90 deg"
+    - "The SOP Auto-Phase step was skipped"
+    - "The chopped photocurrent appeared on Y and R, not X"
+    - "The notebook imported only X and reported zero current"
+    - "Scope and power meter show a healthy 17 Hz photocurrent"
+    - "Auto-Phase moves the signal back to X"
+  intervention: >
+    Run Auto-Phase (or set phase from a known strong chop), record X, and
+    repeat with the beam blocked. If X returns to 2.4 nA and drops to dark
+    when blocked, the phase-setting diagnosis is confirmed. Save phase in
+    the recipe file.
+  key_evidence:
+    - "R = 2.38 nA while X ~ 0 at 90 deg"
+    - "Scope shows the photocurrent"
+    - "Auto-Phase recovers X"
+    - "Dark current is tiny"
+  alternative_diagnoses:
+    - "Dead photodiode"
+    - "Chopper frequency not matching the lock-in"
+    - "TIA gain set to zero"
+    - "Beam misaligned off the diode"
+  why_alternatives_fail:
+    "Dead photodiode": "Scope and R-channel both show 2.4 nA."
+    "Chopper frequency not matching the lock-in": "Reference is the chopper TTL and R is stable."
+    "TIA gain set to zero": "Scope at the TIA output is a full square wave."
+    "Beam misaligned off the diode": "Power on the diode and the TIA waveform are normal."
+  difficulty_justification: >
+    Medium: easy if R and phase are inspected, easy to miss if the workflow
+    only plots X.
+
+scoring:
+  weights:
+    root_cause: 0.30
+    causal_chain: 0.40
+    intervention: 0.30
+  root_cause_keywords:
+    - "phase"
+    - "lock-in"
+    - "quadrature"
+    - "X"
+    - "Y"
+    - "Auto-Phase"
+  partial_credit_causes:
+    "wrong lock-in setting": 0.75
+    "phase 90": 0.95
+    "dead diode": 0.1
+  evidence_keywords:
+    - "90"
+    - "R"
+    - "Auto-Phase"
+
+available_tools:
+  - "oscilloscope_analyzer"
+  - "spectrum_analyzer"
+  - "calibration_checker"
+max_tool_calls: 10
+
+source: >
+  Synthetic composite inspired by public lock-in amplifier setup pitfalls
+  and NIST-style optical-current measurement practice. No vendor manual text
+  copied.
+source_url: "https://www.nist.gov/pml"
+expert_validated: false
+tags:
+  - "physics"
+  - "lock_in"
+  - "phase"
+  - "protocol"
+author: "EpiDebug Team"

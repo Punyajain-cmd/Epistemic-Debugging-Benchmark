@@ -1,0 +1,145 @@
+id: "IN-022"
+title: "Bridge False Live-Load from Wrong Strain-Gauge Thermal Compensation"
+version: "1.0"
+
+domain: "civil_engineering"
+subdomain: "structural_health_monitoring"
+failure_category: "instrumentation_artifact"
+difficulty: "medium"
+information_regime: "complete"
+split: "held_out"
+
+objective: >
+  Confirm that a steel girder's live-load strain under a 3-axle test truck
+  stays below 180 ue. Overnight the logger showed 240 ue 'truck' peaks while
+  the bridge was closed, triggering an unnecessary load restriction.
+
+protocol:
+  - step: 1
+    action: "Bond 350 ohm foil gauges to the bottom flange and wire a quarter-bridge"
+    details: "Gauges are matched to steel (11.7 ppm/C). The logger's dummy-gauge CTE was left at the concrete default 10.0 ppm/C from the last job."
+    notes: "No dummy gauge was mounted on an unstressed steel coupon."
+
+  - step: 2
+    action: "Log at 1 Hz through a clear night and a morning truck run"
+    details: "Air temperature fell from 18.4 C at dusk to 4.1 C at dawn."
+    notes: "The closed-bridge 'peaks' track the temperature drop, not axle passages."
+
+  - step: 3
+    action: "Compare to a vibrating-wire sister gauge and a truck-pass timestamp"
+    details: "The vibrating-wire channel has its own temperature sensor and steel batch factor."
+
+telemetry:
+  overnight:
+    description: "Apparent microstrain and air temperature, bridge closed"
+    data_type: "table"
+    values:
+      hour: [18, 21, 0, 3, 6]
+      foil_ue: [12, 71, 148, 211, 244]
+      vw_ue: [8, 11, 9, 14, 12]
+      air_C: [18.4, 13.2, 8.8, 5.6, 4.1]
+    observations:
+      - "Foil 'strain' rises 230 ue while the bridge is empty."
+      - "Vibrating-wire strain stays near 10 ue."
+
+  truck_pass:
+    description: "3-axle truck at 09:12 versus the dawn false peak"
+    data_type: "table"
+    values:
+      event: ["dawn_false", "truck_vw", "truck_foil_raw"]
+      peak_ue: [244, 126, 318]
+    observations:
+      - "True truck live-load on the VW gauge is 126 ue."
+      - "Foil raw peak is 318 ue because the thermal offset is still present."
+
+  logger_config:
+    description: "Compensation settings"
+    data_type: "text"
+    observations:
+      - "Gauge factor 2.10 is correct."
+      - "Dummy CTE in the logger is 10.0 ppm/C (concrete), not 11.7 ppm/C (steel)."
+      - "Quarter-bridge with no bonded dummy on a steel coupon."
+
+contextual_clues:
+  - "The logger was last used on a concrete box-girder job."
+  - "Infrared photos show uniform flange cooling, no local heater."
+  - "WIM cameras confirm the deck was empty overnight."
+  - "A passing engineer suggested overnight thermal ratcheting of the bearings."
+
+ground_truth:
+  root_cause: >
+    The foil quarter-bridge used a leftover concrete CTE in the logger and no
+    steel dummy gauge. Apparent strain was almost entirely thermal apparent
+    strain from a 14 C night drop. The vibrating-wire sister channel shows
+    the girder did not take 240 ue of live load while closed.
+  root_cause_category: "instrumentation_artifact"
+  causal_chain:
+    - "Foil gauges were wired as an uncompensated quarter-bridge"
+    - "The logger still had a 10.0 ppm/C concrete dummy CTE from the previous job"
+    - "Night air dropped about 14 C on a steel flange"
+    - "Uncompensated thermal apparent strain accumulated to ~240 ue"
+    - "The closed-bridge alarm looked like an overload"
+    - "A temperature-aware vibrating-wire gauge stayed near 10 ue until the real truck"
+  intervention: >
+    Mount a dummy gauge on an unstressed steel coupon, set the logger CTE to
+    11.7 ppm/C, and replay a night plus a truck pass. If the overnight foil
+    channel collapses to the VW residual and the truck peak matches ~126 ue,
+    the compensation diagnosis is confirmed.
+  key_evidence:
+    - "Overnight foil strain tracks temperature, not traffic"
+    - "VW sister gauge is flat while closed"
+    - "Logger CTE is the concrete default"
+    - "WIM cameras show an empty deck"
+  alternative_diagnoses:
+    - "Bearing lock-in caused real overnight strain"
+    - "The truck overloaded the girder at dawn"
+    - "Gauge factor was typed wrong"
+    - "A local heat source warped the flange"
+  why_alternatives_fail:
+    "Bearing lock-in caused real overnight strain": "The VW channel on the same flange is flat."
+    "The truck overloaded the girder at dawn": "The 244 ue peak occurs hours before the 09:12 truck and while cameras show no vehicles."
+    "Gauge factor was typed wrong": "Gauge factor 2.10 is correct; the CTE field is the one left at 10.0."
+    "A local heat source warped the flange": "IR shows uniform cooling."
+  difficulty_justification: >
+    Medium: thermal apparent strain is a standard SHM trap, but the leftover
+    concrete CTE and a closed-bridge alarm make it look structural.
+
+scoring:
+  weights:
+    root_cause: 0.30
+    causal_chain: 0.40
+    intervention: 0.30
+  root_cause_keywords:
+    - "thermal"
+    - "compensation"
+    - "strain gauge"
+    - "CTE"
+    - "dummy"
+    - "temperature"
+  partial_credit_causes:
+    "temperature artifact": 0.8
+    "wrong CTE": 0.85
+    "real overload": 0.2
+  evidence_keywords:
+    - "vibrating-wire"
+    - "overnight"
+    - "concrete"
+
+available_tools:
+  - "calibration_checker"
+  - "statistical_analyzer"
+  - "material_properties"
+max_tool_calls: 12
+
+source: >
+  Synthetic composite inspired by public structural-health-monitoring thermal
+  compensation patterns and civil inspection datasets such as SDNET-style
+  field campaigns.
+source_url: "https://www.kaggle.com/datasets/atharv0919/sdnet2018-a-concrete-crack-image-dataset"
+expert_validated: false
+tags:
+  - "civil_engineering"
+  - "strain_gauge"
+  - "thermal_compensation"
+  - "shm"
+author: "EpiDebug Team"

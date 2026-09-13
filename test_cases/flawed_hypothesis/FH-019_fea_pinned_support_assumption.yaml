@@ -1,0 +1,144 @@
+id: "FH-019"
+title: "Girder Midspan Moment Overpredicted by Pinned-Support FEA"
+version: "1.0"
+
+domain: "civil_engineering"
+subdomain: "structural_analysis"
+failure_category: "flawed_hypothesis"
+difficulty: "medium"
+information_regime: "complete"
+split: "held_out"
+
+objective: >
+  Predict midspan live-load moment of a two-span steel girder under a 3-axle
+  test truck to within 10% of field strain. The design memo treated both
+  piers as perfect pins.
+
+protocol:
+  - step: 1
+    action: "Build a beam FEA with pinned piers and a simple-span moment envelope"
+    details: "Predicted midspan moment 1840 kN-m; predicted pier rotation free."
+    notes: "The real neoprene bearings have rotational stiffness ~18 MN-m/rad that was called 'negligible'."
+
+  - step: 2
+    action: "Run the test truck and convert flange strain to moment"
+    details: "Measured midspan moment 1290 kN-m; pier rotations are 0.11-0.13 deg, not free-end scale."
+    notes: "The team first suspected the truck was lighter than posted."
+
+  - step: 3
+    action: "Weigh the truck and re-analyze with rotational springs"
+    details: "Truck axle weights match the permit. Springs of 18 MN-m/rad drop predicted moment to 1340 kN-m."
+
+telemetry:
+  moment:
+    description: "Midspan moment: model versus field"
+    data_type: "table"
+    values:
+      method: ["pinned_FEA", "field_strain", "spring_FEA", "posted_truck_check"]
+      kNm: [1840, 1290, 1340, 1285]
+    observations:
+      - "Pinned FEA is 43% high."
+      - "A rotational-spring model is within 4% of strain."
+
+  bearings:
+    description: "Pier rotation and bearing stiffness"
+    data_type: "table"
+    values:
+      pier: ["A", "B"]
+      rotation_deg: [0.12, 0.11]
+      inferred_k_MNm_rad: [17.4, 18.6]
+    observations:
+      - "Rotations are far below a free pin under this load."
+      - "Inferred stiffness matches the neoprene datasheet."
+
+  truck:
+    description: "Axle weigh-in-motion"
+    data_type: "numeric"
+    values: [62.1, 89.4, 88.7]
+    units: "kN"
+    observations:
+      - "Axles match the permit within 3%."
+
+contextual_clues:
+  - "Undergraduate beam charts assume pins; the memo copied that boundary condition."
+  - "Neoprene bearing pads are 25 mm and visibly squat under dead load."
+  - "A thermal strain survey at dawn is small compared with the truck peak."
+  - "Someone suggested the strain gauges were on the wrong flange."
+
+ground_truth:
+  root_cause: >
+    The analysis hypothesis that pier bearings are perfect pins is false.
+    Rotationally stiff neoprene pads attract negative moment to the piers
+    and cut midspan live-load moment by about 30%. The truck mass and gauges
+    are fine.
+  root_cause_category: "flawed_hypothesis"
+  causal_chain:
+    - "The FEA pinned both piers and used a simple-span envelope"
+    - "Real neoprene bearings supply ~18 MN-m/rad"
+    - "Pier rotations under the truck are only ~0.12 deg"
+    - "Negative moment is taken at the piers"
+    - "Midspan moment measures 1290 kN-m versus 1840 predicted"
+    - "Reintroducing springs brings the model to 1340 kN-m"
+  intervention: >
+    Re-run the truck with the spring model and, if possible, a temporary
+    rotational lock-off of one pad. If the spring model stays within 10% and
+    a lock-off shifts moment toward the pinned prediction, the boundary-
+    condition diagnosis is confirmed.
+  key_evidence:
+    - "43% midspan miss"
+    - "Small pier rotations"
+    - "Truck weights match the permit"
+    - "Spring FEA recovers the strain"
+  alternative_diagnoses:
+    - "The test truck was light"
+    - "Strain gauges on the wrong flange"
+    - "Composite action with the deck was ignored (the only error)"
+    - "Thermal gradients dominated"
+  why_alternatives_fail:
+    "The test truck was light": "WIM axles match the permit."
+    "Strain gauges on the wrong flange": "Top and bottom flange pair gives a consistent section moment."
+    "Composite action with the deck was ignored (the only error)": "Composite action is already in both models; the residual closes when springs are added."
+    "Thermal gradients dominated": "Dawn thermal survey is small versus the truck peak."
+  difficulty_justification: >
+    Medium: pin supports are the textbook default. The solver must treat
+    bearing stiffness as a first-class boundary condition.
+
+scoring:
+  weights:
+    root_cause: 0.30
+    causal_chain: 0.40
+    intervention: 0.30
+  root_cause_keywords:
+    - "pin"
+    - "bearing"
+    - "rotational"
+    - "boundary"
+    - "moment"
+    - "neoprene"
+  partial_credit_causes:
+    "wrong boundary conditions": 0.85
+    "bearing stiffness": 0.85
+    "wrong truck weight": 0.2
+  evidence_keywords:
+    - "1840"
+    - "1290"
+    - "spring"
+
+available_tools:
+  - "statistical_analyzer"
+  - "material_properties"
+  - "calibration_checker"
+max_tool_calls: 12
+
+source: >
+  Synthetic composite inspired by public bridge load-test versus FEA
+  boundary-condition failures and SDNET-style field campaigns. No
+  proprietary rating report copied.
+source_url: "https://www.kaggle.com/datasets/atharv0919/sdnet2018-a-concrete-crack-image-dataset"
+expert_validated: false
+tags:
+  - "civil_engineering"
+  - "fea"
+  - "bearings"
+  - "boundary_conditions"
+author: "EpiDebug Team"

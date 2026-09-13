@@ -1,0 +1,145 @@
+id: "IN-021"
+title: "HPA Thrash from Sidecar CPU Included in the Scaling Metric"
+version: "1.0"
+
+domain: "software_systems"
+subdomain: "kubernetes_autoscaling"
+failure_category: "instrumentation_artifact"
+difficulty: "medium"
+information_regime: "complete"
+split: "held_out"
+
+objective: >
+  Autoscale checkout-api between 3 and 12 pods to hold application p95 latency
+  under 200 ms at 800 rps. After adding a service-mesh sidecar, the HPA
+  flapped 3-12-3 every few minutes and latency got worse, not better.
+
+protocol:
+  - step: 1
+    action: "Enable HPA on resource cpu, target 55% of request"
+    details: "CPU request is 400 m on the app container; the new sidecar requests 100 m but bursts to 350 m during TLS."
+    notes: "metrics-server reports pod CPU as the sum of all containers."
+
+  - step: 2
+    action: "Ramp synthetic traffic to 800 rps"
+    details: "App-container CPU sits at 42-48% of its request; pod-sum CPU sits at 78-95%."
+    notes: "HPA therefore scales out, then in, because the app is not actually saturated."
+
+  - step: 3
+    action: "Compare app traces to sidecar CPU after the incident"
+    details: "Sidecar access logs show mTLS handshake storms when pods churn."
+
+telemetry:
+  hpa_and_latency:
+    description: "Replica count and latency during the ramp"
+    data_type: "table"
+    values:
+      minute: [2, 4, 6, 8, 10, 12]
+      replicas: [3, 9, 12, 4, 11, 3]
+      p95_ms: [164, 248, 310, 190, 295, 172]
+      app_cpu_pct_request: [44, 41, 38, 46, 40, 45]
+      pod_cpu_pct_request: [81, 92, 88, 79, 94, 83]
+    observations:
+      - "Replica count oscillates while app-container CPU never crosses 50%."
+      - "Latency worsens at 12 replicas, consistent with churn, not saturation."
+
+  sidecar:
+    description: "Sidecar CPU and handshake rate"
+    data_type: "table"
+    values:
+      sidecar_cpu_m: [310, 348, 329, 301, 355]
+      mtls_handshakes_per_s: [140, 260, 310, 90, 280]
+    observations:
+      - "Sidecar CPU tracks handshake storms during scale events."
+      - "The HPA metric includes this sidecar CPU."
+
+  saturation:
+    description: "True application saturation signals"
+    data_type: "text"
+    observations:
+      - "App thread pool idle is 35%+ throughout."
+      - "Database pool wait is 2 ms."
+      - "No 503s from the app container."
+
+contextual_clues:
+  - "The mesh was injected yesterday with default CPU requests."
+  - "HPA is still the stock cpu resource metric, not a custom app-only metric."
+  - "A similar flap happened on another mesh-injected service last quarter."
+  - "Cluster autoscaler logs are quiet; this is not a node-pressure story."
+
+ground_truth:
+  root_cause: >
+    The HPA scaled on pod-sum CPU, which is dominated by a bursty mesh
+    sidecar, not the checkout app. Scale-out caused more mTLS handshakes,
+    more sidecar CPU, and more flap. Application saturation metrics never
+    justified scaling.
+  root_cause_category: "instrumentation_artifact"
+  causal_chain:
+    - "A service-mesh sidecar was injected beside checkout-api"
+    - "metrics-server reports pod CPU as the sum of containers"
+    - "Sidecar TLS bursts pushed pod CPU above the 55% target while the app stayed near 45%"
+    - "HPA scaled out, creating more handshake load on new pods"
+    - "The loop flapped 3-12 replicas and p95 rose from churn"
+    - "App thread-pool and DB wait never showed saturation"
+  intervention: >
+    Point HPA at a container-specific or custom metric that excludes the
+    sidecar, raise sidecar requests, and rerun 800 rps. If replicas stabilize
+    near 4-5 and p95 returns under 200 ms, the metric-scope diagnosis is
+    confirmed.
+  key_evidence:
+    - "App CPU stays below target while pod CPU does not"
+    - "Latency worsens at max replicas"
+    - "Sidecar CPU tracks handshake storms"
+    - "App saturation signals are idle"
+  alternative_diagnoses:
+    - "The app cannot handle 800 rps"
+    - "The cluster is out of CPU"
+    - "A memory leak in v4.3"
+    - "Database saturation"
+  why_alternatives_fail:
+    "The app cannot handle 800 rps": "App CPU is 38-46% of request and the thread pool is idle."
+    "The cluster is out of CPU": "Cluster autoscaler is quiet and nodes schedule the 12-pod peaks."
+    "A memory leak in v4.3": "No OOMKills; the signal is CPU-sum flap."
+    "Database saturation": "Pool wait is 2 ms."
+  difficulty_justification: >
+    Medium: classic HPA-plus-sidecar instrumentation mistake. The solver must
+    split pod CPU from app CPU.
+
+scoring:
+  weights:
+    root_cause: 0.30
+    causal_chain: 0.40
+    intervention: 0.30
+  root_cause_keywords:
+    - "sidecar"
+    - "HPA"
+    - "CPU"
+    - "metric"
+    - "mesh"
+    - "container"
+  partial_credit_causes:
+    "wrong scaling metric": 0.8
+    "sidecar overhead": 0.75
+    "app overload": 0.2
+  evidence_keywords:
+    - "pod_cpu"
+    - "handshake"
+    - "replicas"
+
+available_tools:
+  - "trace_log_analyzer"
+  - "statistical_analyzer"
+max_tool_calls: 12
+
+source: >
+  Synthetic composite inspired by Kubernetes HPA / sidecar-CPU metric-scope
+  incidents in public RCA labs (Coroot rca-lab, TaskFlow incident lab). No
+  lab scenario text copied.
+source_url: "https://github.com/coroot/rca-lab"
+expert_validated: false
+tags:
+  - "kubernetes"
+  - "hpa"
+  - "sidecar"
+  - "autoscaling"
+author: "EpiDebug Team"
