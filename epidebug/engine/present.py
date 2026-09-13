@@ -13,7 +13,10 @@ from typing import Any
 from epidebug.engine.session import DiagnosisSession
 from epidebug.schema import ArtifactKind, ArtifactRole, Diagnosis, ExperimentInput
 
-VIEW_CONTRACT = "0.5"
+VIEW_CONTRACT = "0.6"
+
+# Coordinator smoke-test set: photo / CAD / sensor / log / material / process.
+CORE_EVIDENCE_IDS = ("photos", "cad", "sensors", "logs", "materials", "process")
 
 # Slots a complete machining / robotics / battery / lab dump should cover.
 EVIDENCE_SLOTS: list[dict[str, str]] = [
@@ -158,6 +161,8 @@ def build_ingest_view(
             "summaries": [],
             "coverage": [],
             "missing": [],
+            "core_missing": [],
+            "anomaly_highlights": [],
             "completeness": None,
             "source": "catalog",
             "gallery": _gallery([]),
@@ -189,6 +194,12 @@ def build_ingest_view(
         ],
         "coverage": coverage,
         "missing": [slot["label"] for slot in missing_slots],
+        "core_missing": [
+            eid
+            for eid in CORE_EVIDENCE_IDS
+            if not any(slot["id"] == eid and slot["present"] for slot in coverage)
+        ],
+        "anomaly_highlights": _anomaly_highlights(cards),
         "completeness": round(len(present_slots) / max(len(coverage), 1), 3),
         "source": "dump",
         "gallery": _gallery(cards),
@@ -273,6 +284,28 @@ def _enum_val(value: Any) -> str:
     return value.value if hasattr(value, "value") else str(value or "")
 
 
+def _anomaly_highlights(cards: list[dict[str, Any]]) -> list[dict[str, str]]:
+    hits: list[dict[str, str]] = []
+    for card in cards:
+        stats = card.get("stats") or {}
+        for item in stats.get("anomalies") or []:
+            if isinstance(item, dict):
+                text = str(item.get("detail") or item)
+                hits.append({
+                    "filename": card["filename"],
+                    "kind": str(item.get("kind") or "csv"),
+                    "text": text,
+                })
+            else:
+                hits.append({"filename": card["filename"], "kind": "csv", "text": str(item)})
+        samples = stats.get("error_samples") or {}
+        for line in (samples.get("unique") or [])[:4]:
+            hits.append({"filename": card["filename"], "kind": "log", "text": str(line)})
+        if len(hits) >= 20:
+            break
+    return hits[:20]
+
+
 def _artifact_flags(art) -> list[str]:
     stats = art.stats or {}
     flags: list[str] = []
@@ -280,6 +313,9 @@ def _artifact_flags(art) -> list[str]:
         raw = stats.get(key) or []
         if isinstance(raw, list):
             flags.extend(str(item) for item in raw[:4])
+    samples = stats.get("error_samples") or {}
+    if isinstance(samples, dict):
+        flags.extend(str(item) for item in (samples.get("unique") or [])[:3])
     severity = stats.get("severity") or {}
     if isinstance(severity, dict) and severity.get("error"):
         flags.append(f"{severity['error']} error/fault lines")

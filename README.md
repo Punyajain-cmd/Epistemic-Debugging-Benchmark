@@ -67,7 +67,7 @@ python scripts/evaluate_engine.py --split all
 # Reference baselines (oracle / partial / distractor / category_only)
 python scripts/run_reference_models.py --all
 
-Dump the full experimental record — photos, CAD, logs, sensor files, materials, process — then run epistemic debugging. The UI checklist and `view.ingest` / `view.gallery` show what was actually read. See `docs/dump_testing.md`.
+Dump the full experimental record — photos, CAD, logs, sensor files, materials, process — then run epistemic debugging. The UI checklist and `view.ingest` / `view.gallery` show what was actually read. Independent smoke steps: `TEST.md` (fixtures in `mock_data/dump_demo/`).
 
 ```bash
 python scripts/serve.py

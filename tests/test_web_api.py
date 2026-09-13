@@ -37,7 +37,8 @@ def test_health_contract(client):
     body = res.json()
     assert body["status"] == "ok"
     assert body["cases"] >= 30
-    assert body["contract_version"] == "0.5"
+    assert body["contract_version"] == "0.6"
+    assert "dump_demo" in body["fixtures"]
     assert "view" in body["session_payload"]
     assert "ingest" in body["view_fields"]
     assert "gallery" in body["view_fields"]
@@ -68,7 +69,7 @@ def test_diagnose_catalog_case_includes_view(client):
     assert view["lead"]["cause"]
     assert view["hypotheses"]
     assert "posterior_pct" in view["hypotheses"][0]
-    assert view["contract_version"] == "0.5"
+    assert view["contract_version"] == "0.6"
     assert view["ingest"]["source"] == "catalog"
     assert view["gallery"]["images"] == []
     listed = client.get("/api/sessions").json()
@@ -174,7 +175,7 @@ def test_multifile_dump_exposes_gallery_and_coverage(client):
     res = client.post("/api/diagnose-bundle", data=data, files=files)
     assert res.status_code == 200
     view = res.json()["view"]
-    assert view["contract_version"] == "0.5"
+    assert view["contract_version"] == "0.6"
     assert view["file_count"] == 5
     assert view["ingest"]["file_count"] == 5
     assert view["ingest"]["completeness"] == 1.0
@@ -202,6 +203,45 @@ def test_multifile_dump_exposes_gallery_and_coverage(client):
     assert follow.status_code == 200
     assert follow.json()["view"]["file_count"] == 5
     assert follow.json()["view"]["followups"]
+
+
+def test_dump_demo_fixtures_via_diagnose_bundle(client):
+    demo = ROOT / "mock_data" / "dump_demo"
+    assert demo.is_dir()
+    files = [
+        ("files", ("pack_temp.csv", (demo / "pack_temp.csv").read_bytes(), "text/csv")),
+        ("files", ("charger.log", (demo / "charger.log").read_bytes(), "text/plain")),
+        ("files", ("housing_revC.step", (demo / "housing_revC.step").read_bytes(), "application/step")),
+        ("files", ("bore_finish.nc", (demo / "bore_finish.nc").read_bytes(), "text/plain")),
+        ("files", ("setup_vise.png", (demo / "setup_vise.png").read_bytes(), "image/png")),
+        ("files", ("vented_cells_result.png", (demo / "vented_cells_result.png").read_bytes(), "image/png")),
+        ("files", ("mill_cert_lot24081.txt", (demo / "mill_cert_lot24081.txt").read_bytes(), "text/plain")),
+    ]
+    data = {
+        "title": "Housing bore drift / pack venting",
+        "domain": "machining",
+        "unexpected_outcome": "Bore undersize; cells vented on 2C charge",
+        "objective": "Machine housings and assemble a pack",
+        "materials": "6082-T6 lot 24-081",
+        "processing": "Finish 0.08 mm/rev; 2C charge",
+        "setup_description": "Kurt vise, REV C STEP",
+        "context": "Night shift",
+        "roles": '["sensor","log","cad","process_doc","setup_photo","result_image","material_doc"]',
+        "captions": '["thermistor","charger","fixture","gcode","vise","vent","cert"]',
+    }
+    res = client.post("/api/diagnose-bundle", data=data, files=files)
+    assert res.status_code == 200
+    view = res.json()["view"]
+    assert view["contract_version"] == "0.6"
+    assert view["file_count"] == 7
+    assert view["ingest"]["core_missing"] == []
+    kinds = {h["kind"] for h in view["ingest"]["anomaly_highlights"]}
+    assert kinds & {"trend", "step", "outlier", "endpoint"}
+    assert "log" in kinds
+    csv_stats = next(a["stats"] for a in view["artifacts"] if a["filename"] == "pack_temp.csv")
+    assert csv_stats["anomalies"]
+    log_stats = next(a["stats"] for a in view["artifacts"] if a["filename"] == "charger.log")
+    assert log_stats["error_samples"]["unique"]
 
 
 def test_oversized_file_rejected(client):

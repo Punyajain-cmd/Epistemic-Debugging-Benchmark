@@ -1,0 +1,7 @@
+Mill certificate / CoA
+Alloy: 6082-T6 aluminium bar
+Lot: 24-081
+Heat: H-9082
+Supplier: Northstock Metals
+Hardness: 95 HB
+Note: bar sat on the shop floor overnight before the night-shift cut.

@@ -25,6 +25,8 @@ def test_ingest_sensor_csv():
     assert art.stats["time_column"] == "time_s"
     assert art.stats["numeric"]["temp_C"]["last"] > art.stats["numeric"]["temp_C"]["first"]
     assert any("rising" in note for note in art.stats["flags"])
+    assert art.stats["anomalies"]
+    assert any(item["kind"] == "trend" for item in art.stats["anomalies"])
 
 
 def test_ingest_log_flags_errors():
@@ -41,6 +43,9 @@ def test_ingest_log_flags_errors():
     assert art.stats["severity"]["warn"] >= 1
     assert art.stats["alarm_codes"]
     assert "error" in art.summary.lower() or "fault" in art.summary.lower()
+    assert art.stats["error_samples"]["count"] >= 2
+    assert art.stats["error_samples"]["first"]
+    assert any("overheat" in line.lower() for line in art.stats["error_samples"]["unique"])
 
 
 def test_ingest_cad_step_names():

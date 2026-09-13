@@ -35,6 +35,8 @@ def test_ingest_view_gallery_and_summaries():
     assert ingest["gallery"]["tables"][0]["filename"] == "pack_temp.csv"
     assert ingest["gallery"]["logs"][0]["summary"]
     assert ingest["source"] == "dump"
+    assert ingest["core_missing"] == ["photos", "cad", "materials", "process"]
+    assert ingest["anomaly_highlights"]
 
 
 def test_catalog_ingest_is_empty_not_false_missing():
@@ -42,4 +44,4 @@ def test_catalog_ingest_is_empty_not_false_missing():
     assert ingest["coverage"] == []
     assert ingest["completeness"] is None
     assert ingest["source"] == "catalog"
-    assert VIEW_CONTRACT == "0.5"
+    assert VIEW_CONTRACT == "0.6"

@@ -527,6 +527,31 @@ function pushSampleFile(file, role, caption) {
   pendingFiles.push({ file, role, caption, preview });
 }
 
+const SAMPLE_FIXTURES = [
+  { path: "/mock_data/dump_demo/pack_temp.csv", role: "sensor", caption: "Thermistor on pack can", type: "text/csv" },
+  { path: "/mock_data/dump_demo/charger.log", role: "log", caption: "Charger console", type: "text/plain" },
+  { path: "/mock_data/dump_demo/housing_revC.step", role: "cad", caption: "REV C fixture", type: "application/step" },
+  { path: "/mock_data/dump_demo/bore_finish.nc", role: "process_doc", caption: "Finish bore program", type: "text/plain" },
+  { path: "/mock_data/dump_demo/setup_vise.png", role: "setup_photo", caption: "Kurt vise setup", type: "image/png" },
+  { path: "/mock_data/dump_demo/vented_cells_result.png", role: "result_image", caption: "Vented 21700 cans", type: "image/png" },
+  { path: "/mock_data/dump_demo/mill_cert_lot24081.txt", role: "material_doc", caption: "Lot 24-081 mill cert", type: "text/plain" },
+];
+
+async function addFixtureFiles() {
+  for (const spec of SAMPLE_FIXTURES) {
+    try {
+      const res = await fetch(spec.path);
+      if (!res.ok) continue;
+      const blob = await res.blob();
+      const name = spec.path.split("/").pop();
+      const file = makeNamedFile(name, [blob], spec.type || blob.type || "application/octet-stream");
+      pushSampleFile(file, spec.role, spec.caption);
+    } catch (err) {
+      console.warn("fixture skipped", spec.path, err);
+    }
+  }
+}
+
 function addSampleDumpFiles() {
   const makers = [
     () => [
@@ -555,6 +580,11 @@ function addSampleDumpFiles() {
     ],
     () => [tinyPngFile("setup_vise.png"), "setup_photo", "Kurt vise setup"],
     () => [tinyPngFile("vented_cells_result.png"), "result_image", "Vented 21700 cans"],
+    () => [
+      makeTextFile("mill_cert_lot24081.txt", "Mill certificate / CoA\nAlloy: 6082-T6\nLot: 24-081\n"),
+      "material_doc",
+      "Lot 24-081 mill cert",
+    ],
   ];
   makers.forEach((make) => {
     try {
@@ -566,7 +596,7 @@ function addSampleDumpFiles() {
   });
 }
 
-function fillSample() {
+async function fillSample() {
   $("title").value = SAMPLE.title;
   $("domain").value = SAMPLE.domain;
   $("unexpected").value = SAMPLE.unexpected;
@@ -579,10 +609,18 @@ function fillSample() {
   $("logs").value = SAMPLE.logs;
   $("context").value = SAMPLE.context;
   document.querySelectorAll(".dossier details.disclose").forEach((el) => { el.open = true; });
+  const before = pendingFiles.length;
   try {
-    addSampleDumpFiles();
+    await addFixtureFiles();
   } catch (err) {
-    console.warn("Sample dump files failed", err);
+    console.warn("Fixture fetch failed", err);
+  }
+  if (pendingFiles.length === before) {
+    try {
+      addSampleDumpFiles();
+    } catch (err) {
+      console.warn("Sample dump files failed", err);
+    }
   }
   renderFiles();
   renderCoverage();

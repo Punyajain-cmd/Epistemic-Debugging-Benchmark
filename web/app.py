@@ -34,6 +34,7 @@ from epidebug.tools import TOOL_REGISTRY, invoke_tool, list_tools
 
 STATIC = Path(__file__).resolve().parent / "static"
 CASES_DIR = ROOT / "test_cases"
+MOCK_DATA = ROOT / "mock_data"
 MAX_FILE_BYTES = 25 * 1024 * 1024
 
 DOMAIN_ALIASES = {
@@ -113,6 +114,19 @@ def _split_lines(value: str | None) -> list[str]:
     return [ln.strip() for ln in value.replace("\r", "").split("\n") if ln.strip()]
 
 
+def _fixture_index() -> dict[str, list[str]]:
+    index: dict[str, list[str]] = {}
+    if not MOCK_DATA.is_dir():
+        return index
+    for folder in sorted(p for p in MOCK_DATA.iterdir() if p.is_dir()):
+        index[folder.name] = sorted(
+            p.name
+            for p in folder.iterdir()
+            if p.is_file() and not p.name.startswith(".") and p.suffix.lower() != ".md"
+        )
+    return index
+
+
 def _restore_file_store(upload_dir: Path) -> dict[str, Path]:
     store: dict[str, Path] = {}
     if not upload_dir.exists():
@@ -171,7 +185,7 @@ def create_app(
     app = FastAPI(
         title="EpiDebug",
         description="Dump the experiment. Diagnose competing causes.",
-        version="0.5.0",
+        version="0.6.0",
     )
     app.add_middleware(
         CORSMiddleware,
@@ -180,6 +194,8 @@ def create_app(
         allow_headers=["*"],
     )
     app.mount("/assets", StaticFiles(directory=STATIC), name="assets")
+    if MOCK_DATA.is_dir():
+        app.mount("/mock_data", StaticFiles(directory=MOCK_DATA), name="mock_data")
     app.state.engine = engine
     app.state.cases = loaded_cases
     app.state.case_index = case_index
@@ -228,6 +244,7 @@ def create_app(
             "accepts": ACCEPTS,
             "contract_version": VIEW_CONTRACT,
             "evidence_slots": EVIDENCE_SLOTS,
+            "fixtures": _fixture_index(),
             "max_file_bytes": MAX_FILE_BYTES,
             "session_payload": [
                 "session_id",
@@ -250,6 +267,10 @@ def create_app(
                 "POST /api/sessions/{id}/followup",
             ],
         }
+
+    @app.get("/api/fixtures")
+    def list_fixtures():
+        return {"contract_version": VIEW_CONTRACT, "fixtures": _fixture_index()}
 
     @app.get("/api/cases")
     def list_cases():

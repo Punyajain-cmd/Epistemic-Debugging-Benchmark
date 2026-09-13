@@ -22,7 +22,7 @@ Session JSON is stable for the existing page and also includes an additive `view
 
 API:
 
-- `GET /api/health` — engine mode, catalog size, `contract_version: "0.5"`, `evidence_slots`
+- `GET /api/health` — engine mode, catalog size, `contract_version: "0.6"`, `evidence_slots`, `fixtures`
 - `GET /api/cases` — picker rows (`objective_preview`, `failure_category_label`, regime)
 - `POST /api/diagnose-bundle` multipart form + `files` (optional `logs`, `protocol`)
 - `POST /api/diagnose` JSON `{ "case_id" }` or `{ "experiment" }`
@@ -31,4 +31,4 @@ API:
 - `POST /api/sessions/{id}/reject` | `add-info` | `followup`
 - `GET /api/files/{artifact_id}` preview (survives server restart)
 
-`view.ingest` includes per-file summaries, role/kind counts, and a completeness checklist. `view.gallery` groups images / tables / logs / CAD / documents. See [dump_testing.md](dump_testing.md) for a multi-file walkthrough.
+`view.ingest` includes per-file summaries, `core_missing` (photo/CAD/sensor/log/material/process), `anomaly_highlights`, and a completeness checklist. `view.gallery` groups images / tables / logs / CAD / documents. See [TEST.md](../TEST.md) for exact curl.

@@ -9,7 +9,7 @@ python -m pip install -e ".[dev,web]"
 python scripts/serve.py
 ```
 
-Open `http://127.0.0.1:8000`. Health should report `contract_version: "0.5"`.
+Open `http://127.0.0.1:8000`. Health should report `contract_version: "0.6"`. Exact curl: see [`TEST.md`](../TEST.md).
 
 ## Fastest path: sample fill
 
@@ -49,7 +49,7 @@ python -m pytest tests/test_ingest.py tests/test_present.py tests/test_web_api.p
 
 `test_multifile_dump_exposes_gallery_and_coverage` posts CSV + log + STEP + PNG + G-code and checks:
 
-- `view.contract_version == "0.5"`
+- `view.contract_version == "0.6"`
 - artifact summaries / stats / flags / `extracted_preview`
 - `view.gallery` buckets and `view.ingest.completeness == 1.0`
 - HITL `POST /api/sessions/{id}/followup` still returns the same gallery

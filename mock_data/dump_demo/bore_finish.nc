@@ -1,0 +1,5 @@
+(REV C bore finish)
+T4 M6
+S4200 M3
+G1 Z-12.0 F180
+M30

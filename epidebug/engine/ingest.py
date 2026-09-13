@@ -452,8 +452,20 @@ def _extract_log(data: bytes) -> tuple[str, dict[str, Any], str]:
                 break
     stamps = [m.group(0) for ln in lines[:400] if (m := TIMESTAMP_RE.search(ln))]
     flags = list(stats.get("flagged") or [])
+    error_lines = [
+        ln.strip()
+        for ln in lines
+        if SEVERITY_PATTERNS[0][1].search(ln) or any(w in ln.lower() for w in ERROR_WORDS)
+    ]
+    unique_errors = list(dict.fromkeys(error_lines))
     stats["severity"] = severity
     stats["timestamp_samples"] = stamps[:6]
+    stats["error_samples"] = {
+        "count": len(error_lines),
+        "first": error_lines[:3],
+        "last": error_lines[-3:] if error_lines else [],
+        "unique": unique_errors[:8],
+    }
     if stamps:
         stats["time_span"] = {"first": stamps[0], "last": stamps[-1]}
     alarms = sorted(set(re.findall(r"\b(?:ALM|ALARM|ERR)[-_ ]?[A-Z0-9]{1,8}\b", text, re.I)))
@@ -466,11 +478,14 @@ def _extract_log(data: bytes) -> tuple[str, dict[str, Any], str]:
         bits.append(f"{severity['warn']} warnings")
     if alarms:
         bits.append("codes " + ", ".join(alarms[:4]))
-    if flags:
-        bits.append("e.g. " + flags[0][:120])
+    if unique_errors:
+        bits.append("e.g. " + unique_errors[0][:120])
     elif stamps:
         bits.append(f"timestamps {stamps[0]} → {stamps[-1]}")
-    return text, stats, ". ".join(bits) + "."
+    sampled = ""
+    if unique_errors:
+        sampled = "\n\nSampled error lines:\n" + "\n".join(unique_errors[:8])
+    return (text + sampled)[:MAX_EXTRACT_CHARS], stats, ". ".join(bits) + "."
 
 
 def _extract_tabular(filename: str, data: bytes) -> tuple[str, dict[str, Any], str]:
@@ -499,6 +514,7 @@ def _extract_tabular(filename: str, data: bytes) -> tuple[str, dict[str, Any], s
     col_stats: dict[str, Any] = {}
     units: dict[str, str] = {}
     notes = []
+    anomalies: list[dict[str, str]] = []
     time_col = next((h for h in header if TIME_HEADER_RE.match(h)), None)
     for idx, name in enumerate(header[:12]):
         unit_match = UNIT_RE.match(name)
@@ -538,10 +554,9 @@ def _extract_tabular(filename: str, data: bytes) -> tuple[str, dict[str, Any], s
             notes.append(f"{name} varies widely ({vmin:.4g} to {vmax:.4g})")
         if any(abs(v) > 1e6 for v in vals[:200]):
             notes.append(f"{name} has extreme magnitudes")
-        drifted = abs(vals[-1] - vals[0]) > max(abs(mean) * 0.25, 1e-6)
-        if time_col != name and drifted and len(vals) >= 4:
-            direction = "rising" if vals[-1] > vals[0] else "falling"
-            notes.append(f"{name} {direction} {vals[0]:.4g} → {vals[-1]:.4g}")
+        col_anoms = _column_anomalies(name, vals, time_col=time_col)
+        anomalies.extend(col_anoms)
+        notes.extend(item["detail"] for item in col_anoms)
     if time_col and time_col in col_stats:
         times = col_stats[time_col]
         if times["n"] >= 3 and times["last"] < times["first"]:
@@ -566,12 +581,60 @@ def _extract_tabular(filename: str, data: bytes) -> tuple[str, dict[str, Any], s
         "rows": len(body),
         "numeric": col_stats,
         "flags": notes,
+        "anomalies": anomalies[:12],
         "empty_cells": empty_cells,
         "units": units,
     }
     if time_col:
         stats["time_column"] = time_col
     return excerpt, stats, summary
+
+
+def _column_anomalies(
+    name: str,
+    vals: list[float],
+    *,
+    time_col: str | None,
+) -> list[dict[str, str]]:
+    """Anomaly-ish cues: trend, step/spike, z-score outliers, last-vs-mean."""
+    found: list[dict[str, str]] = []
+    if len(vals) < 3:
+        return found
+    mean = sum(vals) / len(vals)
+    var = sum((v - mean) ** 2 for v in vals) / len(vals)
+    stdev = math.sqrt(var)
+    if time_col != name and abs(vals[-1] - vals[0]) > max(abs(mean) * 0.25, 1e-6) and len(vals) >= 4:
+        direction = "rising" if vals[-1] > vals[0] else "falling"
+        found.append({
+            "column": name,
+            "kind": "trend",
+            "detail": f"{name} {direction} {vals[0]:.4g} → {vals[-1]:.4g}",
+        })
+    if len(vals) >= 4:
+        deltas = [abs(vals[i] - vals[i - 1]) for i in range(1, len(vals))]
+        typical = sorted(deltas)[len(deltas) // 2]
+        peak = max(deltas)
+        if peak > 0 and peak > max(6 * typical, abs(mean) * 0.35, 1.0):
+            found.append({
+                "column": name,
+                "kind": "step",
+                "detail": f"{name} adjacent jump {peak:.4g} vs typical {typical:.4g}",
+            })
+    if stdev > 0:
+        outliers = [v for v in vals if abs(v - mean) / stdev > 2.5]
+        if outliers:
+            found.append({
+                "column": name,
+                "kind": "outlier",
+                "detail": f"{name} {len(outliers)} point(s) |z|>2.5 (e.g. {outliers[-1]:.4g})",
+            })
+    if abs(vals[-1] - mean) > max(2 * stdev, abs(mean) * 0.4, 1e-6):
+        found.append({
+            "column": name,
+            "kind": "endpoint",
+            "detail": f"{name} last {vals[-1]:.4g} vs mean {mean:.4g}",
+        })
+    return found
 
 
 def _extract_json(data: bytes) -> tuple[str, dict[str, Any], str]:
