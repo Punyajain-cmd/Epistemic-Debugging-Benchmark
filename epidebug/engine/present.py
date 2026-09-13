@@ -204,11 +204,16 @@ def coverage_from_experiment(experiment: ExperimentInput | None) -> list[dict[st
     present_map = {
         "failure": notes["unexpected_outcome"],
         "objective": notes["objective"],
-        "materials": notes["materials"] or bool(roles & {ArtifactRole.MATERIAL_DOC.value, ArtifactRole.DATASHEET.value}),
+        "materials": notes["materials"]
+        or bool(roles & {ArtifactRole.MATERIAL_DOC.value, ArtifactRole.DATASHEET.value}),
         "process": notes["process"] or ArtifactRole.PROCESS_DOC.value in roles,
         "setup": notes["setup"],
         "cad": ArtifactKind.CAD.value in kinds or ArtifactRole.CAD.value in roles,
-        "sensors": notes["telemetry"] or ArtifactKind.SENSOR.value in kinds or ArtifactRole.SENSOR.value in roles,
+        "sensors": (
+            notes["telemetry"]
+            or ArtifactKind.SENSOR.value in kinds
+            or ArtifactRole.SENSOR.value in roles
+        ),
         "logs": ArtifactKind.LOG.value in kinds or ArtifactRole.LOG.value in roles,
         "photos": ArtifactKind.IMAGE.value in kinds,
         "context": notes["context"],
@@ -293,7 +298,9 @@ def _artifact_cards(experiment: ExperimentInput | None) -> list[dict[str, Any]]:
                 "filename": art.filename,
                 "kind": _enum_val(art.kind),
                 "role": _enum_val(art.role),
-                "suggested_role": _enum_val(art.suggested_role) if art.suggested_role else _enum_val(art.role),
+                "suggested_role": (
+                    _enum_val(art.suggested_role) if art.suggested_role else _enum_val(art.role)
+                ),
                 "caption": art.caption,
                 "summary": art.summary,
                 "preview_url": art.preview_url,

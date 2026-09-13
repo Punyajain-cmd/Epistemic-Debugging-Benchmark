@@ -153,7 +153,8 @@ def classify(
     if ext in MATERIAL_EXT:
         return ArtifactKind.DOCUMENT, "text/plain"
     if ext in DOC_EXT:
-        return ArtifactKind.DOCUMENT, MIME_BY_EXT.get(ext, "application/pdf" if ext == ".pdf" else "text/plain")
+        default_mime = "application/pdf" if ext == ".pdf" else "text/plain"
+        return ArtifactKind.DOCUMENT, MIME_BY_EXT.get(ext, default_mime)
     if ext in LOG_EXT:
         return ArtifactKind.LOG, "text/plain"
 
@@ -241,7 +242,9 @@ def suggest_role(
         if any(tok in blob for tok in MATERIAL_TOKS):
             return ArtifactRole.MATERIAL_DOC
         if ext in {".pdf", ".md", ".docx"}:
-            return ArtifactRole.DATASHEET if "sheet" in name or "spec" in name else ArtifactRole.OTHER
+            if "sheet" in name or "spec" in name:
+                return ArtifactRole.DATASHEET
+            return ArtifactRole.OTHER
     if stats:
         numeric = stats.get("numeric") or {}
         if numeric and any(re.search(r"temp|volt|current|rpm|pressure", k, re.I) for k in numeric):
@@ -371,7 +374,11 @@ def _looks_like_log(text: str) -> bool:
     lines = [ln for ln in text.splitlines() if ln.strip()]
     if len(lines) < 2:
         return False
-    hits = sum(1 for ln in lines[:80] if any(w in ln.lower() for w in ERROR_WORDS) or TIMESTAMP_RE.search(ln))
+    hits = sum(
+        1
+        for ln in lines[:80]
+        if any(w in ln.lower() for w in ERROR_WORDS) or TIMESTAMP_RE.search(ln)
+    )
     return hits >= 2
 
 
@@ -407,7 +414,8 @@ def _sniff_magic(data: bytes) -> tuple[ArtifactKind | None, str | None]:
     if stripped.startswith(b"ISO-10303-21"):
         return ArtifactKind.CAD, "model/step"
     low4k = data[:4000].lower()
-    if data[:80].lower().lstrip().startswith(b"solid") and (b"facet" in low4k or b"vertex" in low4k):
+    ascii_stl = data[:80].lower().lstrip().startswith(b"solid")
+    if ascii_stl and (b"facet" in low4k or b"vertex" in low4k):
         return ArtifactKind.CAD, "model/stl"
     if _looks_like_binary_stl(data):
         return ArtifactKind.CAD, "model/stl"
@@ -530,7 +538,8 @@ def _extract_tabular(filename: str, data: bytes) -> tuple[str, dict[str, Any], s
             notes.append(f"{name} varies widely ({vmin:.4g} to {vmax:.4g})")
         if any(abs(v) > 1e6 for v in vals[:200]):
             notes.append(f"{name} has extreme magnitudes")
-        if time_col != name and abs(vals[-1] - vals[0]) > max(abs(mean) * 0.25, 1e-6) and len(vals) >= 4:
+        drifted = abs(vals[-1] - vals[0]) > max(abs(mean) * 0.25, 1e-6)
+        if time_col != name and drifted and len(vals) >= 4:
             direction = "rising" if vals[-1] > vals[0] else "falling"
             notes.append(f"{name} {direction} {vals[0]:.4g} → {vals[-1]:.4g}")
     if time_col and time_col in col_stats:
@@ -610,7 +619,8 @@ def _extract_json(data: bytes) -> tuple[str, dict[str, Any], str]:
             lists = {k: len(v) for k, v in parsed.items() if isinstance(v, list)}
             if lists:
                 stats["list_lengths"] = lists
-                summary += " Lists: " + ", ".join(f"{k}[{n}]" for k, n in list(lists.items())[:6]) + "."
+                listed = ", ".join(f"{k}[{n}]" for k, n in list(lists.items())[:6])
+                summary += f" Lists: {listed}."
     else:
         summary = "JSON scalar."
     return dumped, stats, summary
@@ -685,7 +695,8 @@ def _extract_cad(filename: str, data: bytes) -> tuple[str, dict[str, Any], str]:
     if ext in {".stl"} or _looks_like_binary_stl(data) or (
         head[:80].lower().lstrip().startswith(b"solid") and b"facet" in head[:2000].lower()
     ):
-        if head[:80].isascii() and b"solid" in head[:80].lower() and not _looks_like_binary_stl(data):
+        ascii_stl = head[:80].isascii() and b"solid" in head[:80].lower()
+        if ascii_stl and not _looks_like_binary_stl(data):
             text = _decode(head)
             facets = len(re.findall(r"facet normal", text, re.I))
             stats["facets_seen"] = facets
@@ -777,7 +788,8 @@ def _extract_image(filename: str, data: bytes) -> tuple[str, dict[str, Any], str
             if interesting:
                 stats["exif"] = interesting
                 if "DateTimeOriginal" in interesting or "DateTime" in interesting:
-                    summary += f" Shot {interesting.get('DateTimeOriginal') or interesting.get('DateTime')}."
+                    shot = interesting.get("DateTimeOriginal") or interesting.get("DateTime")
+                    summary += f" Shot {shot}."
     except Exception:
         summary = f"Image {filename} ({len(data)} bytes)."
     if tokens:
@@ -819,7 +831,12 @@ def _extract_notebook(data: bytes) -> tuple[str, dict[str, Any], str]:
     summary = f"Notebook with {n_cells} cells ({n_code} code, {n_md} markdown)."
     if heading:
         summary = f"{heading}. " + summary
-    return text[:MAX_EXTRACT_CHARS], {"cells": n_cells, "code_cells": n_code, "markdown_cells": n_md, "heading": heading}, summary
+    return text[:MAX_EXTRACT_CHARS], {
+        "cells": n_cells,
+        "code_cells": n_code,
+        "markdown_cells": n_md,
+        "heading": heading,
+    }, summary
 
 
 def _extract_pdf(data: bytes) -> tuple[str, dict[str, Any], str]:
@@ -834,7 +851,10 @@ def _extract_pdf(data: bytes) -> tuple[str, dict[str, Any], str]:
             text = "\n".join(pages)
             summary = f"PDF with {len(pdf.pages)} pages; extracted {len(pages)}."
             summary = _pdf_summary_bits(text, summary)
-            return text[:MAX_EXTRACT_CHARS], {"pages": len(pdf.pages), "extracted_pages": len(pages)}, summary
+            return text[:MAX_EXTRACT_CHARS], {
+                "pages": len(pdf.pages),
+                "extracted_pages": len(pages),
+            }, summary
     except Exception:
         pass
     try:
@@ -868,7 +888,8 @@ def _pdf_summary_bits(text: str, summary: str) -> str:
     first = re.sub(r"\s+", " ", first).strip()
     if first:
         summary += " Opening: " + first[:160]
-    hits = [w for w in ("material", "sds", "hazard", "temperature", "voltage", "protocol", "lot") if w in text.lower()]
+    keywords = ("material", "sds", "hazard", "temperature", "voltage", "protocol", "lot")
+    hits = [w for w in keywords if w in text.lower()]
     if hits:
         summary += " Mentions " + ", ".join(hits[:5]) + "."
     return summary

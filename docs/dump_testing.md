@@ -14,8 +14,8 @@ Open `http://127.0.0.1:8000`. Health should report `contract_version: "0.5"`.
 ## Fastest path: sample fill
 
 1. Click **Sample fill** (or “Fill a machining / battery example” on the empty diagnosis pane).
-2. Confirm the **Dump checklist** goes complete (or nearly complete): failure, objective, materials, process, setup, CAD, sensors, logs, photos, context.
-3. Confirm the file list is grouped by role (sensor CSV, charger log, STEP, G-code, setup photo, result photo) and that roles can be changed.
+2. Confirm the **Dump checklist** goes to **10 / 10**: failure, objective, materials, process, setup, CAD, sensors, logs, photos, context.
+3. Confirm six sample files are grouped by role (`pack_temp.csv`, `charger.log`, `housing_revC.step`, `bore_finish.nc`, setup photo, result photo) and that roles can be changed.
 4. Click **Run epistemic debugging**.
 5. On the right, **What was ingested** should show a coverage list plus a gallery card per file with the engine summary (table units / rising temp, log error lines, STEP product name, etc.).
 6. HITL still works: Reject a hypothesis, **Add evidence** as text, attach another file with a role, or feed a follow-up outcome.

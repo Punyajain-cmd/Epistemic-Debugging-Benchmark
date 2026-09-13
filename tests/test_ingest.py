@@ -28,7 +28,12 @@ def test_ingest_sensor_csv():
 
 
 def test_ingest_log_flags_errors():
-    log = b"2024-08-12 02:14:01 INFO boot ok\nERROR overheat on motor_2\nWARN encoder skip\nALARM-401 spindle\n"
+    log = (
+        b"2024-08-12 02:14:01 INFO boot ok\n"
+        b"ERROR overheat on motor_2\n"
+        b"WARN encoder skip\n"
+        b"ALARM-401 spindle\n"
+    )
     art = ingest_bytes("drive.log", log)
     assert art.kind.value == "log"
     assert art.stats["flagged"]
@@ -90,7 +95,11 @@ def test_ingest_binary_stl_triangle_count():
 
 
 def test_ingest_json_sensor_records():
-    blob = b'[{"t":0,"temp_C":25.0,"A":1.1},{"t":1,"temp_C":40.2,"A":1.2},{"t":2,"temp_C":88.0,"A":1.3}]'
+    blob = (
+        b'[{"t":0,"temp_C":25.0,"A":1.1},'
+        b'{"t":1,"temp_C":40.2,"A":1.2},'
+        b'{"t":2,"temp_C":88.0,"A":1.3}]'
+    )
     art = ingest_bytes("cell_pack.json", blob)
     assert art.kind == ArtifactKind.SENSOR
     assert art.stats["records"] == 3
@@ -109,7 +118,10 @@ def test_ingest_gcode_process_role():
 
 
 def test_role_suggestions_for_docs():
-    assert suggest_role("mill_cert_lot24081.pdf", ArtifactKind.DOCUMENT) == ArtifactRole.MATERIAL_DOC
+    assert (
+        suggest_role("mill_cert_lot24081.pdf", ArtifactKind.DOCUMENT)
+        == ArtifactRole.MATERIAL_DOC
+    )
     assert suggest_role("electrolyte_sds.pdf", ArtifactKind.DOCUMENT) == ArtifactRole.DATASHEET
     assert suggest_role("traveler_sop.md", ArtifactKind.DOCUMENT) == ArtifactRole.PROCESS_DOC
     assert suggest_role("failed_vent_can.jpg", ArtifactKind.IMAGE) == ArtifactRole.RESULT_IMAGE

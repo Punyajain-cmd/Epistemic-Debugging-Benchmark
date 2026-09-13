@@ -486,53 +486,84 @@ function setWorking(btn, on) {
   btn.disabled = on;
 }
 
-function tinyPngFile(name) {
-  const b64 = "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==";
-  const bin = Uint8Array.from(atob(b64), (c) => c.charCodeAt(0));
-  return new File([bin], name, { type: "image/png" });
+function makeNamedFile(name, parts, type) {
+  const mime = type || "text/plain";
+  try {
+    return new File(parts, name, { type: mime });
+  } catch {
+    const blob = new Blob(parts, { type: mime });
+    try {
+      return new File([blob], name, { type: mime });
+    } catch {
+      blob.name = name;
+      return blob;
+    }
+  }
 }
 
-function sampleDumpFiles() {
-  return [
-    {
-      file: new File([
-        "time_s,temp_C,current_A\n0,25.1,1.02\n1,48.8,3.4\n2,71.2,3.5\n3,94.0,3.6\n",
-      ], "pack_temp.csv", { type: "text/csv" }),
-      role: "sensor",
-      caption: "Thermistor on pack can",
-    },
-    {
-      file: new File([
-        "2024-08-12 02:14:01 INFO charger ready\n2024-08-12 02:18:44 WARN cell_5 imbalance 42 mV\n2024-08-12 02:19:02 ERROR overheat pack_main\n",
-      ], "charger.log", { type: "text/plain" }),
-      role: "log",
-      caption: "Charger console",
-    },
-    {
-      file: new File([
+function makeTextFile(name, body, type) {
+  return makeNamedFile(name, [body], type || "text/plain");
+}
+
+function tinyPngFile(name) {
+  // 1x1 PNG — built as bytes so sample-fill does not depend on atob.
+  const bytes = new Uint8Array([
+    137, 80, 78, 71, 13, 10, 26, 10, 0, 0, 0, 13, 73, 72, 68, 82, 0, 0, 0, 1,
+    0, 0, 0, 1, 8, 2, 0, 0, 0, 144, 119, 83, 222, 0, 0, 0, 10, 73, 68, 65, 84,
+    120, 156, 99, 248, 15, 0, 1, 1, 1, 0, 24, 221, 141, 180, 0, 0, 0, 0, 73,
+    69, 78, 68, 174, 66, 96, 130,
+  ]);
+  return makeNamedFile(name, [bytes], "image/png");
+}
+
+function pushSampleFile(file, role, caption) {
+  if (pendingFiles.some((item) => item.file.name === file.name)) return;
+  let preview = null;
+  try {
+    if (file.type.startsWith("image/")) preview = URL.createObjectURL(file);
+  } catch {
+    preview = null;
+  }
+  pendingFiles.push({ file, role, caption, preview });
+}
+
+function addSampleDumpFiles() {
+  const makers = [
+    () => [
+      makeTextFile("pack_temp.csv", "time_s,temp_C,current_A\n0,25.1,1.02\n1,48.8,3.4\n2,71.2,3.5\n3,94.0,3.6\n", "text/csv"),
+      "sensor",
+      "Thermistor on pack can",
+    ],
+    () => [
+      makeTextFile("charger.log", "2024-08-12 02:14:01 INFO charger ready\n2024-08-12 02:18:44 WARN cell_5 imbalance 42 mV\n2024-08-12 02:19:02 ERROR overheat pack_main\n"),
+      "log",
+      "Charger console",
+    ],
+    () => [
+      makeTextFile(
+        "housing_revC.step",
         "ISO-10303-21;\nHEADER;\nFILE_NAME('housing.step','2024-08-01T10:00:00');\nFILE_DESCRIPTION(('REV C bore fixture'),'2;1');\nFILE_SCHEMA(('AUTOMOTIVE_DESIGN'));\nENDSEC;\nDATA;\n#1=PRODUCT('6082-T6-housing','part','');\nENDSEC;\n",
-      ], "housing_revC.step", { type: "application/step" }),
-      role: "cad",
-      caption: "REV C fixture",
-    },
-    {
-      file: new File([
-        "(REV C bore finish)\nT4 M6\nS4200 M3\nG1 Z-12.0 F180\nM30\n",
-      ], "bore_finish.nc", { type: "text/plain" }),
-      role: "process_doc",
-      caption: "Finish bore program",
-    },
-    {
-      file: tinyPngFile("setup_vise.png"),
-      role: "setup_photo",
-      caption: "Kurt vise setup",
-    },
-    {
-      file: tinyPngFile("vented_cells_result.png"),
-      role: "result_image",
-      caption: "Vented 21700 cans",
-    },
+        "application/step",
+      ),
+      "cad",
+      "REV C fixture",
+    ],
+    () => [
+      makeTextFile("bore_finish.nc", "(REV C bore finish)\nT4 M6\nS4200 M3\nG1 Z-12.0 F180\nM30\n"),
+      "process_doc",
+      "Finish bore program",
+    ],
+    () => [tinyPngFile("setup_vise.png"), "setup_photo", "Kurt vise setup"],
+    () => [tinyPngFile("vented_cells_result.png"), "result_image", "Vented 21700 cans"],
   ];
+  makers.forEach((make) => {
+    try {
+      const spec = make();
+      pushSampleFile(spec[0], spec[1], spec[2]);
+    } catch (err) {
+      console.warn("Sample file skipped", err);
+    }
+  });
 }
 
 function fillSample() {
@@ -548,12 +579,13 @@ function fillSample() {
   $("logs").value = SAMPLE.logs;
   $("context").value = SAMPLE.context;
   document.querySelectorAll(".dossier details.disclose").forEach((el) => { el.open = true; });
-  const have = new Set(pendingFiles.map((item) => item.file.name));
-  sampleDumpFiles().forEach((item) => {
-    if (have.has(item.file.name)) return;
-    pendingFiles.push({ ...item, preview: item.file.type.startsWith("image/") ? URL.createObjectURL(item.file) : null });
-  });
+  try {
+    addSampleDumpFiles();
+  } catch (err) {
+    console.warn("Sample dump files failed", err);
+  }
   renderFiles();
+  renderCoverage();
   $("unexpected").focus();
 }
 

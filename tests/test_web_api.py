@@ -164,7 +164,7 @@ def test_multifile_dump_exposes_gallery_and_coverage(client):
         "materials": "6082-T6 lot 24-081\nOpened LiPF6 bottle",
         "processing": "Finish 0.08 mm/rev; 2C CC-CV",
         "protocol": "1. Bore housing\n2. Assemble pack\n3. Charge",
-        "setup": "Kurt vise, REV C STEP, 21 C / 62% RH",
+        "setup_description": "Kurt vise, REV C STEP, 21 C / 62% RH",
         "telemetry": "Bore 11.82 mm vs 12.00",
         "logs": "ERROR overheat pack_main",
         "context": "New night-shift operator",
