@@ -1084,12 +1084,62 @@ function applyChatSession(data) {
   renderChat(view.messages);
 }
 
+function isComposerExpanded() {
+  const form = $("chatForm");
+  return !!(form && form.classList.contains("is-expanded"));
+}
+
+function expandComposer() {
+  const form = $("chatForm");
+  const input = $("chatInput");
+  const collapse = $("chatCollapse");
+  if (!form || !input) return;
+  form.classList.add("is-expanded");
+  form.classList.remove("is-compact");
+  form.setAttribute("aria-expanded", "true");
+  input.rows = 6;
+  if (collapse) collapse.hidden = false;
+}
+
+function collapseComposer() {
+  const form = $("chatForm");
+  const input = $("chatInput");
+  const collapse = $("chatCollapse");
+  if (!form || !input) return;
+  form.classList.remove("is-expanded");
+  form.classList.add("is-compact");
+  form.setAttribute("aria-expanded", "false");
+  input.rows = 1;
+  input.style.height = "";
+  input.scrollTop = 0;
+  if (collapse) collapse.hidden = true;
+}
+
+function insertChatNewline() {
+  const input = $("chatInput");
+  if (!input) return;
+  const start = input.selectionStart ?? input.value.length;
+  const end = input.selectionEnd ?? input.value.length;
+  const value = input.value;
+  input.value = `${value.slice(0, start)}\n${value.slice(end)}`;
+  input.selectionStart = input.selectionEnd = start + 1;
+}
+
+function maybeExpandComposerFromContent() {
+  const input = $("chatInput");
+  if (!input || isComposerExpanded()) return;
+  if (input.value.includes("\n") || input.scrollHeight > input.clientHeight + 2) {
+    expandComposer();
+  }
+}
+
 async function sendChat() {
   const input = $("chatInput");
   const text = (input.value || "").trim();
   if (!text) return;
   clearError();
   input.value = "";
+  collapseComposer();
   const pending = [];
   if (session) {
     const existing = (pickView(session).messages || []).slice();
@@ -1128,10 +1178,24 @@ $("chatForm").addEventListener("submit", (e) => {
   sendChat().catch((err) => { showError(err.message); restoreWorkspace(); });
 });
 $("chatInput").addEventListener("keydown", (e) => {
-  if (e.key === "Enter" && !e.shiftKey) {
+  if (e.key !== "Enter" || e.isComposing || e.keyCode === 229) return;
+  if (e.metaKey || e.ctrlKey) {
     e.preventDefault();
     sendChat().catch((err) => { showError(err.message); restoreWorkspace(); });
+    return;
   }
+  if (!e.shiftKey && !isComposerExpanded()) {
+    e.preventDefault();
+    if (!(e.target.value || "").trim()) return;
+    expandComposer();
+    insertChatNewline();
+  }
+});
+$("chatInput").addEventListener("input", maybeExpandComposerFromContent);
+$("chatCollapse").addEventListener("click", () => {
+  collapseComposer();
+  const input = $("chatInput");
+  if (input) input.focus();
 });
 
 bindHitlTabs();

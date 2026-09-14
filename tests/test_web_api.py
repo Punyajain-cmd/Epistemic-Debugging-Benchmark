@@ -63,6 +63,8 @@ def test_index_and_static_assets(client):
     assert b"busy-pipeline" in html
     assert b"chat-panel" in html
     assert b"chatInput" in html
+    assert b"chatCollapse" in html
+    assert b"is-compact" in html
     assert b"ico-sensors" in html
     css = client.get("/assets/styles.css")
     assert css.status_code == 200
