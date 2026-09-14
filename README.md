@@ -28,7 +28,7 @@ The engine does **not** jump to one story. It:
 5. Reports confidence, entropy, and missing information
 6. Recommends a discriminating intervention
 
-The researcher can reject a hypothesis, add measurements, and feed a follow-up outcome back into the session.
+The researcher can reject a hypothesis, add measurements, **chat turn-by-turn**, and feed a follow-up outcome back into the session.
 
 ---
 
@@ -75,12 +75,23 @@ python scripts/serve.py
 # equivalent: python -m uvicorn web.app:app --host 127.0.0.1 --port 8000
 ```
 
-Deploy the same FastAPI UI on Vercel (`web.app:app`). See [docs/vercel.md](docs/vercel.md).
+Chat is additive: dump → diagnose still works; you can also start from a message in the conversation panel. Sessions persist under `./uploads/sessions` locally. On Vercel they live in `/tmp` and are **ephemeral** (gone after cold starts). Deploy the same FastAPI UI on Vercel (`web.app:app`). See [docs/vercel.md](docs/vercel.md).
 
-Optional LLM diagnosis (engine + benchmark runner):
+Optional LLM routing (engine, chat, and benchmark runner). Keys are read only from the environment — never commit secrets.
+
+| Variable | Purpose |
+|----------|---------|
+| `OPENAI_API_KEY` | Prefer OpenAI for diagnosis + chat (`prefer_llm` when set) |
+| `ANTHROPIC_API_KEY` | Optional Anthropic if OpenAI is unset (or `EPIDEBUG_LLM_PROVIDER=anthropic`) |
+| `EPIDEBUG_MODEL` | Default `gpt-4o-mini`; Anthropic-only default `claude-3-5-haiku-latest` |
+| `EPIDEBUG_LLM_PROVIDER` | Optional `openai` or `anthropic` |
+
+Without keys the heuristic engine still converses: it asks for missing dump slots and suggests the next measurement.
+
+On Vercel: Project → Settings → Environment Variables, then redeploy.
 
 ```bash
-set OPENAI_API_KEY=...
+export OPENAI_API_KEY=...
 python scripts/evaluate_engine.py --llm
 python scripts/run_benchmark.py --model gpt-4o --case RF-001
 ```

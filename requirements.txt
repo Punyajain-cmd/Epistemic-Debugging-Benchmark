@@ -11,3 +11,5 @@ uvicorn>=0.27
 python-multipart>=0.0.9
 pillow>=10.0
 pypdf>=4.0
+openai>=1.0
+anthropic>=0.20

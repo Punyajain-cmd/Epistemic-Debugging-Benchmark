@@ -694,6 +694,7 @@ class ExperimentInput(BaseModel):
             or self.protocol
             or self.telemetry_notes
             or self.contextual_clues
+            or self.extra_information
             or self.artifacts
         )
 

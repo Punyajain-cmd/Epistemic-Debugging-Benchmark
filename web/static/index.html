@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Serif:ital,wght@0,500;0,600;1,500&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="/assets/styles.css?v=21" />
+  <link rel="stylesheet" href="/assets/styles.css?v=22" />
 </head>
 <body>
   <a class="skip" href="#workspace">Skip to diagnosis</a>
@@ -285,6 +285,7 @@
     </section>
 
     <section class="workspace" id="workspace" aria-live="polite">
+      <div class="workspace-scroll">
       <p class="kicker workspace-kicker">02 · Diagnosis</p>
 
       <div class="banner error-banner" id="workspaceError" hidden>
@@ -332,14 +333,14 @@
           <div class="empty-copy">
             <p class="eyebrow">Diagnosis idle</p>
             <h2>Competing causes are waiting</h2>
-            <p>Dump the experimental record on the left. The engine will keep every plausible cause alive, weigh evidence for and against, and only then recommend a discriminating follow-up.</p>
+            <p>Dump the experimental record on the left, or start typing in the chat. The engine will keep every plausible cause alive, weigh evidence for and against, and only then recommend a discriminating follow-up.</p>
             <button id="sampleFillEmpty" type="button" class="ghost">Fill a machining / battery example</button>
           </div>
         </div>
         <ol class="empty-steps">
           <li><span><strong>Dump the record</strong><em>Failure, intent, files, and coverage holes</em></span></li>
           <li><span><strong>Keep causes alive</strong><em>Ranked hypotheses with visual posteriors</em></span></li>
-          <li><span><strong>Stay in the loop</strong><em>Reject, add a measurement, or run the follow-up</em></span></li>
+          <li><span><strong>Stay in the loop</strong><em>Chat, reject, add a measurement, or run the follow-up</em></span></li>
         </ol>
         <h3>What you can attach</h3>
         <ul class="accepts" id="accepts"></ul>
@@ -477,8 +478,26 @@
           </div>
         </article>
       </div>
+      </div>
+
+      <aside class="chat-panel" id="chatPanel" aria-label="Diagnostic conversation">
+        <header class="chat-head">
+          <div>
+            <p class="kicker">03 · Conversation</p>
+            <h2>Talk it through</h2>
+          </div>
+          <span class="chat-mode" id="chatMode">heuristic</span>
+        </header>
+        <div id="chatLog" class="chat-log" role="log" aria-live="polite"></div>
+        <form id="chatForm" class="chat-compose">
+          <label class="sr-only" for="chatInput">Message to EpiDebug</label>
+          <textarea id="chatInput" rows="2" placeholder="What failed? Ask for a ranking when you're ready."></textarea>
+          <button type="submit" class="primary compact" id="chatSend">Send</button>
+        </form>
+        <p class="hint chat-hint">Files stay in the dossier. Chat keeps the thread. Diagnose re-ranks without starting over.</p>
+      </aside>
     </section>
   </main>
-  <script src="/assets/app.js?v=21"></script>
+  <script src="/assets/app.js?v=22"></script>
 </body>
 </html>

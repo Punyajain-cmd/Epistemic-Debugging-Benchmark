@@ -40,6 +40,11 @@ def test_health_contract(client):
     assert body["contract_version"] == "0.6"
     assert "dump_demo" in body["fixtures"]
     assert "view" in body["session_payload"]
+    assert "messages" in body["session_payload"]
+    assert "messages" in body["view_fields"]
+    assert "chat" in body["view_fields"]
+    assert any("chat" in item for item in body["hitl"])
+    assert body["chat"]["turn"] == "POST /api/sessions/{id}/chat"
     assert "ingest" in body["view_fields"]
     assert "gallery" in body["view_fields"]
     assert body["evidence_slots"]
@@ -56,7 +61,8 @@ def test_index_and_static_assets(client):
     assert b"EpiDebug" in html
     assert b"Competing causes are waiting" in html
     assert b"busy-pipeline" in html
-    assert b"coverage-grid" in html
+    assert b"chat-panel" in html
+    assert b"chatInput" in html
     assert b"ico-sensors" in html
     css = client.get("/assets/styles.css")
     assert css.status_code == 200
@@ -67,6 +73,9 @@ def test_index_and_static_assets(client):
     assert js.status_code == 200
     assert b"GALLERY_GROUPS" in js.content
     assert b"startBusyStages" in js.content
+    assert b"sendChat" in js.content
+    assert b"/api/sessions/" in js.content
+    assert b"/api/chat" in js.content
 
 
 def test_case_list_has_picker_fields(client):

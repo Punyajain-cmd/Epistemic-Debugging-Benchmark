@@ -27,6 +27,7 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 from epidebug.engine import EpistemicDebuggingEngine
+from epidebug.engine.chat import replace_dump
 from epidebug.engine.ingest import ingest_bytes
 from epidebug.engine.present import EVIDENCE_SLOTS, VIEW_CONTRACT, session_payload
 from epidebug.engine.session import SessionStore
@@ -78,6 +79,14 @@ class InfoRequest(BaseModel):
 class FollowUpRequest(BaseModel):
     intervention: str
     outcome: str
+
+
+class ChatRequest(BaseModel):
+    message: str = ""
+    session_id: Optional[str] = None
+    force_diagnose: bool = False
+    title: Optional[str] = None
+    domain: Optional[str] = None
 
 
 class ToolRequest(BaseModel):
@@ -248,6 +257,52 @@ def create_app(
     def dump_session(session):
         return session_payload(session)
 
+    def experiment_from_bundle(
+        *,
+        title: str,
+        domain: str,
+        objective: str,
+        unexpected_outcome: str,
+        setup_description: str,
+        setup: str,
+        materials: str,
+        processing: str,
+        protocol: str,
+        telemetry: str,
+        logs: str,
+        context: str,
+        roles: str,
+        captions: str,
+        files: list[UploadFile] | None,
+    ) -> ExperimentInput:
+        try:
+            role_list = json.loads(roles) if roles else []
+            caption_list = json.loads(captions) if captions else []
+        except json.JSONDecodeError as exc:
+            raise HTTPException(400, "roles and captions must be JSON arrays") from exc
+
+        artifacts: list[ExperimentArtifact] = []
+        for i, upload in enumerate(files or []):
+            if not upload.filename:
+                continue
+            role = role_list[i] if i < len(role_list) else None
+            caption = caption_list[i] if i < len(caption_list) else ""
+            artifacts.append(save_and_ingest(upload, role, caption))
+
+        return ExperimentInput(
+            title=title or "Untitled experiment",
+            domain=_normalize_domain(domain),
+            objective=objective,
+            unexpected_outcome=unexpected_outcome,
+            setup_description=setup_description or setup,
+            materials=_split_lines(materials),
+            processing=_split_lines(processing),
+            protocol=_split_lines(protocol) or _split_lines(processing),
+            telemetry_notes=_split_lines(telemetry) + _split_lines(logs),
+            contextual_clues=_split_lines(context),
+            artifacts=artifacts,
+        )
+
     @app.get("/")
     def index():
         return FileResponse(STATIC / "index.html")
@@ -271,6 +326,7 @@ def create_app(
                 "diagnosis",
                 "experiment",
                 "history",
+                "messages",
                 "view",
             ],
             "view_fields": [
@@ -279,13 +335,24 @@ def create_app(
                 "ingest",
                 "hypotheses",
                 "lead",
+                "messages",
+                "chat",
             ],
             "hitl": [
                 "POST /api/sessions/{id}/reject",
                 "POST /api/sessions/{id}/add-info",
                 "POST /api/sessions/{id}/artifacts",
                 "POST /api/sessions/{id}/followup",
+                "POST /api/sessions/{id}/chat",
+                "POST /api/chat",
             ],
+            "chat": {
+                "create": "POST /api/chat",
+                "turn": "POST /api/sessions/{id}/chat",
+                "roles": ["user", "assistant", "system-tool"],
+            },
+            "llm_provider": getattr(engine.llm, "provider", "none"),
+            "llm_model": getattr(engine.llm, "model", None),
         }
 
     @app.get("/api/fixtures")
@@ -347,37 +414,35 @@ def create_app(
         context: str = Form(""),
         roles: str = Form("[]"),
         captions: str = Form("[]"),
+        session_id: str = Form(""),
         files: list[UploadFile] | None = File(default=None),
     ):
-        try:
-            role_list = json.loads(roles) if roles else []
-            caption_list = json.loads(captions) if captions else []
-        except json.JSONDecodeError as exc:
-            raise HTTPException(400, "roles and captions must be JSON arrays") from exc
-
-        artifacts: list[ExperimentArtifact] = []
-        for i, upload in enumerate(files or []):
-            if not upload.filename:
-                continue
-            role = role_list[i] if i < len(role_list) else None
-            caption = caption_list[i] if i < len(caption_list) else ""
-            artifacts.append(save_and_ingest(upload, role, caption))
-
-        experiment = ExperimentInput(
-            title=title or "Untitled experiment",
-            domain=_normalize_domain(domain),
+        experiment = experiment_from_bundle(
+            title=title,
+            domain=domain,
             objective=objective,
             unexpected_outcome=unexpected_outcome,
-            setup_description=setup_description or setup,
-            materials=_split_lines(materials),
-            processing=_split_lines(processing),
-            protocol=_split_lines(protocol) or _split_lines(processing),
-            telemetry_notes=_split_lines(telemetry) + _split_lines(logs),
-            contextual_clues=_split_lines(context),
-            artifacts=artifacts,
+            setup_description=setup_description,
+            setup=setup,
+            materials=materials,
+            processing=processing,
+            protocol=protocol,
+            telemetry=telemetry,
+            logs=logs,
+            context=context,
+            roles=roles,
+            captions=captions,
+            files=files,
         )
         if not experiment.has_content():
             raise HTTPException(400, "Add a description, an unexpected outcome, or at least one file.")
+        if session_id.strip():
+            try:
+                existing = engine.sessions.get(session_id.strip())
+            except KeyError as exc:
+                raise HTTPException(404, "Unknown session") from exc
+            session = replace_dump(engine, existing, experiment)
+            return dump_session(session)
         session = engine.open_session(experiment=experiment)
         return dump_session(session)
 
@@ -438,6 +503,46 @@ def create_app(
     def followup(session_id: str, req: FollowUpRequest):
         try:
             session = engine.record_followup(session_id, req.intervention, req.outcome)
+        except KeyError as exc:
+            raise HTTPException(404, "Unknown session") from exc
+        return dump_session(session)
+
+    @app.post("/api/chat")
+    def chat_create_or_continue(req: ChatRequest):
+        message = (req.message or "").strip()
+        if not message and not req.force_diagnose:
+            raise HTTPException(400, "Provide a message, or set force_diagnose.")
+        if req.session_id:
+            try:
+                session = engine.chat(
+                    req.session_id,
+                    message,
+                    force_diagnose=req.force_diagnose,
+                )
+            except KeyError as exc:
+                raise HTTPException(404, "Unknown session") from exc
+            return dump_session(session)
+        if not message:
+            raise HTTPException(400, "A first message is required to start a chat session.")
+        session = engine.open_chat_session(
+            message,
+            title=req.title or "",
+            domain=_normalize_domain(req.domain),
+            force_diagnose=req.force_diagnose,
+        )
+        return dump_session(session)
+
+    @app.post("/api/sessions/{session_id}/chat")
+    def chat_turn(session_id: str, req: ChatRequest):
+        message = (req.message or "").strip()
+        if not message and not req.force_diagnose:
+            raise HTTPException(400, "Provide a message, or set force_diagnose.")
+        try:
+            session = engine.chat(
+                session_id,
+                message,
+                force_diagnose=req.force_diagnose,
+            )
         except KeyError as exc:
             raise HTTPException(404, "Unknown session") from exc
         return dump_session(session)
