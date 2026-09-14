@@ -183,13 +183,45 @@ class EpistemicDebuggingEngine:
         else:
             raise ValueError("Provide a test case or a free-form experiment.")
         session.history.append({"event": "opened", "leading": session.diagnosis.leading_cause})
+        from epidebug.engine.chat import seed_diagnosis_turn
+
+        seed_diagnosis_turn(session, event="opened")
         return self.sessions.save(session)
+
+    def chat(
+        self,
+        session_id: str,
+        message: str,
+        *,
+        force_diagnose: bool = False,
+    ) -> DiagnosisSession:
+        from epidebug.engine.chat import run_chat_turn
+
+        return run_chat_turn(self, session_id, message, force_diagnose=force_diagnose)
+
+    def open_chat_session(
+        self,
+        message: str,
+        *,
+        title: str = "",
+        domain: str | None = None,
+        force_diagnose: bool = False,
+    ) -> DiagnosisSession:
+        from epidebug.engine.chat import start_chat_session
+
+        return start_chat_session(
+            self,
+            message,
+            title=title,
+            domain=domain,
+            force_diagnose=force_diagnose,
+        )
 
     def reject_hypothesis(self, session_id: str, hypothesis_id: str, reason: str) -> DiagnosisSession:
         session = self.sessions.get(session_id)
         session.rejected[hypothesis_id] = reason
         session.history.append({"event": "reject", "hypothesis_id": hypothesis_id, "reason": reason})
-        return self._rediagnose(session)
+        return self._rediagnose(session, event="reject")
 
     def add_information(self, session_id: str, information: str) -> DiagnosisSession:
         session = self.sessions.get(session_id)
@@ -197,7 +229,7 @@ class EpistemicDebuggingEngine:
         if session.experiment is not None:
             session.experiment.extra_information.append(information)
         session.history.append({"event": "add_information", "information": information})
-        return self._rediagnose(session)
+        return self._rediagnose(session, event="add_information")
 
     def add_artifacts(self, session_id: str, artifacts: list) -> DiagnosisSession:
         session = self.sessions.get(session_id)
@@ -210,7 +242,7 @@ class EpistemicDebuggingEngine:
             "event": "add_artifacts",
             "files": [a.filename for a in artifacts],
         })
-        return self._rediagnose(session)
+        return self._rediagnose(session, event="add_artifacts")
 
     def record_followup(self, session_id: str, intervention: str, outcome: str) -> DiagnosisSession:
         session = self.sessions.get(session_id)
@@ -222,7 +254,7 @@ class EpistemicDebuggingEngine:
             )
         )
         session.history.append({"event": "followup", "intervention": intervention, "outcome": outcome})
-        return self._rediagnose(session)
+        return self._rediagnose(session, event="followup")
 
     def _case_by_id(self, case_id: str) -> TestCase:
         if self._cases is None:
@@ -247,7 +279,9 @@ class EpistemicDebuggingEngine:
         extra.extend(artifact_blob(artifact) for artifact in exp.artifacts)
         return extra
 
-    def _rediagnose(self, session: DiagnosisSession) -> DiagnosisSession:
+    def _rediagnose(
+        self, session: DiagnosisSession, *, event: str | None = None
+    ) -> DiagnosisSession:
         extra = self._extras_from_session(session)
         if session.case_id:
             case = self._case_by_id(session.case_id)
@@ -264,6 +298,10 @@ class EpistemicDebuggingEngine:
                 rejected=session.rejected,
                 followups=session.followups,
             )
+        if event:
+            from epidebug.engine.chat import note_rediagnose
+
+            note_rediagnose(session, event)
         return self.sessions.save(session)
 
     def _diagnose_text(

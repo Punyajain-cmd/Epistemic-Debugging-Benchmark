@@ -5,7 +5,7 @@ from __future__ import annotations
 import uuid
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any, Literal, Optional
 
 from pydantic import BaseModel, Field
 
@@ -16,6 +16,18 @@ class FollowUpRecord(BaseModel):
     intervention: str
     outcome: str
     timestamp: str = ""
+
+
+class ChatMessage(BaseModel):
+    """One turn in the researcher ↔ EpiDebug transcript."""
+
+    role: Literal["user", "assistant", "system-tool"] = "user"
+    content: str
+    timestamp: str = ""
+    kind: str = "message"
+    slots_requested: list[str] = Field(default_factory=list)
+    diagnosed: bool = False
+    mode: Optional[str] = None
 
 
 class DiagnosisSession(BaseModel):
@@ -29,6 +41,7 @@ class DiagnosisSession(BaseModel):
     followups: list[FollowUpRecord] = Field(default_factory=list)
     diagnosis: Optional[Diagnosis] = None
     history: list[dict[str, Any]] = Field(default_factory=list)
+    messages: list[ChatMessage] = Field(default_factory=list)
 
 
 class SessionStore:

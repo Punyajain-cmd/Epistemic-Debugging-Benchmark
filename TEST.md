@@ -70,6 +70,15 @@ print("SMOKE OK")
 '
 ```
 
+Chat (heuristic, no API key):
+
+```bash
+curl -sS -X POST http://127.0.0.1:8000/api/chat \
+  -H "Content-Type: application/json" \
+  -d '{"message":"The CNC bore is 0.18 mm undersize and three cells vented on 2C charge."}' \
+  | python3 -c 'import json,sys; b=json.load(sys.stdin); print(b["session_id"]); print(b["view"]["chat"]["last_reply"][:200])'
+```
+
 HITL (replace `SESSION`):
 
 ```bash
@@ -81,7 +90,7 @@ curl -sS -X POST http://127.0.0.1:8000/api/sessions/SESSION/add-info \
 ## 4. Pytest
 
 ```bash
-python -m pytest tests/test_ingest.py tests/test_present.py tests/test_web_api.py -q
+python -m pytest tests/test_ingest.py tests/test_present.py tests/test_web_api.py tests/test_chat.py tests/test_llm.py -q
 ```
 
 `test_dump_demo_fixtures_via_diagnose_bundle` posts the files on disk in `mock_data/dump_demo/`.

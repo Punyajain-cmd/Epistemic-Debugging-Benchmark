@@ -144,6 +144,18 @@ def build_view(session: DiagnosisSession) -> dict[str, Any]:
         "history": list(session.history),
         "followups": [item.model_dump(mode="json") for item in session.followups],
         "rejected": dict(session.rejected),
+        "messages": [item.model_dump(mode="json") for item in session.messages],
+        "chat": {
+            "turn_count": sum(1 for m in session.messages if m.role == "user"),
+            "last_reply": next(
+                (m.content for m in reversed(session.messages) if m.role == "assistant"),
+                "",
+            ),
+            "mode": next(
+                (m.mode for m in reversed(session.messages) if m.mode),
+                diagnosis.engine_mode,
+            ),
+        },
     }
 
 

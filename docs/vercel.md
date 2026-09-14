@@ -31,8 +31,16 @@ repository root. Vercel installs from `pyproject.toml` / `requirements.txt`.
 
 1. Import this repository in the Vercel dashboard (GitHub connect).
 2. Confirm FastAPI is detected; root directory = repo root.
-3. Deploy. Optional: set `OPENAI_API_KEY` in Project → Environment Variables
-   for LLM diagnosis (heuristic mode works without it).
+3. Deploy. Optional environment variables (Project → Settings → Environment Variables):
+
+   | Variable | Purpose |
+   | --- | --- |
+   | `OPENAI_API_KEY` | LLM diagnosis + chat (heuristic still works without it) |
+   | `ANTHROPIC_API_KEY` | Optional Anthropic if OpenAI is unset |
+   | `EPIDEBUG_MODEL` | Default `gpt-4o-mini` |
+   | `EPIDEBUG_LLM_PROVIDER` | Optional `openai` or `anthropic` |
+
+   Do not put keys in the repo. After setting vars, redeploy so the function sees them.
 
 ## Expected URL behavior
 
@@ -43,7 +51,8 @@ Same routes as local `uvicorn web.app:app --host 127.0.0.1 --port 8000`:
 | `/` | Researcher UI (`web/static/index.html`) |
 | `/assets/*` | CSS/JS from `web/static/` (FastAPI, not a separate frontend) |
 | `/api/health` | Engine status (`platform` is `vercel` on Vercel) |
-| `/api/diagnose-bundle` | Multipart dump + diagnosis |
+| `/api/diagnose-bundle` | Multipart dump + diagnosis (optional `session_id` keeps the chat thread) |
+| `/api/chat`, `/api/sessions/.../chat` | Conversational diagnostic loop |
 | `/api/cases`, `/api/sessions/...` | Catalog and HITL |
 | `/mock_data/*` | Fixture files |
 
@@ -67,7 +76,9 @@ Uploads still land in `./uploads` unless `EPIDEBUG_UPLOAD_DIR` is set.
   When `VERCEL=1`, sessions and uploads go to `/tmp/epidebug-uploads`.
   Override with `EPIDEBUG_UPLOAD_DIR`.
 - **Ephemeral storage:** `/tmp` does not survive cold starts or other
-  instances. Session JSON and uploaded files can disappear between requests.
+  instances. Session JSON, chat transcripts, and uploaded files can
+  disappear between requests. Durable storage (and any model training)
+  is out of scope for this deploy.
 - **Cold start:** the first request after idle imports Python + FastAPI and
   can take several seconds.
 - **Hobby idle:** unused Hobby deployments scale to zero; the next visit

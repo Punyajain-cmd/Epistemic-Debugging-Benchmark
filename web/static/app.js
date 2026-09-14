@@ -62,6 +62,12 @@ const BUSY_COPY = {
   intervention: "Choosing a discriminating follow-up…",
 };
 
+const CHAT_WELCOME = {
+  role: "assistant",
+  content: "Describe what failed, or dump the record on the left. I'll ask for missing evidence and rank competing causes when there's enough to work with.",
+  kind: "message",
+};
+
 const ACCEPT_ICON = [
   ["photo", "photos"],
   ["CAD", "cad"],
@@ -138,6 +144,52 @@ function escapeHtml(value) {
   ));
 }
 
+function formatChatHtml(value) {
+  return escapeHtml(value).replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>");
+}
+
+function chatRoleLabel(role) {
+  if (role === "user") return "You";
+  if (role === "system-tool") return "Engine";
+  return "EpiDebug";
+}
+
+function renderChat(messages) {
+  const root = $("chatLog");
+  if (!root) return;
+  const rows = (messages && messages.length) ? messages : [CHAT_WELCOME];
+  root.innerHTML = rows.map((msg) => {
+    const role = msg.role || "assistant";
+    return `<div class="chat-bubble ${escapeHtml(role)}" data-role="${escapeHtml(role)}">
+      <small>${escapeHtml(chatRoleLabel(role))}</small>
+      <div>${formatChatHtml(msg.content || "")}</div>
+    </div>`;
+  }).join("");
+  root.scrollTop = root.scrollHeight;
+}
+
+function setChatMode(mode) {
+  const el = $("chatMode");
+  if (!el) return;
+  const label = mode || "heuristic";
+  el.textContent = label;
+  el.classList.toggle("is-llm", label !== "heuristic");
+}
+
+function syncDiagnoseLabel() {
+  const btn = $("diagnoseBtn");
+  if (!btn) return;
+  const span = btn.querySelector("span");
+  const small = btn.querySelector("small");
+  if (session) {
+    if (span) span.textContent = "Force re-diagnose";
+    if (small) small.textContent = "Re-rank this thread from the current dossier";
+  } else {
+    if (span) span.textContent = "Run epistemic debugging";
+    if (small) small.textContent = "Rank competing causes from this dossier";
+  }
+}
+
 function slotIcon(id) {
   const key = id && document.querySelector(`#ico-${id}`) ? id : "file";
   return `<svg class="ico" aria-hidden="true"><use href="#ico-${key}"></use></svg>`;
@@ -194,12 +246,16 @@ function setBusy(on, message) {
 function restoreWorkspace() {
   setBusy(false);
   if (session) {
-    $("emptyState").hidden = true;
-    $("result").hidden = false;
+    const hasDx = !!(session.diagnosis && (session.diagnosis.hypotheses || []).length);
+    $("emptyState").hidden = hasDx;
+    $("result").hidden = !hasDx;
+    renderChat(pickView(session).messages);
   } else {
     $("emptyState").hidden = false;
     $("result").hidden = true;
+    renderChat([]);
   }
+  syncDiagnoseLabel();
 }
 
 function roleOptions(selected) {
@@ -413,6 +469,8 @@ function pickView(data) {
     gallery: (v && v.gallery) || {},
     ingest: (v && v.ingest) || null,
     history: (v && v.history) || data.history || [],
+    messages: (v && v.messages) || data.messages || [],
+    chat: (v && v.chat) || {},
   };
 }
 
@@ -524,6 +582,9 @@ function renderSession(data) {
   setBusy(false);
   clearError();
   const view = pickView(data);
+  syncDiagnoseLabel();
+  setChatMode(view.chat.mode || view.engineMode);
+  renderChat(view.messages);
 
   $("caseMeta").textContent = `${view.caseId} · ${view.engineMode} · ${view.fileCount} file(s) · session ${view.sessionId}`;
   $("leadTitle").textContent = view.title;
@@ -787,13 +848,14 @@ function dossierFormData() {
   fd.append("context", $("context").value);
   fd.append("roles", JSON.stringify(pendingFiles.map((f) => f.role)));
   fd.append("captions", JSON.stringify(pendingFiles.map((f) => f.caption)));
+  if (session && session.session_id) fd.append("session_id", session.session_id);
   pendingFiles.forEach((item) => fd.append("files", item.file, item.file.name));
   return fd;
 }
 
 async function diagnoseBundle() {
   clearError();
-  setBusy(true, "Reading the dossier and ranking hypotheses…");
+  setBusy(true, session ? "Re-ranking this thread from the current dossier…" : "Reading the dossier and ranking hypotheses…");
   $("emptyState").hidden = true;
   $("result").hidden = true;
   setWorking($("diagnoseBtn"), true);
@@ -932,6 +994,8 @@ async function boot() {
   const contract = health.contract_version ? ` · v${health.contract_version}` : "";
   $("status").classList.remove("is-loading");
   $("status").textContent = `${health.cases} catalog cases · ${health.engine_mode} engine${contract}`;
+  setChatMode(health.engine_mode || health.llm_provider || "heuristic");
+  renderChat([]);
   $("accepts").innerHTML = (health.accepts || []).map((item) => `<li><span class="accept-ico">${acceptIcon(item)}</span>${escapeHtml(item)}</li>`).join("");
   const cases = await api("/api/cases");
   $("caseSelect").innerHTML = cases.map((c) => {
@@ -1006,6 +1070,69 @@ $("sampleFillEmpty").addEventListener("click", () => {
   $("unexpected").scrollIntoView({ behavior: "smooth", block: "center" });
 });
 $("dismissError").addEventListener("click", clearError);
+
+function applyChatSession(data) {
+  const view = pickView(data);
+  const hasDx = !!(data.diagnosis && (data.diagnosis.hypotheses || []).length);
+  if (hasDx) {
+    renderSession(data);
+    return;
+  }
+  session = data;
+  syncDiagnoseLabel();
+  setChatMode(view.chat.mode || view.engineMode || "heuristic");
+  renderChat(view.messages);
+}
+
+async function sendChat() {
+  const input = $("chatInput");
+  const text = (input.value || "").trim();
+  if (!text) return;
+  clearError();
+  input.value = "";
+  const pending = [];
+  if (session) {
+    const existing = (pickView(session).messages || []).slice();
+    existing.push({ role: "user", content: text });
+    existing.push({ role: "assistant", content: "Thinking…", kind: "pending" });
+    pending.push(...existing);
+  } else {
+    pending.push({ role: "user", content: text });
+    pending.push({ role: "assistant", content: "Thinking…", kind: "pending" });
+  }
+  renderChat(pending);
+  const last = $("chatLog") && $("chatLog").lastElementChild;
+  if (last) last.classList.add("chat-pending");
+  setWorking($("chatSend"), true);
+  try {
+    const path = session
+      ? `/api/sessions/${session.session_id}/chat`
+      : "/api/chat";
+    const data = await api(path, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ message: text }),
+    });
+    applyChatSession(data);
+  } catch (err) {
+    showError(err.message);
+    if (session) renderChat(pickView(session).messages);
+    else renderChat([]);
+  } finally {
+    setWorking($("chatSend"), false);
+  }
+}
+
+$("chatForm").addEventListener("submit", (e) => {
+  e.preventDefault();
+  sendChat().catch((err) => { showError(err.message); restoreWorkspace(); });
+});
+$("chatInput").addEventListener("keydown", (e) => {
+  if (e.key === "Enter" && !e.shiftKey) {
+    e.preventDefault();
+    sendChat().catch((err) => { showError(err.message); restoreWorkspace(); });
+  }
+});
 
 bindHitlTabs();
 updateFileCount();
