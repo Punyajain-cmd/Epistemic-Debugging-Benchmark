@@ -1576,7 +1576,7 @@ ul, ol { margin: 0.3rem 0 0; padding-left: 1.1rem; }
   .chat-panel {
     position: sticky;
     bottom: 0;
-    max-height: min(48vh, 380px);
+    max-height: min(56vh, 440px);
   }
 }
 
@@ -1624,10 +1624,10 @@ ul, ol { margin: 0.3rem 0 0; padding-left: 1.1rem; }
 .chat-panel {
   flex: 0 0 auto;
   display: grid;
-  grid-template-rows: auto minmax(8.5rem, 28vh) auto auto;
+  grid-template-rows: auto minmax(11rem, 34vh) auto auto;
   border-top: 1px solid var(--ws-line);
   background: color-mix(in srgb, var(--ws-surface) 92%, #0d1216);
-  max-height: min(42vh, 360px);
+  max-height: min(52vh, 460px);
   min-height: 0;
 }
 

@@ -410,7 +410,9 @@ def replace_dump(
         session.messages.append(
             new_message(
                 "assistant",
-                heuristic_after_diagnosis(session),
+                "Dossier updated and re-ranked. The lead and competing causes "
+                "are in the diagnosis panel. Ask a follow-up, reject a "
+                "hypothesis, or tell me the next measurement.",
                 kind="diagnosis",
                 slots_requested=[s["id"] for s in missing_slots(session)[:4]],
                 diagnosed=True,
