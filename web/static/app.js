@@ -32,6 +32,51 @@ const DEFAULT_SLOTS = [
   { id: "context", label: "Background / context", hint: "Operator, humidity, leftover bottle" },
 ];
 
+const ROLE_TO_SLOT = {
+  setup_photo: "photos",
+  result_image: "photos",
+  cad: "cad",
+  sensor: "sensors",
+  log: "logs",
+  material_doc: "materials",
+  process_doc: "process",
+  datasheet: "materials",
+  other: "setup",
+};
+
+const GALLERY_GROUPS = [
+  { key: "images", label: "Photos", icon: "photos" },
+  { key: "tables", label: "Tables / sensors", icon: "sensors" },
+  { key: "logs", label: "Logs", icon: "logs" },
+  { key: "cad", label: "CAD", icon: "cad" },
+  { key: "documents", label: "Documents", icon: "file" },
+  { key: "other", label: "Other", icon: "file" },
+];
+
+const BUSY_STAGES = ["ingest", "anomalies", "causes", "evidence", "intervention"];
+const BUSY_COPY = {
+  ingest: "Parsing notes, files, and coverage…",
+  anomalies: "Flagging off-spec readings and log faults…",
+  causes: "Keeping competing causes alive…",
+  evidence: "Weighing support and contradictions…",
+  intervention: "Choosing a discriminating follow-up…",
+};
+
+const ACCEPT_ICON = [
+  ["photo", "photos"],
+  ["CAD", "cad"],
+  ["sensor", "sensors"],
+  ["CSV", "sensors"],
+  ["log", "logs"],
+  ["PDF", "file"],
+  ["notebook", "file"],
+  ["material", "materials"],
+  ["process", "process"],
+];
+
+let busyTimer = null;
+let busyStage = 0;
+
 const SAMPLE = {
   title: "Housing bore drift / pack venting",
   domain: "machining",
@@ -93,11 +138,57 @@ function escapeHtml(value) {
   ));
 }
 
+function slotIcon(id) {
+  const key = id && document.querySelector(`#ico-${id}`) ? id : "file";
+  return `<svg class="ico" aria-hidden="true"><use href="#ico-${key}"></use></svg>`;
+}
+
+function acceptIcon(text) {
+  const hit = ACCEPT_ICON.find(([needle]) => text.toLowerCase().includes(needle.toLowerCase()));
+  return slotIcon(hit ? hit[1] : "file");
+}
+
+function setBusyStage(index) {
+  busyStage = index;
+  const stage = BUSY_STAGES[index] || BUSY_STAGES[0];
+  const sub = $("busySub");
+  if (sub) sub.textContent = BUSY_COPY[stage] || "";
+  document.querySelectorAll("#busyPipeline li").forEach((el, i) => {
+    el.classList.toggle("is-active", i === index);
+    el.classList.toggle("is-done", i < index);
+  });
+}
+
+function stopBusyStages() {
+  if (busyTimer) {
+    clearInterval(busyTimer);
+    busyTimer = null;
+  }
+  busyStage = 0;
+}
+
+function startBusyStages() {
+  stopBusyStages();
+  setBusyStage(0);
+  busyTimer = setInterval(() => {
+    const next = Math.min(busyStage + 1, BUSY_STAGES.length - 1);
+    setBusyStage(next);
+    if (next >= BUSY_STAGES.length - 1) stopBusyStages();
+  }, 720);
+}
+
 function setBusy(on, message) {
   $("busy").hidden = !on;
   $("workspace").setAttribute("aria-busy", on ? "true" : "false");
   if (message) $("busyTitle").textContent = message;
-  if (!on) $("busyTitle").textContent = "Reading the dossier and ranking hypotheses…";
+  if (on) startBusyStages();
+  else {
+    stopBusyStages();
+    setBusyStage(0);
+    $("busyTitle").textContent = "Reading the dossier and ranking hypotheses…";
+    const sub = $("busySub");
+    if (sub) sub.textContent = "Ingest → anomalies → causes → evidence → intervention";
+  }
 }
 
 function restoreWorkspace() {
@@ -119,9 +210,9 @@ function roleOptions(selected) {
 
 function fileThumb(item) {
   const ext = (item.file.name.split(".").pop() || "file").slice(0, 5);
-  return item.preview
-    ? `<img alt="" src="${item.preview}" />`
-    : `<div class="thumb">${escapeHtml(ext)}</div>`;
+  if (item.preview) return `<img alt="" src="${item.preview}" />`;
+  const slot = ROLE_TO_SLOT[item.role] || "file";
+  return `<div class="thumb thumb-ico">${slotIcon(slot)}<span>${escapeHtml(ext)}</span></div>`;
 }
 
 function fileCard(item, i, prefix) {
@@ -243,21 +334,27 @@ function clientCoverage() {
 function renderCoverageList(target, items, emptyText) {
   if (!target) return;
   if (!items.length) {
-    target.innerHTML = emptyText ? `<li class="muted">${escapeHtml(emptyText)}</li>` : "";
+    target.innerHTML = emptyText ? `<div class="cov-tile is-missing"><span class="cov-label">${escapeHtml(emptyText)}</span></div>` : "";
     return;
   }
   target.innerHTML = items.map((slot) => `
-    <li class="${slot.present ? "is-present" : "is-missing"}" title="${escapeHtml(slot.hint || "")}">
-      <span class="cov-mark" aria-hidden="true"></span>
-      <span>${escapeHtml(slot.label)}</span>
-    </li>
+    <div class="cov-tile ${slot.present ? "is-present" : "is-missing"}" role="listitem" title="${escapeHtml(slot.hint || "")}">
+      <span class="cov-ico" aria-hidden="true">${slotIcon(slot.id)}</span>
+      <span class="cov-label">${escapeHtml(slot.label)}</span>
+      <span class="cov-state">${slot.present ? "in dump" : "missing"}</span>
+    </div>
   `).join("");
 }
 
 function renderCoverage() {
   const items = clientCoverage();
   const ready = items.filter((s) => s.present).length;
+  const pct = items.length ? Math.round((ready / items.length) * 100) : 0;
   $("coverageScore").textContent = `${ready} / ${items.length}`;
+  const panel = $("coveragePanel");
+  if (panel) panel.style.setProperty("--coverage-pct", String(pct));
+  const sub = $("coverageSub");
+  if (sub) sub.textContent = pct === 100 ? "Complete dump — every slot has a signal" : "Evidence slots the engine can actually use";
   renderCoverageList($("coverageList"), items);
   const missing = items.filter((s) => !s.present).map((s) => s.label);
   $("coverageHint").textContent = missing.length
@@ -334,16 +431,17 @@ function galleryCard(a) {
   const flags = (a.flags || []).slice(0, 3)
     .map((f) => `<li>${escapeHtml(f)}</li>`).join("");
   const preview = a.extracted_preview && !a.preview_url
-    ? `<pre>${escapeHtml(a.extracted_preview)}</pre>`
-    : "";
+    ? `<pre>${escapeHtml(a.extracted_preview)}</pre>` : "";
+  const isImage = a.kind === "image" || !!a.preview_url;
+  const icon = ROLE_TO_SLOT[a.role] || (a.kind === "sensor" ? "sensors" : a.kind === "log" ? "logs" : a.kind === "cad" ? "cad" : "file");
   const media = a.preview_url
     ? `<a href="${escapeHtml(a.preview_url)}" target="_blank" rel="noreferrer"><img alt="" src="${escapeHtml(a.preview_url)}" /></a>`
-    : `<div class="thumb">${escapeHtml((a.filename.split(".").pop() || a.kind || "file").slice(0, 5))}</div>`;
-  return `<article class="gallery-card kind-${escapeHtml(a.kind || "other")}">
+    : `<div class="thumb thumb-ico">${slotIcon(icon)}<span>${escapeHtml((a.filename.split(".").pop() || a.kind || "file").slice(0, 5))}</span></div>`;
+  return `<article class="gallery-card kind-${escapeHtml(a.kind || "other")}${isImage ? " is-image" : ""}">
     ${media}
     <div>
       <strong title="${escapeHtml(a.filename)}">${escapeHtml(a.filename)}</strong>
-      <div class="file-size">${escapeHtml(role)}${a.size_bytes ? ` · ${formatBytes(a.size_bytes)}` : ""}</div>
+      <div class="file-size"><span class="kind-badge">${slotIcon(icon)}${escapeHtml(role)}</span>${a.size_bytes ? ` · ${formatBytes(a.size_bytes)}` : ""}</div>
       ${caption}
       ${summary}
       ${flags ? `<ul class="gallery-flags">${flags}</ul>` : ""}
@@ -352,9 +450,39 @@ function galleryCard(a) {
   </article>`;
 }
 
+function galleryEmpty() {
+  return `<div class="gallery-empty">
+    <svg viewBox="0 0 72 56" aria-hidden="true">
+      <rect x="8" y="12" width="56" height="36" rx="4" />
+      <path d="M18 32l10-9 8 7 8-6 12 10" />
+      <circle cx="24" cy="22" r="3" />
+    </svg>
+    <p>Notes only — no files attached. The engine ranked from typed fields.</p>
+  </div>`;
+}
+
+function renderHighlights(ingest) {
+  const root = $("ingestHighlights");
+  if (!root) return;
+  const hits = (ingest && ingest.anomaly_highlights) || [];
+  if (!hits.length) {
+    root.hidden = true;
+    root.innerHTML = "";
+    return;
+  }
+  root.hidden = false;
+  root.innerHTML = hits.slice(0, 8).map((h) => `
+    <span class="highlight-chip">
+      <b>${escapeHtml(h.kind || "flag")} · ${escapeHtml(h.filename || "")}</b>
+      ${escapeHtml(h.text || "")}
+    </span>
+  `).join("");
+}
+
 function renderGallery(view) {
   const artifacts = view.artifacts || [];
   const ingest = view.ingest;
+  const gallery = view.gallery || {};
   if (ingest && Array.isArray(ingest.coverage)) {
     renderCoverageList($("ingestCoverage"), ingest.coverage);
     const pct = ingest.completeness == null ? "" : ` · ${Math.round(ingest.completeness * 100)}% complete`;
@@ -363,12 +491,25 @@ function renderGallery(view) {
     $("ingestCoverage").innerHTML = "";
     $("ingestMeta").textContent = `${view.fileCount} file(s) attached.`;
   }
+  renderHighlights(ingest);
   if (!artifacts.length) {
-    $("gallery").innerHTML = "<p class='muted'>Notes only — no files attached.</p>";
+    $("gallery").innerHTML = galleryEmpty();
     $("ingested").innerHTML = "<span class='muted'>Notes only — no files attached.</span>";
     return;
   }
-  $("gallery").innerHTML = artifacts.map(galleryCard).join("");
+  const grouped = GALLERY_GROUPS
+    .map((group) => ({ ...group, items: gallery[group.key] || [] }))
+    .filter((group) => group.items.length);
+  if (grouped.length) {
+    $("gallery").innerHTML = grouped.map((group) => `
+      <section class="gallery-group">
+        <h4>${slotIcon(group.icon)}${escapeHtml(group.label)} <span class="gallery-count">${group.items.length}</span></h4>
+        <div class="gallery-mosaic">${group.items.map(galleryCard).join("")}</div>
+      </section>
+    `).join("");
+  } else {
+    $("gallery").innerHTML = `<div class="gallery-mosaic">${artifacts.map(galleryCard).join("")}</div>`;
+  }
   $("ingested").innerHTML = artifacts.map((a) => {
     const role = ROLE_LABEL[a.role] || a.role || a.kind || "file";
     return `<span class="chip"><b>${escapeHtml(role)}</b> · ${escapeHtml(a.filename)}</span>`;
@@ -394,14 +535,17 @@ function renderSession(data) {
   renderGallery(view);
 
   $("anomalies").innerHTML = view.anomalies.length
-    ? view.anomalies.map((a) => `<li>${escapeHtml(a.description || a)}</li>`).join("")
-    : "<li>None flagged</li>";
+    ? view.anomalies.map((a) => {
+      const sev = (a.severity || a.source || "flag").toString();
+      return `<li class="flag-row"><span class="sev ${escapeHtml(sev)}">${escapeHtml(sev)}</span><span>${escapeHtml(a.description || a)}</span></li>`;
+    }).join("")
+    : "<li class='flag-row'><span class='sev'>none</span><span>None flagged</span></li>";
   $("missing").innerHTML = view.missing.length
-    ? view.missing.map((m) => `<li>${escapeHtml(m)}</li>`).join("")
-    : "<li>None listed</li>";
+    ? view.missing.map((m) => `<li class="flag-row"><span class="sev">gap</span><span>${escapeHtml(m)}</span></li>`).join("")
+    : "<li class='flag-row'><span class='sev low'>ok</span><span>None listed</span></li>";
   $("chain").innerHTML = view.chain.length
-    ? view.chain.map((s) => `<li>${escapeHtml(s)}</li>`).join("")
-    : "<li class='muted'>No chain reconstructed yet.</li>";
+    ? view.chain.map((s, i) => `<li><span class="tl-index">${String(i + 1).padStart(2, "0")}</span><span class="tl-body">${escapeHtml(s)}</span></li>`).join("")
+    : "<li><span class='tl-index'>—</span><span class='tl-body muted'>No chain reconstructed yet.</span></li>";
 
   const plan = view.intervention || {};
   $("intervention").textContent = plan.description || "No intervention yet";
@@ -787,7 +931,7 @@ async function boot() {
   const contract = health.contract_version ? ` · v${health.contract_version}` : "";
   $("status").classList.remove("is-loading");
   $("status").textContent = `${health.cases} catalog cases · ${health.engine_mode} engine${contract}`;
-  $("accepts").innerHTML = (health.accepts || []).map((item) => `<li>${escapeHtml(item)}</li>`).join("");
+  $("accepts").innerHTML = (health.accepts || []).map((item) => `<li><span class="accept-ico">${acceptIcon(item)}</span>${escapeHtml(item)}</li>`).join("");
   const cases = await api("/api/cases");
   $("caseSelect").innerHTML = cases.map((c) => {
     const label = c.failure_category_label ? ` · ${c.failure_category_label}` : "";

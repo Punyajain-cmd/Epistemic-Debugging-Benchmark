@@ -52,12 +52,21 @@ def test_health_contract(client):
 def test_index_and_static_assets(client):
     page = client.get("/")
     assert page.status_code == 200
-    assert b"EpiDebug" in page.content
+    html = page.content
+    assert b"EpiDebug" in html
+    assert b"Competing causes are waiting" in html
+    assert b"busy-pipeline" in html
+    assert b"coverage-grid" in html
+    assert b"ico-sensors" in html
     css = client.get("/assets/styles.css")
     assert css.status_code == 200
     assert "text/css" in css.headers.get("content-type", "")
+    assert b"busy-pipeline" in css.content
+    assert b"gallery-mosaic" in css.content
     js = client.get("/assets/app.js")
     assert js.status_code == 200
+    assert b"GALLERY_GROUPS" in js.content
+    assert b"startBusyStages" in js.content
 
 
 def test_case_list_has_picker_fields(client):

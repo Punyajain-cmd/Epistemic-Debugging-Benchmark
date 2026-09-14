@@ -8,10 +8,59 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Serif:ital,wght@0,500;0,600;1,500&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="/assets/styles.css?v=12" />
+  <link rel="stylesheet" href="/assets/styles.css?v=20" />
 </head>
 <body>
   <a class="skip" href="#workspace">Skip to diagnosis</a>
+
+  <svg class="sprite" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+    <symbol id="ico-failure" viewBox="0 0 24 24">
+      <path d="M12 4.5 20.2 19H3.8L12 4.5Z" fill="none" />
+      <path d="M12 10v4.2M12 16.8h.01" fill="none" />
+    </symbol>
+    <symbol id="ico-objective" viewBox="0 0 24 24">
+      <circle cx="12" cy="12" r="7.5" fill="none" />
+      <circle cx="12" cy="12" r="3.4" fill="none" />
+      <path d="M12 4.5V2.8M19.5 12h1.7M12 19.5v1.7M4.5 12H2.8" fill="none" />
+    </symbol>
+    <symbol id="ico-materials" viewBox="0 0 24 24">
+      <path d="M8 4.5h8l3 6.2-7 9.3-7-9.3L8 4.5Z" fill="none" />
+      <path d="M5.4 10.7h13.2" fill="none" />
+    </symbol>
+    <symbol id="ico-process" viewBox="0 0 24 24">
+      <circle cx="12" cy="12" r="3.1" fill="none" />
+      <path d="M12 5.2V3.6M12 20.4v-1.6M5.2 12H3.6M20.4 12h-1.6M7.1 7.1 6 6M18 18l-1.1-1.1M16.9 7.1 18 6M6 18l1.1-1.1" fill="none" />
+    </symbol>
+    <symbol id="ico-setup" viewBox="0 0 24 24">
+      <rect x="4.2" y="13.5" width="15.6" height="6.2" rx="1.2" fill="none" />
+      <path d="M7 13.5V9.2h10V13.5M9.2 9.2V7.4h5.6V9.2" fill="none" />
+    </symbol>
+    <symbol id="ico-cad" viewBox="0 0 24 24">
+      <path d="M12 4.4 19.4 8.4v7.2L12 19.6 4.6 15.6V8.4L12 4.4Z" fill="none" />
+      <path d="M12 12V19.6M12 12 4.6 8.4M12 12l7.4-3.6" fill="none" />
+    </symbol>
+    <symbol id="ico-sensors" viewBox="0 0 24 24">
+      <path d="M3.5 15.2 7.4 9.6l3.3 5.1 3.7-8.4 2.7 5.3H20.5" fill="none" />
+    </symbol>
+    <symbol id="ico-logs" viewBox="0 0 24 24">
+      <rect x="4.4" y="4.6" width="15.2" height="14.8" rx="1.6" fill="none" />
+      <path d="M7.4 9.2h9.2M7.4 12.4h6.4M7.4 15.6h8" fill="none" />
+    </symbol>
+    <symbol id="ico-photos" viewBox="0 0 24 24">
+      <rect x="3.8" y="6.6" width="16.4" height="12.2" rx="1.6" fill="none" />
+      <circle cx="12" cy="12.6" r="3.1" fill="none" />
+      <path d="M8.2 6.6 9.4 4.8h5.2L15.8 6.6" fill="none" />
+    </symbol>
+    <symbol id="ico-context" viewBox="0 0 24 24">
+      <circle cx="9.2" cy="9" r="2.4" fill="none" />
+      <circle cx="15.6" cy="10.2" r="2" fill="none" />
+      <path d="M4.6 18.4c.4-2.8 2.3-4.2 4.6-4.2s4.2 1.4 4.6 4.2M14.2 14.6c1.7.1 3.2 1.2 3.6 3.8" fill="none" />
+    </symbol>
+    <symbol id="ico-file" viewBox="0 0 24 24">
+      <path d="M7.2 4.6h7.1L19 9.4v10c0 .7-.6 1.2-1.3 1.2H7.2c-.7 0-1.3-.5-1.3-1.2V5.8c0-.7.6-1.2 1.3-1.2Z" fill="none" />
+      <path d="M14.2 4.6V9.4H19" fill="none" />
+    </symbol>
+  </svg>
 
   <header class="appbar">
     <div class="brand">
@@ -43,12 +92,18 @@
         <p class="hint">Dump the full record — materials, process, CAD, sensors, logs, photos, datasheets — then diagnose. Missing types stay optional but are listed so you can see the holes.</p>
       </header>
 
-      <aside class="panel coverage" aria-label="Dump checklist">
+      <aside class="panel coverage" id="coveragePanel" aria-label="Dump checklist">
         <div class="coverage-head">
-          <h3>Dump checklist</h3>
-          <span class="file-count" id="coverageScore">0 / 10</span>
+          <div>
+            <h3>Dump checklist</h3>
+            <p class="coverage-sub" id="coverageSub">Evidence slots the engine can actually use</p>
+          </div>
+          <div class="coverage-score">
+            <span class="coverage-ring" id="coverageRing" aria-hidden="true"></span>
+            <span class="file-count" id="coverageScore">0 / 10</span>
+          </div>
         </div>
-        <ul id="coverageList" class="coverage-list"></ul>
+        <div id="coverageList" class="coverage-grid" role="list"></div>
         <p class="hint" id="coverageHint">Fill what you have. A complete dump lets competing hypotheses fight the evidence instead of the gaps.</p>
       </aside>
 
@@ -85,6 +140,7 @@
 
       <details class="panel disclose" open>
         <summary>
+          <span class="disclose-ico" aria-hidden="true"><svg class="ico"><use href="#ico-materials"></use></svg></span>
           <span>
             <strong>Materials</strong>
             <em>Alloy, chemistry, lots, CoA / SDS</em>
@@ -98,6 +154,7 @@
 
       <details class="panel disclose" open>
         <summary>
+          <span class="disclose-ico" aria-hidden="true"><svg class="ico"><use href="#ico-process"></use></svg></span>
           <span>
             <strong>Process / protocol</strong>
             <em>Feeds, charge recipe, SOP, G-code</em>
@@ -114,6 +171,7 @@
 
       <details class="panel disclose" open>
         <summary>
+          <span class="disclose-ico" aria-hidden="true"><svg class="ico"><use href="#ico-cad"></use></svg></span>
           <span>
             <strong>Setup &amp; CAD</strong>
             <em>Fixture, revision, environment</em>
@@ -130,6 +188,7 @@
 
       <details class="panel disclose" open>
         <summary>
+          <span class="disclose-ico" aria-hidden="true"><svg class="ico"><use href="#ico-sensors"></use></svg></span>
           <span>
             <strong>Sensors</strong>
             <em>CSV / JSON tables or typed readings</em>
@@ -143,6 +202,7 @@
 
       <details class="panel disclose" open>
         <summary>
+          <span class="disclose-ico" aria-hidden="true"><svg class="ico"><use href="#ico-logs"></use></svg></span>
           <span>
             <strong>Logs</strong>
             <em>CNC, charger, robot, serial, console</em>
@@ -156,6 +216,7 @@
 
       <details class="panel disclose" open>
         <summary>
+          <span class="disclose-ico" aria-hidden="true"><svg class="ico"><use href="#ico-context"></use></svg></span>
           <span>
             <strong>Background</strong>
             <em>Operator, humidity, reused tool, leftover bottle</em>
@@ -209,6 +270,7 @@
 
       <details class="panel disclose examples">
         <summary>
+          <span class="disclose-ico" aria-hidden="true"><svg class="ico"><use href="#ico-objective"></use></svg></span>
           <span>
             <strong>Or start from a benchmark case</strong>
             <em>Catalog experiments for a known-good path</em>
@@ -234,21 +296,49 @@
       </div>
 
       <div id="emptyState" class="empty">
-        <div class="empty-mark" aria-hidden="true">
-          <svg viewBox="0 0 88 72" width="88" height="72">
-            <circle cx="44" cy="14" r="8" />
-            <circle cx="16" cy="56" r="7" />
-            <circle cx="44" cy="58" r="7" />
-            <circle cx="72" cy="56" r="7" />
-            <path d="M44 22v12M44 34L18 50M44 34v16M44 34l26 16" fill="none" />
-          </svg>
+        <div class="empty-hero">
+          <div class="empty-graph" aria-hidden="true">
+            <svg viewBox="0 0 280 188" width="280" height="188">
+              <defs>
+                <radialGradient id="nodeGlow" cx="50%" cy="50%" r="50%">
+                  <stop offset="0%" stop-color="#f0c4a0" stop-opacity="0.55" />
+                  <stop offset="100%" stop-color="#f0c4a0" stop-opacity="0" />
+                </radialGradient>
+              </defs>
+              <path class="graph-link" d="M140 42 L58 128" />
+              <path class="graph-link delay-1" d="M140 42 L140 136" />
+              <path class="graph-link delay-2" d="M140 42 L222 128" />
+              <path class="graph-link delay-3" d="M58 128 L140 136 L222 128" />
+              <circle class="graph-halo" cx="140" cy="42" r="26" />
+              <g class="graph-node lead-node">
+                <circle cx="140" cy="42" r="16" />
+                <text x="140" y="46">H1</text>
+              </g>
+              <g class="graph-node delay-1">
+                <circle cx="58" cy="128" r="13" />
+                <text x="58" y="132">H2</text>
+              </g>
+              <g class="graph-node delay-2">
+                <circle cx="140" cy="136" r="13" />
+                <text x="140" y="140">H3</text>
+              </g>
+              <g class="graph-node delay-3">
+                <circle cx="222" cy="128" r="13" />
+                <text x="222" y="132">H4</text>
+              </g>
+            </svg>
+            <p class="graph-caption">Idle hypothesis graph · waiting on a dump</p>
+          </div>
+          <div class="empty-copy">
+            <p class="eyebrow">Diagnosis idle</p>
+            <h2>Competing causes are waiting</h2>
+            <p>Dump the experimental record on the left. The engine will keep every plausible cause alive, weigh evidence for and against, and only then recommend a discriminating follow-up.</p>
+            <button id="sampleFillEmpty" type="button" class="ghost">Fill a machining / battery example</button>
+          </div>
         </div>
-        <h2>Nothing is diagnosed yet</h2>
-        <p>Fill in as much as you can on the left. Competing hypotheses, evidence for and against, and a discriminating follow-up will appear here.</p>
-        <button id="sampleFillEmpty" type="button" class="ghost">Fill a machining / battery example</button>
         <ol class="empty-steps">
-          <li><span><strong>Dump the record</strong><em>Failure, intent, and files</em></span></li>
-          <li><span><strong>Keep causes alive</strong><em>Ranked hypotheses with evidence</em></span></li>
+          <li><span><strong>Dump the record</strong><em>Failure, intent, files, and coverage holes</em></span></li>
+          <li><span><strong>Keep causes alive</strong><em>Ranked hypotheses with visual posteriors</em></span></li>
           <li><span><strong>Stay in the loop</strong><em>Reject, add a measurement, or run the follow-up</em></span></li>
         </ol>
         <h3>What you can attach</h3>
@@ -256,15 +346,16 @@
       </div>
 
       <div id="busy" class="busy" hidden>
-        <div class="busy-spinner" aria-hidden="true"></div>
-        <div>
+        <div class="busy-orb" aria-hidden="true"></div>
+        <div class="busy-copy">
           <strong id="busyTitle">Reading the dossier and ranking hypotheses…</strong>
-          <ol class="busy-steps">
-            <li>Ingest</li>
-            <li>Anomalies</li>
-            <li>Causes</li>
-            <li>Evidence</li>
-            <li>Intervention</li>
+          <p class="busy-sub" id="busySub">Ingest → anomalies → causes → evidence → intervention</p>
+          <ol class="busy-pipeline" id="busyPipeline">
+            <li data-stage="ingest" class="is-active">Ingest</li>
+            <li data-stage="anomalies">Anomalies</li>
+            <li data-stage="causes">Causes</li>
+            <li data-stage="evidence">Evidence</li>
+            <li data-stage="intervention">Intervention</li>
           </ol>
         </div>
       </div>
@@ -298,7 +389,8 @@
             <h3>What was ingested</h3>
             <p class="muted" id="ingestMeta">File summaries and dump coverage from this session.</p>
           </div>
-          <ul id="ingestCoverage" class="coverage-list compact"></ul>
+          <div id="ingestCoverage" class="coverage-grid compact" role="list"></div>
+          <div id="ingestHighlights" class="highlight-strip" hidden></div>
           <div id="gallery" class="gallery"></div>
           <div id="ingested" class="chips" hidden></div>
         </article>
@@ -306,11 +398,11 @@
         <div class="grid">
           <article>
             <h3>Anomalies</h3>
-            <ul id="anomalies"></ul>
+            <ul id="anomalies" class="flag-list"></ul>
           </article>
           <article>
             <h3>Still missing</h3>
-            <ul id="missing"></ul>
+            <ul id="missing" class="flag-list"></ul>
           </article>
         </div>
 
@@ -387,6 +479,6 @@
       </div>
     </section>
   </main>
-  <script src="/assets/app.js?v=12"></script>
+  <script src="/assets/app.js?v=20"></script>
 </body>
 </html>
