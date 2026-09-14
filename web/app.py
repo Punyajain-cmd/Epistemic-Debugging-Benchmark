@@ -11,6 +11,7 @@ and adds an additive ``view`` object for a redesigned frontend.
 from __future__ import annotations
 
 import json
+import os
 import sys
 from pathlib import Path
 from typing import Any, Optional
@@ -163,6 +164,21 @@ def _session_summaries(engine: EpistemicDebuggingEngine) -> list[dict[str, Any]]
     return items
 
 
+def default_upload_dir() -> Path:
+    """Writable session/upload root.
+
+    Local default is ``<repo>/uploads``. Vercel Functions only allow writes
+    under ``/tmp``, so ``VERCEL=1`` redirects there. ``EPIDEBUG_UPLOAD_DIR``
+    always wins (tests and operators).
+    """
+    override = os.environ.get("EPIDEBUG_UPLOAD_DIR")
+    if override:
+        return Path(override)
+    if os.environ.get("VERCEL"):
+        return Path("/tmp/epidebug-uploads")
+    return ROOT / "uploads"
+
+
 def create_app(
     *,
     upload_dir: Path | None = None,
@@ -170,7 +186,7 @@ def create_app(
     cases: list[TestCase] | None = None,
 ) -> FastAPI:
     """Build the prototype API. ``upload_dir`` is overrideable for tests."""
-    upload_dir = Path(upload_dir) if upload_dir else ROOT / "uploads"
+    upload_dir = Path(upload_dir) if upload_dir else default_upload_dir()
     upload_dir.mkdir(parents=True, exist_ok=True)
     sessions_dir = upload_dir / "sessions"
     sessions_dir.mkdir(parents=True, exist_ok=True)
@@ -248,6 +264,8 @@ def create_app(
             "evidence_slots": EVIDENCE_SLOTS,
             "fixtures": _fixture_index(),
             "max_file_bytes": MAX_FILE_BYTES,
+            "platform": "vercel" if os.environ.get("VERCEL") else "local",
+            "ephemeral_storage": bool(os.environ.get("VERCEL")),
             "session_payload": [
                 "session_id",
                 "diagnosis",

@@ -45,6 +45,19 @@ def test_health_contract(client):
     assert body["evidence_slots"]
     assert body["max_file_bytes"] == 25 * 1024 * 1024
     assert body["engine_mode"] in {"heuristic", "llm"}
+    assert body["platform"] in {"local", "vercel"}
+    assert "ephemeral_storage" in body
+
+
+def test_index_and_static_assets(client):
+    page = client.get("/")
+    assert page.status_code == 200
+    assert b"EpiDebug" in page.content
+    css = client.get("/assets/styles.css")
+    assert css.status_code == 200
+    assert "text/css" in css.headers.get("content-type", "")
+    js = client.get("/assets/app.js")
+    assert js.status_code == 200
 
 
 def test_case_list_has_picker_fields(client):

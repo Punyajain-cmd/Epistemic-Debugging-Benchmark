@@ -5,7 +5,9 @@ python -m pip install -e ".[web]"
 python scripts/serve.py
 ```
 
-Open `http://127.0.0.1:8000`.
+Open `http://127.0.0.1:8000`. Same app: `python -m uvicorn web.app:app --host 127.0.0.1 --port 8000`.
+
+Vercel deploy (no Hugging Face / Docker): [vercel.md](vercel.md).
 
 Dump the actual experimental record, not a three-box summary:
 

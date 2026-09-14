@@ -72,7 +72,10 @@ Dump the full experimental record — photos, CAD, logs, sensor files, materials
 ```bash
 python scripts/serve.py
 # open http://127.0.0.1:8000
+# equivalent: python -m uvicorn web.app:app --host 127.0.0.1 --port 8000
 ```
+
+Deploy the same FastAPI UI on Vercel (`web.app:app`). See [docs/vercel.md](docs/vercel.md).
 
 Optional LLM diagnosis (engine + benchmark runner):
 
