@@ -210,8 +210,8 @@ function roleOptions(selected) {
 
 function fileThumb(item) {
   const ext = (item.file.name.split(".").pop() || "file").slice(0, 5);
-  if (item.preview) return `<img alt="" src="${item.preview}" />`;
   const slot = ROLE_TO_SLOT[item.role] || "file";
+  if (item.preview && item.file.size > 200) return `<img alt="" src="${item.preview}" />`;
   return `<div class="thumb thumb-ico">${slotIcon(slot)}<span>${escapeHtml(ext)}</span></div>`;
 }
 
@@ -432,9 +432,10 @@ function galleryCard(a) {
     .map((f) => `<li>${escapeHtml(f)}</li>`).join("");
   const preview = a.extracted_preview && !a.preview_url
     ? `<pre>${escapeHtml(a.extracted_preview)}</pre>` : "";
-  const isImage = a.kind === "image" || !!a.preview_url;
+  const isStubImage = a.kind === "image" && (!a.size_bytes || a.size_bytes < 200);
+  const isImage = (a.kind === "image" || !!a.preview_url) && !isStubImage;
   const icon = ROLE_TO_SLOT[a.role] || (a.kind === "sensor" ? "sensors" : a.kind === "log" ? "logs" : a.kind === "cad" ? "cad" : "file");
-  const media = a.preview_url
+  const media = a.preview_url && !isStubImage
     ? `<a href="${escapeHtml(a.preview_url)}" target="_blank" rel="noreferrer"><img alt="" src="${escapeHtml(a.preview_url)}" /></a>`
     : `<div class="thumb thumb-ico">${slotIcon(icon)}<span>${escapeHtml((a.filename.split(".").pop() || a.kind || "file").slice(0, 5))}</span></div>`;
   return `<article class="gallery-card kind-${escapeHtml(a.kind || "other")}${isImage ? " is-image" : ""}">
