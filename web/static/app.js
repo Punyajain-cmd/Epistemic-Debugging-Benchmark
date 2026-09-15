@@ -166,6 +166,11 @@ function renderChat(messages) {
     </div>`;
   }).join("");
   root.scrollTop = root.scrollHeight;
+  const panel = $("chatPanel");
+  if (panel) {
+    const hasThread = (messages || []).some((msg) => msg && msg.role === "user");
+    panel.classList.toggle("has-thread", hasThread);
+  }
 }
 
 function setChatMode(mode) {
@@ -1093,18 +1098,25 @@ function expandComposer() {
   const form = $("chatForm");
   const input = $("chatInput");
   const collapse = $("chatCollapse");
+  const panel = $("chatPanel");
   if (!form || !input) return;
   form.classList.add("is-expanded");
   form.classList.remove("is-compact");
   form.setAttribute("aria-expanded", "true");
-  input.rows = 6;
-  if (collapse) collapse.hidden = false;
+  input.rows = 8;
+  if (panel) panel.classList.add("is-composing");
+  if (collapse) {
+    collapse.hidden = false;
+    collapse.setAttribute("aria-label", "Collapse to one line");
+    collapse.setAttribute("title", "Collapse to one line");
+  }
 }
 
 function collapseComposer() {
   const form = $("chatForm");
   const input = $("chatInput");
   const collapse = $("chatCollapse");
+  const panel = $("chatPanel");
   if (!form || !input) return;
   form.classList.remove("is-expanded");
   form.classList.add("is-compact");
@@ -1112,7 +1124,12 @@ function collapseComposer() {
   input.rows = 1;
   input.style.height = "";
   input.scrollTop = 0;
-  if (collapse) collapse.hidden = true;
+  if (panel) panel.classList.remove("is-composing");
+  if (collapse) {
+    collapse.hidden = false;
+    collapse.setAttribute("aria-label", "Expand compose box");
+    collapse.setAttribute("title", "Expand compose box");
+  }
 }
 
 function insertChatNewline() {
@@ -1193,7 +1210,8 @@ $("chatInput").addEventListener("keydown", (e) => {
 });
 $("chatInput").addEventListener("input", maybeExpandComposerFromContent);
 $("chatCollapse").addEventListener("click", () => {
-  collapseComposer();
+  if (isComposerExpanded()) collapseComposer();
+  else expandComposer();
   const input = $("chatInput");
   if (input) input.focus();
 });

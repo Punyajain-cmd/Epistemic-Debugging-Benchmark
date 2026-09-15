@@ -65,12 +65,16 @@ def test_index_and_static_assets(client):
     assert b"chatInput" in html
     assert b"chatCollapse" in html
     assert b"is-compact" in html
+    assert b"Collapse" in html
+    assert b"ico-expand" in html
     assert b"ico-sensors" in html
     css = client.get("/assets/styles.css")
     assert css.status_code == 200
     assert "text/css" in css.headers.get("content-type", "")
     assert b"busy-pipeline" in css.content
     assert b"gallery-mosaic" in css.content
+    assert b"min-height: 148px" in css.content
+    assert b"height: 36px" in css.content
     js = client.get("/assets/app.js")
     assert js.status_code == 200
     assert b"GALLERY_GROUPS" in js.content
@@ -78,6 +82,8 @@ def test_index_and_static_assets(client):
     assert b"sendChat" in js.content
     assert b"/api/sessions/" in js.content
     assert b"/api/chat" in js.content
+    assert b"expandComposer" in js.content
+    assert b"has-thread" in js.content
 
 
 def test_case_list_has_picker_fields(client):

@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Serif:ital,wght@0,500;0,600;1,500&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="/assets/styles.css?v=24" />
+  <link rel="stylesheet" href="/assets/styles.css?v=25" />
 </head>
 <body>
   <a class="skip" href="#workspace">Skip to diagnosis</a>
@@ -63,6 +63,9 @@
     <symbol id="ico-collapse" viewBox="0 0 24 24">
       <path d="M6 14.2 12 8.2 18 14.2" fill="none" />
       <path d="M6 17.5h12" fill="none" />
+    </symbol>
+    <symbol id="ico-expand" viewBox="0 0 24 24">
+      <path d="M6 9.8 12 15.8 18 9.8" fill="none" />
     </symbol>
   </svg>
 
@@ -497,16 +500,20 @@
           <label class="sr-only" for="chatInput">Message to EpiDebug. Enter expands the composer. Control or Command plus Enter sends.</label>
           <div class="chat-compose-field">
             <textarea id="chatInput" rows="1" enterkeyhint="enter" placeholder="What failed? Enter expands · ⌘/Ctrl+Enter sends"></textarea>
-            <button type="button" class="chat-collapse" id="chatCollapse" hidden aria-label="Collapse composer" title="Collapse">
-              <svg class="ico" aria-hidden="true"><use href="#ico-collapse"></use></svg>
-            </button>
           </div>
-          <button type="submit" class="primary compact" id="chatSend">Send</button>
+          <div class="chat-compose-actions">
+            <button type="button" class="chat-collapse" id="chatCollapse" aria-label="Expand compose box" title="Expand compose box">
+              <svg class="ico ico-expand" aria-hidden="true"><use href="#ico-expand"></use></svg>
+              <svg class="ico ico-min" aria-hidden="true"><use href="#ico-collapse"></use></svg>
+              <span class="chat-collapse-label">Collapse</span>
+            </button>
+            <button type="submit" class="primary compact" id="chatSend">Send</button>
+          </div>
         </form>
         <p class="hint chat-hint">Files stay in the dossier. Chat keeps the thread. Diagnose re-ranks without starting over.</p>
       </aside>
     </section>
   </main>
-  <script src="/assets/app.js?v=24"></script>
+  <script src="/assets/app.js?v=25"></script>
 </body>
 </html>
