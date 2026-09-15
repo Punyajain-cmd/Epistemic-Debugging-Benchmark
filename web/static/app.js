@@ -157,8 +157,18 @@ function chatRoleLabel(role) {
 function renderChat(messages) {
   const root = $("chatLog");
   if (!root) return;
-  const rows = (messages && messages.length) ? messages : [CHAT_WELCOME];
-  root.innerHTML = rows.map((msg) => {
+  const panel = $("chatPanel");
+  const hasThread = (messages || []).some((msg) => msg && msg.role === "user");
+  if (panel) panel.classList.toggle("has-thread", hasThread);
+
+  if (!messages || !messages.length) {
+    root.classList.add("is-idle");
+    root.innerHTML = `<p class="chat-idle-hint">${escapeHtml(CHAT_WELCOME.content)}</p>`;
+    return;
+  }
+
+  root.classList.remove("is-idle");
+  root.innerHTML = messages.map((msg) => {
     const role = msg.role || "assistant";
     return `<div class="chat-bubble ${escapeHtml(role)}" data-role="${escapeHtml(role)}">
       <small>${escapeHtml(chatRoleLabel(role))}</small>
@@ -166,11 +176,6 @@ function renderChat(messages) {
     </div>`;
   }).join("");
   root.scrollTop = root.scrollHeight;
-  const panel = $("chatPanel");
-  if (panel) {
-    const hasThread = (messages || []).some((msg) => msg && msg.role === "user");
-    panel.classList.toggle("has-thread", hasThread);
-  }
 }
 
 function setChatMode(mode) {
