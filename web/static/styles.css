@@ -1264,6 +1264,13 @@ ul, ol { margin: 0.3rem 0 0; padding-left: 1.1rem; }
   font-size: 0.76rem;
 }
 
+.omit-notes {
+  margin: 0.35rem 0 0;
+  color: var(--ws-muted);
+  font-size: 0.74rem;
+  line-height: 1.35;
+}
+
 .gallery-empty {
   display: grid;
   justify-items: center;

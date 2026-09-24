@@ -253,7 +253,7 @@
           </span>
           <strong>Drop anything here</strong>
           <span>or <label class="filepick">browse<input id="fileInput" type="file" multiple /></label></span>
-          <small>Photos/SVG, CAD (STEP/STL/DXF/IGES), CSV/JSON, logs, PDFs, notebooks. 25 MB each.</small>
+          <small>Photos, video, CAD, CSV/JSON, logs, PDFs. The model gets a compact extract; raw files stay in the gallery. 25 MB each locally (about 4.5 MB on Vercel).</small>
         </div>
         <div id="fileList" class="file-list"></div>
       </div>
@@ -264,8 +264,8 @@
       <input id="attach-sensor" class="role-file" data-role="sensor" type="file" multiple hidden accept=".csv,.tsv,.json,.txt,.dat" />
       <input id="attach-log" class="role-file" data-role="log" type="file" multiple hidden accept=".log,.txt,.out,.err,.serial,.nmea,.ulog,.asc" />
       <input id="attach-datasheet" class="role-file" data-role="datasheet" type="file" multiple hidden accept=".pdf,.md,.txt,.html" />
-      <input id="attach-setup_photo" class="role-file" data-role="setup_photo" type="file" multiple hidden accept="image/*,.svg" />
-      <input id="attach-result_image" class="role-file" data-role="result_image" type="file" multiple hidden accept="image/*,.svg" />
+      <input id="attach-setup_photo" class="role-file" data-role="setup_photo" type="file" multiple hidden accept="image/*,.svg,video/*,.mp4,.mov,.webm,.mkv,.avi" />
+      <input id="attach-result_image" class="role-file" data-role="result_image" type="file" multiple hidden accept="image/*,.svg,video/*,.mp4,.mov,.webm,.mkv,.avi" />
 
       <div class="actions" id="actionsDock">
         <button id="diagnoseBtn" class="primary" type="button">

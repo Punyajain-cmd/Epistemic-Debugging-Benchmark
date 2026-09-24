@@ -54,6 +54,7 @@ DOMAIN_ALIASES = {
 
 ACCEPTS = [
     "photos of the setup or failed part",
+    "video (metadata only — frames are not sent to the model)",
     "CAD (STEP, STL, DXF, IGES)",
     "sensor CSV/JSON",
     "machine and console logs",
@@ -331,6 +332,7 @@ def create_app(
             ],
             "view_fields": [
                 "artifacts",
+                "extracts",
                 "gallery",
                 "ingest",
                 "hypotheses",
@@ -338,6 +340,22 @@ def create_app(
                 "messages",
                 "chat",
             ],
+            "preprocess": {
+                "raw_payloads_in_model_context": False,
+                "modalities": [
+                    "text",
+                    "log",
+                    "csv",
+                    "json",
+                    "image",
+                    "pdf",
+                    "stl",
+                    "cad",
+                    "video",
+                    "notebook",
+                    "gcode",
+                ],
+            },
             "hitl": [
                 "POST /api/sessions/{id}/reject",
                 "POST /api/sessions/{id}/add-info",

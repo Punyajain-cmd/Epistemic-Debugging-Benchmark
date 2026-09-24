@@ -139,6 +139,7 @@ def build_view(session: DiagnosisSession) -> dict[str, Any]:
         "missing": list(uncertainty.missing_information),
         "hypotheses": [_hypothesis_card(h) for h in diagnosis.hypotheses],
         "artifacts": artifacts,
+        "extracts": [card["evidence"] for card in artifacts if card.get("evidence")],
         "gallery": ingest["gallery"],
         "ingest": ingest,
         "history": list(session.history),
@@ -238,7 +239,7 @@ def coverage_from_experiment(experiment: ExperimentInput | None) -> list[dict[st
             or ArtifactRole.SENSOR.value in roles
         ),
         "logs": ArtifactKind.LOG.value in kinds or ArtifactRole.LOG.value in roles,
-        "photos": ArtifactKind.IMAGE.value in kinds,
+        "photos": ArtifactKind.IMAGE.value in kinds or ArtifactKind.VIDEO.value in kinds,
         "context": notes["context"],
     }
     return [
@@ -357,6 +358,9 @@ def _artifact_cards(experiment: ExperimentInput | None) -> list[dict[str, Any]]:
                 "stats": art.stats or {},
                 "extracted_preview": extracted[:360],
                 "flags": _artifact_flags(art),
+                "evidence": (
+                    art.evidence.model_dump(mode="json") if art.evidence is not None else None
+                ),
             }
         )
     return cards
@@ -371,6 +375,7 @@ def _gallery(cards: list[dict[str, Any]]) -> dict[str, Any]:
         "logs": [],
         "cad": [],
         "documents": [],
+        "videos": [],
         "other": [],
     }
     group_for = {
@@ -380,6 +385,7 @@ def _gallery(cards: list[dict[str, Any]]) -> dict[str, Any]:
         "cad": "cad",
         "document": "documents",
         "notebook": "documents",
+        "video": "videos",
     }
     for card in cards:
         by_role.setdefault(card["role"], []).append(card["id"])

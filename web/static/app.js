@@ -46,6 +46,7 @@ const ROLE_TO_SLOT = {
 
 const GALLERY_GROUPS = [
   { key: "images", label: "Photos", icon: "photos" },
+  { key: "videos", label: "Video", icon: "photos" },
   { key: "tables", label: "Tables / sensors", icon: "sensors" },
   { key: "logs", label: "Logs", icon: "logs" },
   { key: "cad", label: "CAD", icon: "cad" },
@@ -99,6 +100,11 @@ const SAMPLE = {
 
 function guessRole(name) {
   const n = name.toLowerCase();
+  if (/\.(mp4|m4v|mov|webm|mkv|avi|mpg|mpeg|wmv|ogv)$/.test(n)) {
+    if (/fail|crack|vent|burn|scrap|defect|result/.test(n)) return "result_image";
+    if (/setup|bench|rig|lab/.test(n)) return "setup_photo";
+    return "other";
+  }
   if (/\.(stl|step|stp|iges|igs|dxf|obj|3mf|ply)$/.test(n) || /cad|fixture|drawing/.test(n)) return "cad";
   if (/\.(nc|gcode|tap|cnc|ngc)$/.test(n) || /protocol|sop|traveler|gcode|recipe/.test(n)) return "process_doc";
   if (/\.(csv|tsv|json|dat)$/.test(n) || /sensor|telemetry|thermistor|cycle/.test(n)) return "sensor";
@@ -500,6 +506,10 @@ function galleryCard(a) {
     .map((f) => `<li>${escapeHtml(f)}</li>`).join("");
   const preview = a.extracted_preview && !a.preview_url
     ? `<pre>${escapeHtml(a.extracted_preview)}</pre>` : "";
+  const omitted = (a.evidence && a.evidence.omitted) || [];
+  const omitNote = omitted.length
+    ? `<p class="omit-notes"><b>Kept out of the model:</b> ${escapeHtml(omitted.slice(0, 2).join("; "))}</p>`
+    : "";
   const isStubImage = a.kind === "image" && (!a.size_bytes || a.size_bytes < 200);
   const isImage = (a.kind === "image" || !!a.preview_url) && !isStubImage;
   const icon = ROLE_TO_SLOT[a.role] || (a.kind === "sensor" ? "sensors" : a.kind === "log" ? "logs" : a.kind === "cad" ? "cad" : "file");
@@ -514,6 +524,7 @@ function galleryCard(a) {
       ${caption}
       ${summary}
       ${flags ? `<ul class="gallery-flags">${flags}</ul>` : ""}
+      ${omitNote}
       ${preview}
     </div>
   </article>`;
@@ -555,7 +566,11 @@ function renderGallery(view) {
   if (ingest && Array.isArray(ingest.coverage)) {
     renderCoverageList($("ingestCoverage"), ingest.coverage);
     const pct = ingest.completeness == null ? "" : ` · ${Math.round(ingest.completeness * 100)}% complete`;
-    $("ingestMeta").textContent = `${view.fileCount} file(s)${pct}. Summaries below are what the engine actually read.`;
+    const extracts = (view.artifacts || []).filter((a) => a.evidence).length;
+    const extractNote = extracts
+      ? ` Compact extracts (${extracts}) go to the model; raw files stay in the gallery.`
+      : " Summaries below are what the engine actually read.";
+    $("ingestMeta").textContent = `${view.fileCount} file(s)${pct}.${extractNote}`;
   } else {
     $("ingestCoverage").innerHTML = "";
     $("ingestMeta").textContent = `${view.fileCount} file(s) attached.`;

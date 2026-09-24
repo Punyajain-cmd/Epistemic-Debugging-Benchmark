@@ -17,7 +17,7 @@ from pathlib import Path
 from typing import Iterable
 
 from epidebug.engine.anomalies import anomalies_from_case, anomalies_from_freeform
-from epidebug.engine.ingest import artifact_blob
+from epidebug.engine.preprocess import prompt_from_artifacts
 from epidebug.engine.patterns import FAILURE_PATTERNS
 from epidebug.engine.session import DiagnosisSession, FollowUpRecord, SessionStore
 from epidebug.llm import EngineLLM
@@ -79,10 +79,46 @@ def _blob_from_experiment(exp: ExperimentInput, extra: Iterable[str] = ()) -> st
     parts.extend(exp.telemetry_notes)
     parts.extend(exp.contextual_clues)
     parts.extend(exp.extra_information)
-    for artifact in exp.artifacts:
-        parts.append(artifact_blob(artifact))
+    if exp.artifacts:
+        parts.append(prompt_from_artifacts(exp.artifacts))
     parts.extend(extra)
     return "\n".join(p for p in parts if p)
+
+
+def build_diagnosis_prompt(blob: str, title: str, domain: str | None) -> str:
+    """Prompt body for the LLM diagnose path. ``blob`` is already compact."""
+    return f"""Diagnose this failed experiment.
+
+Title: {title}
+Domain: {domain or "unspecified"}
+
+Evidence (compact extracts only; raw tables, pixels, meshes, and video frames are omitted):
+{blob[:8000]}
+
+Return JSON with this shape:
+{{
+  "leading_cause": str,
+  "hypotheses": [
+    {{
+      "id": str,
+      "statement": str,
+      "category": str,
+      "score": float,
+      "causal_chain": [str],
+      "supporting_evidence": [str],
+      "contradictory_evidence": [str],
+      "missing_information": [str]
+    }}
+  ],
+  "intervention": {{
+    "description": str,
+    "predicted_if_true": str,
+    "predicted_if_false": str
+  }},
+  "confidence": float
+}}
+Generate 3-5 competing hypotheses. Rank them.
+"""
 
 
 def _softmax(scores: list[float], temperature: float = 0.35) -> list[float]:
@@ -276,7 +312,8 @@ class EpistemicDebuggingEngine:
             extra.append(f"Unexpected outcome: {exp.unexpected_outcome}")
         extra.extend(exp.telemetry_notes)
         extra.extend(exp.contextual_clues)
-        extra.extend(artifact_blob(artifact) for artifact in exp.artifacts)
+        if exp.artifacts:
+            extra.append(prompt_from_artifacts(exp.artifacts))
         return extra
 
     def _rediagnose(
@@ -453,38 +490,7 @@ class EpistemicDebuggingEngine:
             "evidence, and missing information. Do not collapse to a single story "
             "if the evidence is incomplete. Return ONLY JSON."
         )
-        prompt = f"""Diagnose this failed experiment.
-
-Title: {title}
-Domain: {domain or "unspecified"}
-
-Evidence:
-{blob[:8000]}
-
-Return JSON with this shape:
-{{
-  "leading_cause": str,
-  "hypotheses": [
-    {{
-      "id": str,
-      "statement": str,
-      "category": str,
-      "score": float,
-      "causal_chain": [str],
-      "supporting_evidence": [str],
-      "contradictory_evidence": [str],
-      "missing_information": [str]
-    }}
-  ],
-  "intervention": {{
-    "description": str,
-    "predicted_if_true": str,
-    "predicted_if_false": str
-  }},
-  "confidence": float
-}}
-Generate 3-5 competing hypotheses. Rank them.
-"""
+        prompt = build_diagnosis_prompt(blob, title, domain)
         data = self.llm.complete_json(prompt, system)
         if not data:
             return None

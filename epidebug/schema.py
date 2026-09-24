@@ -636,6 +636,7 @@ class ArtifactKind(str, Enum):
     LOG = "log"
     DOCUMENT = "document"
     NOTEBOOK = "notebook"
+    VIDEO = "video"
     OTHER = "other"
 
 
@@ -649,6 +650,27 @@ class ArtifactRole(str, Enum):
     PROCESS_DOC = "process_doc"
     DATASHEET = "datasheet"
     OTHER = "other"
+
+
+class EvidenceExtract(BaseModel):
+    """Bounded evidence safe to place in an LLM context window.
+
+    Raw bytes, full tables, full transcripts, pixel buffers, meshes, and
+    video frames stay on the artifact. This record is the only file-derived
+    text the diagnose and chat prompts should see.
+    """
+
+    modality: str
+    filename: str
+    summary: str = ""
+    stats: dict[str, Any] = Field(default_factory=dict)
+    anomalies: list[str] = Field(default_factory=list)
+    excerpts: list[str] = Field(default_factory=list)
+    omitted: list[str] = Field(default_factory=list)
+    citations: list[dict[str, str]] = Field(default_factory=list)
+    size_bytes: int = 0
+    truncated: bool = False
+    char_budget: int = 1100
 
 
 class ExperimentArtifact(BaseModel):
@@ -666,6 +688,7 @@ class ExperimentArtifact(BaseModel):
     summary: str = ""
     stats: dict[str, Any] = Field(default_factory=dict)
     preview_url: Optional[str] = None
+    evidence: Optional[EvidenceExtract] = None
 
 
 class ExperimentInput(BaseModel):

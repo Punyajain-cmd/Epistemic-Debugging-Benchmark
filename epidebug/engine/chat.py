@@ -42,7 +42,9 @@ CHAT_SYSTEM = (
     "enough to rank competing causes, set run_diagnosis true so the "
     "heuristic/LLM engine can refresh hypotheses. Do not invent "
     "measurements, files, or web results. Do not scrape the internet. Do "
-    "not claim you trained a model. Keep competing hypotheses alive; do "
+    "not claim you trained a model. File evidence in the dossier is a "
+    "compact extract: you did not see full tables, images, meshes, or "
+    "video frames. Keep competing hypotheses alive; do "
     "not collapse to one story if evidence is incomplete. Return ONLY JSON "
     "with this shape:\n"
     "{\n"
@@ -241,10 +243,16 @@ def seed_diagnosis_turn(session: DiagnosisSession, *, event: str = "opened") -> 
             mode=mode,
         )
     )
+    from epidebug.engine.preprocess import extraction_brief
+
+    opener = heuristic_after_diagnosis(session)
+    brief = extraction_brief(session.experiment)
+    if brief:
+        opener = brief + "\n\n" + opener
     session.messages.append(
         new_message(
             "assistant",
-            heuristic_after_diagnosis(session),
+            opener,
             kind="diagnosis",
             slots_requested=[s["id"] for s in missing_slots(session)[:4]],
             diagnosed=True,
@@ -257,10 +265,17 @@ def seed_diagnosis_turn(session: DiagnosisSession, *, event: str = "opened") -> 
 def note_rediagnose(session: DiagnosisSession, event: str) -> None:
     if not session.messages or session.diagnosis is None:
         return
+    prefix = ""
+    if event == "add_artifacts":
+        from epidebug.engine.preprocess import extraction_brief
+
+        prefix = extraction_brief(session.experiment)
+        if prefix:
+            prefix += "\n\n"
     session.messages.append(
         new_message(
             "system-tool",
-            f"Re-ranked after {event}. {diagnosis_snapshot(session)}",
+            f"{prefix}Re-ranked after {event}. {diagnosis_snapshot(session)}",
             kind="diagnosis",
             diagnosed=True,
             mode=session.diagnosis.engine_mode,
@@ -407,12 +422,20 @@ def replace_dump(
                 mode=mode,
             )
         )
+        from epidebug.engine.preprocess import extraction_brief
+
+        brief = extraction_brief(session.experiment)
+        assistant = (
+            "Dossier updated and re-ranked. The lead and competing causes "
+            "are in the diagnosis panel. Ask a follow-up, reject a "
+            "hypothesis, or tell me the next measurement."
+        )
+        if brief:
+            assistant = brief + "\n\n" + assistant
         session.messages.append(
             new_message(
                 "assistant",
-                "Dossier updated and re-ranked. The lead and competing causes "
-                "are in the diagnosis panel. Ask a follow-up, reject a "
-                "hypothesis, or tell me the next measurement.",
+                assistant,
                 kind="diagnosis",
                 slots_requested=[s["id"] for s in missing_slots(session)[:4]],
                 diagnosed=True,
