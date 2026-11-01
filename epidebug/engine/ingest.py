@@ -21,6 +21,14 @@ from typing import Any
 from epidebug.schema import ArtifactKind, ArtifactRole, ExperimentArtifact
 
 MAX_EXTRACT_CHARS = 12000
+MAX_IMAGE_PIXELS = 40_000_000
+
+try:  # decompression-bomb guard
+    from PIL import Image as _PILImage
+
+    _PILImage.MAX_IMAGE_PIXELS = MAX_IMAGE_PIXELS
+except Exception:  # pragma: no cover
+    pass
 MAX_READ_BYTES = 400_000
 MAX_SUMMARY_CHARS = 500
 
@@ -48,6 +56,9 @@ DOC_EXT = {
 }
 NOTEBOOK_EXT = {".ipynb"}
 MATERIAL_EXT = {".bom", ".coa"}
+VIDEO_EXT = {
+    ".mp4", ".m4v", ".mov", ".webm", ".mkv", ".avi", ".mpg", ".mpeg", ".wmv", ".ogv",
+}
 
 ERROR_WORDS = (
     "error", "fail", "alarm", "fault", "warn", "crash", "overheat",
@@ -125,6 +136,12 @@ MIME_BY_EXT = {
     ".obj": "model/obj",
     ".nc": "text/x-gcode",
     ".gcode": "text/x-gcode",
+    ".mp4": "video/mp4",
+    ".m4v": "video/mp4",
+    ".mov": "video/quicktime",
+    ".webm": "video/webm",
+    ".mkv": "video/x-matroska",
+    ".avi": "video/x-msvideo",
 }
 
 
@@ -140,6 +157,8 @@ def classify(
 
     if ext in NOTEBOOK_EXT or (magic_kind is None and _looks_like_notebook(data)):
         return ArtifactKind.NOTEBOOK, "application/x-ipynb+json"
+    if ext in VIDEO_EXT:
+        return ArtifactKind.VIDEO, magic_mime or MIME_BY_EXT.get(ext, "video/mp4")
     if ext in IMAGE_EXT:
         return ArtifactKind.IMAGE, magic_mime or MIME_BY_EXT.get(ext, "image/" + ext.lstrip("."))
     if ext in CAD_EXT:
@@ -167,6 +186,8 @@ def classify(
 
     if mime_hint.startswith("image/"):
         return ArtifactKind.IMAGE, mime_hint
+    if mime_hint.startswith("video/"):
+        return ArtifactKind.VIDEO, mime_hint
     if mime_hint == "application/pdf":
         return ArtifactKind.DOCUMENT, mime_hint
     if mime_hint in {"text/csv", "application/json"} or mime_hint.endswith("spreadsheet"):
@@ -222,6 +243,12 @@ def suggest_role(
 
     if ext in PROCESS_EXT or any(tok in name for tok in PROCESS_TOKS):
         return ArtifactRole.PROCESS_DOC
+    if kind == ArtifactKind.VIDEO:
+        if any(tok in name for tok in RESULT_TOKS):
+            return ArtifactRole.RESULT_IMAGE
+        if any(tok in name for tok in SETUP_TOKS):
+            return ArtifactRole.SETUP_PHOTO
+        return ArtifactRole.OTHER
     if kind == ArtifactKind.CAD or any(tok in name for tok in CAD_TOKS):
         return ArtifactRole.CAD
     if any(tok in name for tok in DATASHEET_TOKS):
@@ -273,12 +300,39 @@ def ingest_bytes(
     assigned = guess_role(filename, kind, role, stats=stats, text=extracted)
     if caption:
         summary = f"{caption}. {summary}".strip()
+    from epidebug.engine.preprocess import build_evidence, preview_text
+
+    evidence = build_evidence(
+        filename=filename,
+        kind=kind,
+        data=data,
+        stats=stats,
+        summary=summary,
+        mime=mime,
+        text_hint=extracted,
+    )
+    stats = dict(stats)
+    for key in (
+        "bbox",
+        "triangles_scanned",
+        "degenerate_triangles",
+        "volume_stl_units",
+        "duration_s",
+        "container",
+        "brand",
+        "header_scanned_bytes",
+        "header_truncated",
+        "mesh_scan_capped",
+    ):
+        if key in evidence.stats and key not in stats:
+            stats[key] = evidence.stats[key]
     preview = None
     if kind == ArtifactKind.IMAGE:
         preview = f"/api/files/{art_id}"
-    stats = dict(stats)
     stats.setdefault("kind", kind.value)
     stats.setdefault("mime", mime)
+    # Gallery preview only. The model reads ``evidence``, not this field.
+    compact_text = preview_text(evidence)
     return ExperimentArtifact(
         id=art_id,
         filename=filename,
@@ -288,23 +342,19 @@ def ingest_bytes(
         mime_type=mime,
         size_bytes=len(data),
         caption=caption,
-        extracted_text=extracted[:MAX_EXTRACT_CHARS],
+        extracted_text=compact_text,
         summary=summary[:MAX_SUMMARY_CHARS],
         stats=stats,
         preview_url=preview,
+        evidence=evidence,
     )
 
 
 def artifact_blob(artifact: ExperimentArtifact) -> str:
-    parts = [
-        f"Artifact {artifact.filename} ({artifact.kind.value}, role={artifact.role.value})",
-        artifact.caption,
-        artifact.summary,
-        artifact.extracted_text,
-    ]
-    if artifact.stats:
-        parts.append("Stats: " + json.dumps(artifact.stats, default=str)[:1500])
-    return "\n".join(p for p in parts if p)
+    """Compact evidence for prompts. Raw extracted text is not included."""
+    from epidebug.engine.preprocess import prompt_from_artifact
+
+    return prompt_from_artifact(artifact)
 
 
 def _extract(filename: str, kind: ArtifactKind, data: bytes) -> tuple[str, dict[str, Any], str]:
@@ -446,6 +496,12 @@ def _sniff_magic(data: bytes) -> tuple[ArtifactKind | None, str | None]:
         return ArtifactKind.DOCUMENT, "application/pdf"
     if _looks_like_svg(data):
         return ArtifactKind.IMAGE, "image/svg+xml"
+    if len(data) >= 12 and data[4:8] == b"ftyp":
+        return ArtifactKind.VIDEO, "video/mp4"
+    if data.startswith(b"\x1aE\xdf\xa3"):
+        return ArtifactKind.VIDEO, "video/webm"
+    if len(data) >= 12 and data[:4] == b"RIFF" and data[8:12] == b"AVI ":
+        return ArtifactKind.VIDEO, "video/x-msvideo"
     stripped = data.lstrip()[:120]
     if stripped.startswith(b"ISO-10303-21"):
         return ArtifactKind.CAD, "model/step"
@@ -980,6 +1036,7 @@ def _extract_image(filename: str, data: bytes) -> tuple[str, dict[str, Any], str
         from PIL import Image
         from PIL.ExifTags import TAGS
 
+        Image.MAX_IMAGE_PIXELS = MAX_IMAGE_PIXELS
         img = Image.open(io.BytesIO(data))
         stats["width"], stats["height"] = img.size
         stats["mode"] = img.mode
@@ -1046,29 +1103,51 @@ def _extract_notebook(data: bytes) -> tuple[str, dict[str, Any], str]:
     }, summary
 
 
+class _PdfTooLarge(Exception):
+    def __init__(self, pages: int):
+        super().__init__(pages)
+        self.pages = pages
+
+
+MAX_PDF_PAGES = 200  # mirrors web.security.MAX_PDF_PAGES
+PDF_EXTRACT_PAGES = 8
+_PDF_PAGE_RE = re.compile(rb"/Type\s*/Page(?!s)")
+
+
 def _extract_pdf(data: bytes) -> tuple[str, dict[str, Any], str]:
+    approx_pages = len(_PDF_PAGE_RE.findall(data))
+    if approx_pages > MAX_PDF_PAGES:
+        return "", {"pages": approx_pages, "rejected": "page_cap"}, (
+            f"PDF has ~{approx_pages} pages (> {MAX_PDF_PAGES}); not parsed. Filename still used as a cue."
+        )
     try:
         import pdfplumber
 
         buf = io.BytesIO(data)
         with pdfplumber.open(buf) as pdf:
             pages = []
-            for page in pdf.pages[:8]:
+            for page in pdf.pages[:PDF_EXTRACT_PAGES]:
                 pages.append(page.extract_text() or "")
             text = "\n".join(pages)
+            if len(pdf.pages) > MAX_PDF_PAGES:
+                raise _PdfTooLarge(len(pdf.pages))
             summary = f"PDF with {len(pdf.pages)} pages; extracted {len(pages)}."
             summary = _pdf_summary_bits(text, summary)
             return text[:MAX_EXTRACT_CHARS], {
                 "pages": len(pdf.pages),
                 "extracted_pages": len(pages),
             }, summary
+    except _PdfTooLarge as exc:
+        return "", {"pages": exc.pages, "rejected": "page_cap"}, (
+            f"PDF has {exc.pages} pages (> {MAX_PDF_PAGES}); not parsed. Filename still used as a cue."
+        )
     except Exception:
         pass
     try:
         from pypdf import PdfReader
 
         reader = PdfReader(io.BytesIO(data))
-        text = "\n".join((page.extract_text() or "") for page in reader.pages[:8])
+        text = "\n".join((page.extract_text() or "") for page in reader.pages[:PDF_EXTRACT_PAGES])
         info = getattr(reader, "metadata", None)
         title = ""
         if info is not None:

@@ -11,14 +11,15 @@ and adds an additive ``view`` object for a redesigned frontend.
 from __future__ import annotations
 
 import json
+import logging
 import os
 import sys
 from pathlib import Path
 from typing import Any, Optional
 
-from fastapi import FastAPI, File, Form, HTTPException, UploadFile
+from fastapi import FastAPI, File, Form, HTTPException, Request, Response, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
@@ -33,11 +34,14 @@ from epidebug.engine.present import EVIDENCE_SLOTS, VIEW_CONTRACT, session_paylo
 from epidebug.engine.session import SessionStore
 from epidebug.schema import ExperimentArtifact, ExperimentInput, TestCase
 from epidebug.tools import TOOL_REGISTRY, invoke_tool, list_tools
+from web import security as sec
+
+log = logging.getLogger("epidebug.web")
 
 STATIC = Path(__file__).resolve().parent / "static"
 CASES_DIR = ROOT / "test_cases"
 MOCK_DATA = ROOT / "mock_data"
-MAX_FILE_BYTES = 25 * 1024 * 1024
+MAX_FILE_BYTES = sec.MAX_FILE_BYTES
 
 DOMAIN_ALIASES = {
     "machining": "manufacturing",
@@ -54,6 +58,7 @@ DOMAIN_ALIASES = {
 
 ACCEPTS = [
     "photos of the setup or failed part",
+    "video (metadata only — frames are not sent to the model)",
     "CAD (STEP, STL, DXF, IGES)",
     "sensor CSV/JSON",
     "machine and console logs",
@@ -144,7 +149,7 @@ def _restore_file_store(upload_dir: Path) -> dict[str, Path]:
     if not upload_dir.exists():
         return store
     for dest in upload_dir.iterdir():
-        if not dest.is_dir() or dest.name == "sessions":
+        if not dest.is_dir() or dest.name in {"sessions", "tokens"}:
             continue
         files = [p for p in dest.iterdir() if p.is_file()]
         if files:
@@ -214,12 +219,163 @@ def create_app(
         description="Dump the experiment. Diagnose competing causes.",
         version="0.6.0",
     )
-    app.add_middleware(
-        CORSMiddleware,
-        allow_origins=["*"],
-        allow_methods=["*"],
-        allow_headers=["*"],
+    allowed_origins = [
+        o.strip() for o in os.environ.get("EPIDEBUG_ALLOWED_ORIGINS", "").split(",") if o.strip()
+    ]
+    if allowed_origins:
+        app.add_middleware(
+            CORSMiddleware,
+            allow_origins=allowed_origins,
+            allow_methods=["GET", "POST"],
+            allow_headers=["content-type", sec.TOKEN_HEADER, sec.CLIENT_HEADER, "x-session-id", "cf-turnstile-response"],
+            allow_credentials=True,
+        )
+
+    def _origin_ok(request: Request) -> bool:
+        origin = request.headers.get("origin")
+        if not origin:
+            return True
+        if origin in allowed_origins:
+            return True
+        host = request.headers.get("host", "")
+        return origin.split("://", 1)[-1].rstrip("/") == host
+
+    @app.middleware("http")
+    async def csrf_guard(request: Request, call_next):
+        # State-changing API calls must come from our own frontend: a custom
+        # header (forces a CORS preflight cross-site) and, when a browser
+        # sends Origin, a same-host or allow-listed origin.
+        if request.method in {"POST", "PUT", "PATCH", "DELETE"} and request.url.path.startswith("/api/"):
+            if request.headers.get(sec.CLIENT_HEADER) != sec.CLIENT_HEADER_VALUE or not _origin_ok(request):
+                return JSONResponse({"detail": "Cross-site request rejected"}, status_code=403)
+        return await call_next(request)
+
+    @app.middleware("http")
+    async def security_headers(request: Request, call_next):
+        response = await call_next(request)
+        for key, value in sec.SECURITY_HEADERS.items():
+            response.headers.setdefault(key, value)
+        if request.url.path.startswith("/api/"):
+            response.headers.setdefault("Cache-Control", "no-store")
+        return response
+
+    tokens = sec.TokenStore(upload_dir / "tokens")
+    rate_backend = sec.make_backend()
+    llm_limiter = sec.RateLimiter(
+        per_minute=sec._env_int("EPIDEBUG_RATE_PER_MIN", 12),
+        per_hour=sec._env_int("EPIDEBUG_RATE_PER_HOUR", 120),
+        backend=rate_backend, name="llm",
     )
+    # Tools are deterministic (no LLM call): own, looser bucket, not counted
+    # against the daily LLM budget.
+    tool_limiter = sec.RateLimiter(
+        per_minute=sec._env_int("EPIDEBUG_TOOL_RATE_PER_MIN", 60),
+        per_hour=sec._env_int("EPIDEBUG_TOOL_RATE_PER_HOUR", 600),
+        backend=rate_backend, name="tool",
+    )
+    session_limiter = sec.RateLimiter(
+        per_minute=sec._env_int("EPIDEBUG_SESSION_CREATE_PER_MIN", 3),
+        per_hour=sec._env_int("EPIDEBUG_SESSION_CREATE_PER_HOUR", 20),
+        backend=rate_backend, name="new",
+    )
+    daily_budget = sec.DailyBudget(sec._env_int("EPIDEBUG_DAILY_LLM_CAP", 2000), backend=rate_backend)
+    app.state.rate_backend = rate_backend
+    on_vercel = bool(os.environ.get("VERCEL"))
+    secure_cookie = on_vercel
+
+    def client_ip(request: Request) -> str:
+        # X-Forwarded-For is client-controlled (Vercel appends, the first hop
+        # is whatever the client sent). Only trust headers Vercel's edge
+        # overwrites; elsewhere use the socket peer.
+        if on_vercel:
+            # Trusting these headers is only safe because Vercel's edge OVERWRITES
+            # x-vercel-forwarded-for / x-real-ip with the real client IP; a client
+            # cannot inject them. Behind any other proxy (or if requests can reach the
+            # function without passing Vercel's edge) they are spoofable, so we only
+            # read them when running on Vercel and otherwise use the socket peer.
+            for name in ("x-vercel-forwarded-for", "x-real-ip"):
+                value = request.headers.get(name, "").split(",")[0].strip()
+                if value:
+                    return value[:64]
+        return request.client.host if request.client else "unknown"
+
+    def rate_limit(request: Request) -> None:
+        if not llm_limiter.allow(client_ip(request)):
+            raise HTTPException(429, "Too many requests. Please wait a minute and try again.")
+        if not daily_budget.allow():
+            raise HTTPException(503, "Daily usage limit reached. Please try again tomorrow.")
+
+    def limit_session_creation(request: Request) -> None:
+        ip = client_ip(request)
+        if not session_limiter.allow(ip):
+            raise HTTPException(429, "Too many new sessions. Please wait and try again.")
+        if os.environ.get("EPIDEBUG_TURNSTILE_SECRET") and not sec.verify_turnstile(
+            request.headers.get("cf-turnstile-response", ""), ip
+        ):
+            raise HTTPException(403, "Verification failed.")
+
+    def valid_session_id(session_id: str) -> str:
+        sid = (session_id or "").strip()
+        if not sec.SESSION_ID_RE.match(sid):
+            raise HTTPException(404, "Unknown session")
+        return sid
+
+    def require_session(request: Request, session_id: str):
+        sid = valid_session_id(session_id)
+        token = request.headers.get(sec.TOKEN_HEADER) or request.cookies.get(sec.COOKIE_PREFIX + sid)
+        if not tokens.check(sid, token):
+            # Same answer for missing and foreign sessions: no existence oracle.
+            raise HTTPException(404, "Unknown session")
+        try:
+            return engine.sessions.get(sid)
+        except KeyError as exc:
+            raise HTTPException(404, "Unknown session") from exc
+
+    def owns_artifact(request: Request, artifact_id: str) -> bool:
+        """True when a caller-held session token covers a session with this file."""
+        candidates: list[tuple[str, str | None]] = []
+        hdr_sid = request.headers.get("x-session-id", "")
+        if hdr_sid:
+            candidates.append((hdr_sid, request.headers.get(sec.TOKEN_HEADER)))
+        for name, value in request.cookies.items():
+            if name.startswith(sec.COOKIE_PREFIX):
+                candidates.append((name[len(sec.COOKIE_PREFIX):], value))
+        for sid, token in candidates[:20]:
+            if not sec.SESSION_ID_RE.match(sid or "") or not tokens.check(sid, token):
+                continue
+            try:
+                session = engine.sessions.get(sid)
+            except KeyError:
+                continue
+            exp = session.experiment
+            if exp is not None and any(a.id == artifact_id for a in exp.artifacts):
+                return True
+        return False
+
+    def issue(session, response: Response) -> dict:
+        token = tokens.issue(session.session_id)
+        response.set_cookie(
+            sec.COOKIE_PREFIX + session.session_id,
+            token,
+            max_age=tokens.ttl_s,
+            httponly=True,
+            secure=secure_cookie,
+            samesite="strict",
+            path="/api",
+        )
+        payload = dump_session(session)
+        payload["session_token"] = token
+        return payload
+
+    def clean_text(value: str, limit: int) -> str:
+        text = sec.strip_role_prefixes(value or "").strip()
+        if len(text) > limit:
+            raise HTTPException(413, f"Message too long (max {limit} characters).")
+        return text
+
+    def check_turns(session) -> None:
+        if len(session.messages) >= sec.MAX_SESSION_MESSAGES:
+            raise HTTPException(429, "This session reached its turn limit. Start a new session.")
     app.mount("/assets", StaticFiles(directory=STATIC), name="assets")
     if MOCK_DATA.is_dir():
         app.mount("/mock_data", StaticFiles(directory=MOCK_DATA), name="mock_data")
@@ -234,20 +390,35 @@ def create_app(
         role: str | None,
         caption: str,
     ) -> ExperimentArtifact:
+        filename = sec.safe_display_name(upload.filename)
         data = upload.file.read(MAX_FILE_BYTES + 1)
         if len(data) > MAX_FILE_BYTES:
-            raise HTTPException(413, f"{upload.filename} exceeds 25 MB")
-        filename = upload.filename or "untitled.bin"
-        artifact = ingest_bytes(
-            filename,
-            data,
-            role=role,
-            caption=caption,
-            content_type=getattr(upload, "content_type", None),
-        )
+            raise HTTPException(413, f"{filename} exceeds {MAX_FILE_BYTES // (1024 * 1024)} MB")
+        problem = sec.validate_upload(filename, data)
+        if problem:
+            raise HTTPException(415, f"{filename}: {problem}")
+        caption = sec.strip_role_prefixes(caption or "")[: sec.MAX_CAPTION_CHARS]
+        try:
+            artifact = sec.run_isolated(
+                ingest_bytes,
+                filename,
+                data,
+                role=role,
+                caption=caption,
+                content_type=getattr(upload, "content_type", None),
+                timeout=sec.PARSE_TIMEOUT_S,
+            )
+        except sec.ParseTimeout as exc:
+            raise HTTPException(422, f"{filename}: parsing timed out") from exc
+        except Exception as exc:
+            log.exception("ingest failed")
+            raise HTTPException(422, f"{filename}: could not be parsed") from exc
+        if not sec.ARTIFACT_ID_RE.match(artifact.id or ""):
+            raise HTTPException(500, "Internal error")
         dest = upload_dir / artifact.id
         dest.mkdir(parents=True, exist_ok=True)
-        path = dest / filename
+        # Server-generated storage name; the original name is metadata only.
+        path = dest / "blob"
         path.write_bytes(data)
         file_store[artifact.id] = path
         if artifact.kind.value == "image":
@@ -256,6 +427,24 @@ def create_app(
 
     def dump_session(session):
         return session_payload(session)
+
+    def check_upload_batch(files) -> None:
+        real = [f for f in (files or []) if getattr(f, "filename", None)]
+        if len(real) > sec.MAX_FILES_PER_REQUEST:
+            raise HTTPException(413, f"Too many files (max {sec.MAX_FILES_PER_REQUEST}).")
+        total = 0
+        for f in real:
+            size = getattr(f, "size", None)
+            if size is None:
+                try:
+                    f.file.seek(0, 2)
+                    size = f.file.tell()
+                    f.file.seek(0)
+                except Exception:
+                    size = 0
+            total += size or 0
+        if total > sec.MAX_TOTAL_BYTES:
+            raise HTTPException(413, "Upload is too large in total.")
 
     def experiment_from_bundle(
         *,
@@ -281,6 +470,7 @@ def create_app(
         except json.JSONDecodeError as exc:
             raise HTTPException(400, "roles and captions must be JSON arrays") from exc
 
+        check_upload_batch(files)
         artifacts: list[ExperimentArtifact] = []
         for i, upload in enumerate(files or []):
             if not upload.filename:
@@ -312,47 +502,12 @@ def create_app(
         return {
             "status": "ok",
             "cases": len(loaded_cases),
-            "llm_available": engine.llm.available,
             "engine_mode": "llm" if engine.llm.available else "heuristic",
             "accepts": ACCEPTS,
             "contract_version": VIEW_CONTRACT,
             "evidence_slots": EVIDENCE_SLOTS,
-            "fixtures": _fixture_index(),
             "max_file_bytes": MAX_FILE_BYTES,
-            "platform": "vercel" if os.environ.get("VERCEL") else "local",
-            "ephemeral_storage": bool(os.environ.get("VERCEL")),
-            "session_payload": [
-                "session_id",
-                "diagnosis",
-                "experiment",
-                "history",
-                "messages",
-                "view",
-            ],
-            "view_fields": [
-                "artifacts",
-                "gallery",
-                "ingest",
-                "hypotheses",
-                "lead",
-                "messages",
-                "chat",
-            ],
-            "hitl": [
-                "POST /api/sessions/{id}/reject",
-                "POST /api/sessions/{id}/add-info",
-                "POST /api/sessions/{id}/artifacts",
-                "POST /api/sessions/{id}/followup",
-                "POST /api/sessions/{id}/chat",
-                "POST /api/chat",
-            ],
-            "chat": {
-                "create": "POST /api/chat",
-                "turn": "POST /api/sessions/{id}/chat",
-                "roles": ["user", "assistant", "system-tool"],
-            },
-            "llm_provider": getattr(engine.llm, "provider", "none"),
-            "llm_model": getattr(engine.llm, "model", None),
+            "max_files": sec.MAX_FILES_PER_REQUEST,
         }
 
     @app.get("/api/fixtures")
@@ -363,13 +518,15 @@ def create_app(
     def list_cases():
         return [_case_summary(case) for case in loaded_cases]
 
+    allow_ground_truth = os.environ.get("EPIDEBUG_ALLOW_GROUND_TRUTH") == "1"
+
     @app.get("/api/cases/{case_id}")
     def get_case(case_id: str, include_ground_truth: bool = False):
         case = case_index.get(case_id)
         if case is None:
-            raise HTTPException(404, f"Unknown case {case_id}")
+            raise HTTPException(404, "Unknown case")
         payload = case.model_dump(mode="json")
-        if not include_ground_truth:
+        if not (include_ground_truth and allow_ground_truth):
             payload.pop("ground_truth", None)
             payload.pop("scoring", None)
         payload["prompt"] = case.to_prompt()
@@ -377,18 +534,30 @@ def create_app(
         return payload
 
     @app.get("/api/files/{artifact_id}")
-    def get_file(artifact_id: str):
+    def get_file(artifact_id: str, request: Request):
+        if not sec.ARTIFACT_ID_RE.match(artifact_id or "") or not owns_artifact(request, artifact_id):
+            raise HTTPException(404, "Unknown file")
         path = file_store.get(artifact_id)
         if path is None or not path.exists():
             raise HTTPException(404, "Unknown file")
-        return FileResponse(path, filename=path.name)
+        return FileResponse(
+            path,
+            media_type="application/octet-stream",
+            headers={
+                "Content-Disposition": f'attachment; filename="{artifact_id}.bin"',
+                "X-Content-Type-Options": "nosniff",
+                "Content-Security-Policy": "default-src 'none'; sandbox",
+            },
+        )
 
     @app.post("/api/diagnose")
-    def diagnose(req: DiagnoseRequest):
+    def diagnose(req: DiagnoseRequest, request: Request, response: Response):
+        limit_session_creation(request)
+        rate_limit(request)
         if req.case_id:
             case = case_index.get(req.case_id)
             if case is None:
-                raise HTTPException(404, f"Unknown case {req.case_id}")
+                raise HTTPException(404, "Unknown case")
             session = engine.open_session(case=case)
         elif req.experiment:
             if not req.experiment.has_content():
@@ -396,10 +565,12 @@ def create_app(
             session = engine.open_session(experiment=req.experiment)
         else:
             raise HTTPException(400, "Provide case_id or experiment")
-        return dump_session(session)
+        return issue(session, response)
 
     @app.post("/api/diagnose-bundle")
     async def diagnose_bundle(
+        request: Request,
+        response: Response,
         title: str = Form("Untitled experiment"),
         domain: str = Form(""),
         objective: str = Form(""),
@@ -417,78 +588,74 @@ def create_app(
         session_id: str = Form(""),
         files: list[UploadFile] | None = File(default=None),
     ):
-        experiment = experiment_from_bundle(
-            title=title,
-            domain=domain,
-            objective=objective,
-            unexpected_outcome=unexpected_outcome,
-            setup_description=setup_description,
-            setup=setup,
-            materials=materials,
-            processing=processing,
-            protocol=protocol,
-            telemetry=telemetry,
-            logs=logs,
-            context=context,
-            roles=roles,
-            captions=captions,
-            files=files,
-        )
+        existing = require_session(request, session_id) if session_id.strip() else None
+        if existing is None:
+            limit_session_creation(request)
+        rate_limit(request)
+        fields = {
+            "title": title, "domain": domain, "objective": objective,
+            "unexpected_outcome": unexpected_outcome, "setup_description": setup_description,
+            "setup": setup, "materials": materials, "processing": processing,
+            "protocol": protocol, "telemetry": telemetry, "logs": logs, "context": context,
+        }
+        for key, value in fields.items():
+            if len(value or "") > sec.MAX_BUNDLE_FIELD_CHARS:
+                raise HTTPException(413, f"{key} is too long (max {sec.MAX_BUNDLE_FIELD_CHARS} characters).")
+            fields[key] = sec.strip_role_prefixes(value or "")
+        experiment = experiment_from_bundle(**fields, roles=roles, captions=captions, files=files)
         if not experiment.has_content():
             raise HTTPException(400, "Add a description, an unexpected outcome, or at least one file.")
-        if session_id.strip():
-            try:
-                existing = engine.sessions.get(session_id.strip())
-            except KeyError as exc:
-                raise HTTPException(404, "Unknown session") from exc
+        if existing is not None:
             session = replace_dump(engine, existing, experiment)
+            # Keep the caller's existing token: re-issuing would log out the owner's other tabs.
             return dump_session(session)
         session = engine.open_session(experiment=experiment)
-        return dump_session(session)
+        return issue(session, response)
 
     @app.get("/api/sessions")
     def list_sessions():
-        return _session_summaries(engine)
+        # Listing all sessions was a cross-tenant leak; sessions are capability-scoped.
+        raise HTTPException(404, "Not found")
 
     @app.get("/api/sessions/{session_id}")
-    def get_session(session_id: str):
-        try:
-            return dump_session(engine.sessions.get(session_id))
-        except KeyError as exc:
-            raise HTTPException(404, "Unknown session") from exc
+    def get_session(session_id: str, request: Request):
+        return dump_session(require_session(request, session_id))
 
     @app.post("/api/sessions/{session_id}/reject")
-    def reject(session_id: str, req: RejectRequest):
+    def reject(session_id: str, req: RejectRequest, request: Request):
+        require_session(request, session_id)
+        rate_limit(request)
         try:
-            session = engine.reject_hypothesis(session_id, req.hypothesis_id, req.reason)
+            session = engine.reject_hypothesis(
+                session_id, req.hypothesis_id[:64], clean_text(req.reason, sec.MAX_REASON_CHARS)
+            )
         except KeyError as exc:
             raise HTTPException(404, "Unknown session or hypothesis") from exc
         return dump_session(session)
 
     @app.post("/api/sessions/{session_id}/add-info")
-    def add_info(session_id: str, req: InfoRequest):
-        try:
-            session = engine.add_information(session_id, req.information)
-        except KeyError as exc:
-            raise HTTPException(404, "Unknown session") from exc
+    def add_info(session_id: str, req: InfoRequest, request: Request):
+        require_session(request, session_id)
+        rate_limit(request)
+        session = engine.add_information(session_id, clean_text(req.information, sec.MAX_INFO_CHARS))
         return dump_session(session)
 
     @app.post("/api/sessions/{session_id}/artifacts")
     async def add_session_artifacts(
         session_id: str,
+        request: Request,
         roles: str = Form("[]"),
         captions: str = Form("[]"),
         files: list[UploadFile] | None = File(default=None),
     ):
-        try:
-            engine.sessions.get(session_id)
-        except KeyError as exc:
-            raise HTTPException(404, "Unknown session") from exc
+        require_session(request, session_id)
+        rate_limit(request)
         try:
             role_list = json.loads(roles) if roles else []
             caption_list = json.loads(captions) if captions else []
         except json.JSONDecodeError as exc:
             raise HTTPException(400, "roles and captions must be JSON arrays") from exc
+        check_upload_batch(files)
         artifacts = []
         for i, upload in enumerate(files or []):
             if not upload.filename:
@@ -500,65 +667,64 @@ def create_app(
         return dump_session(session)
 
     @app.post("/api/sessions/{session_id}/followup")
-    def followup(session_id: str, req: FollowUpRequest):
-        try:
-            session = engine.record_followup(session_id, req.intervention, req.outcome)
-        except KeyError as exc:
-            raise HTTPException(404, "Unknown session") from exc
-        return dump_session(session)
-
-    @app.post("/api/chat")
-    def chat_create_or_continue(req: ChatRequest):
-        message = (req.message or "").strip()
-        if not message and not req.force_diagnose:
-            raise HTTPException(400, "Provide a message, or set force_diagnose.")
-        if req.session_id:
-            try:
-                session = engine.chat(
-                    req.session_id,
-                    message,
-                    force_diagnose=req.force_diagnose,
-                )
-            except KeyError as exc:
-                raise HTTPException(404, "Unknown session") from exc
-            return dump_session(session)
-        if not message:
-            raise HTTPException(400, "A first message is required to start a chat session.")
-        session = engine.open_chat_session(
-            message,
-            title=req.title or "",
-            domain=_normalize_domain(req.domain),
-            force_diagnose=req.force_diagnose,
+    def followup(session_id: str, req: FollowUpRequest, request: Request):
+        require_session(request, session_id)
+        rate_limit(request)
+        session = engine.record_followup(
+            session_id,
+            clean_text(req.intervention, sec.MAX_INFO_CHARS),
+            clean_text(req.outcome, sec.MAX_INFO_CHARS),
         )
         return dump_session(session)
 
-    @app.post("/api/sessions/{session_id}/chat")
-    def chat_turn(session_id: str, req: ChatRequest):
-        message = (req.message or "").strip()
+    def _chat_turn(session_id: str, req: ChatRequest, request: Request):
+        message = clean_text(req.message, sec.MAX_MESSAGE_CHARS)
         if not message and not req.force_diagnose:
             raise HTTPException(400, "Provide a message, or set force_diagnose.")
-        try:
-            session = engine.chat(
-                session_id,
-                message,
-                force_diagnose=req.force_diagnose,
-            )
-        except KeyError as exc:
-            raise HTTPException(404, "Unknown session") from exc
+        session = require_session(request, session_id)
+        check_turns(session)
+        rate_limit(request)
+        session = engine.chat(session.session_id, message, force_diagnose=req.force_diagnose)
         return dump_session(session)
+
+    @app.post("/api/chat")
+    def chat_create_or_continue(req: ChatRequest, request: Request, response: Response):
+        if req.session_id:
+            return _chat_turn(req.session_id, req, request)
+        message = clean_text(req.message, sec.MAX_MESSAGE_CHARS)
+        if not message and not req.force_diagnose:
+            raise HTTPException(400, "Provide a message, or set force_diagnose.")
+        if not message:
+            raise HTTPException(400, "A first message is required to start a chat session.")
+        limit_session_creation(request)
+        rate_limit(request)
+        session = engine.open_chat_session(
+            message,
+            title=clean_text(req.title or "", sec.MAX_TITLE_CHARS),
+            domain=_normalize_domain((req.domain or "")[:80]),
+            force_diagnose=req.force_diagnose,
+        )
+        return issue(session, response)
+
+    @app.post("/api/sessions/{session_id}/chat")
+    def chat_turn(session_id: str, req: ChatRequest, request: Request):
+        return _chat_turn(session_id, req, request)
 
     @app.get("/api/tools")
     def tools():
         return list_tools()
 
     @app.post("/api/tools/{name}")
-    def run_tool(name: str, req: ToolRequest):
+    def run_tool(name: str, req: ToolRequest, request: Request):
         if name not in TOOL_REGISTRY:
-            raise HTTPException(404, f"Unknown tool {name}")
+            raise HTTPException(404, "Unknown tool")
+        if not tool_limiter.allow(client_ip(request)):
+            raise HTTPException(429, "Too many requests. Please wait a minute and try again.")
         try:
             return invoke_tool(name, **req.arguments)
-        except TypeError as exc:
-            raise HTTPException(400, str(exc)) from exc
+        except Exception as exc:
+            log.warning("tool %s failed: %s", name, type(exc).__name__)
+            raise HTTPException(400, "Invalid tool arguments") from exc
 
     return app
 

@@ -20,6 +20,16 @@ from web.app import create_app
 ROOT = Path(__file__).resolve().parent.parent
 
 
+def _tiny_png() -> bytes:
+    import io
+
+    from PIL import Image
+
+    buf = io.BytesIO()
+    Image.new("RGB", (4, 4), (200, 10, 10)).save(buf, format="PNG")
+    return buf.getvalue()
+
+
 @pytest.fixture(scope="module")
 def cases():
     return TestCase.load_all(ROOT / "test_cases")
@@ -38,20 +48,11 @@ def test_health_contract(client):
     assert body["status"] == "ok"
     assert body["cases"] >= 30
     assert body["contract_version"] == "0.6"
-    assert "dump_demo" in body["fixtures"]
-    assert "view" in body["session_payload"]
-    assert "messages" in body["session_payload"]
-    assert "messages" in body["view_fields"]
-    assert "chat" in body["view_fields"]
-    assert any("chat" in item for item in body["hitl"])
-    assert body["chat"]["turn"] == "POST /api/sessions/{id}/chat"
-    assert "ingest" in body["view_fields"]
-    assert "gallery" in body["view_fields"]
     assert body["evidence_slots"]
-    assert body["max_file_bytes"] == 25 * 1024 * 1024
+    assert body["max_file_bytes"] == 10 * 1024 * 1024
     assert body["engine_mode"] in {"heuristic", "llm"}
-    assert body["platform"] in {"local", "vercel"}
-    assert "ephemeral_storage" in body
+    for leaked in ("llm_provider", "llm_model", "platform", "fixtures", "llm_available"):
+        assert leaked not in body
 
 
 def test_index_and_static_assets(client):
@@ -115,8 +116,8 @@ def test_diagnose_catalog_case_includes_view(client):
     assert view["contract_version"] == "0.6"
     assert view["ingest"]["source"] == "catalog"
     assert view["gallery"]["images"] == []
-    listed = client.get("/api/sessions").json()
-    assert any(item["session_id"] == body["session_id"] for item in listed)
+    assert body["session_token"]
+    assert client.get("/api/sessions").status_code == 404
 
 
 def test_diagnose_bundle_and_hitl(client):
@@ -303,9 +304,9 @@ def test_full_dump_mix_svg_stl_stub_markdown(client):
         (
             "files",
             (
-                "setup_layout.svg",
-                b'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10"><title>Vise</title></svg>',
-                "image/svg+xml",
+                "setup_layout.png",
+                _tiny_png(),
+                "image/png",
             ),
         ),
         ("files", ("housing_stub.stl", b"solid stub\nendsolid stub\n", "model/stl")),
@@ -327,8 +328,8 @@ def test_full_dump_mix_svg_stl_stub_markdown(client):
     assert cards["charger.log"]["kind"] == "log"
     assert cards["NOTES.md"]["kind"] == "document"
     assert "Traveler SOP" in (cards["NOTES.md"]["summary"] or "")
-    assert cards["setup_layout.svg"]["kind"] == "image"
-    assert cards["setup_layout.svg"]["mime_type"] == "image/svg+xml"
+    assert cards["setup_layout.png"]["kind"] == "image"
+    assert cards["setup_layout.png"]["mime_type"] == "image/png"
     assert cards["housing_stub.stl"]["kind"] == "cad"
     assert cards["housing_stub.stl"]["stats"].get("stub") is True
     assert view["gallery"]["images"]
