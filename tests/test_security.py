@@ -63,6 +63,67 @@ def test_session_id_format_validated(app):
     assert c.get("/api/sessions/ZZZ").status_code == 404
 
 
+def test_traversal_filename_neutralized(app, tmp_path):
+    c = TestClient(app)
+    files = {"files": ("../../sessions/evil.json", b"time,temp\n0,1\n", "text/csv")}
+    res = c.post("/api/diagnose-bundle", data={"unexpected_outcome": "overheat"}, files=files)
+    assert res.status_code == 200, res.text
+    assert not (tmp_path / "sessions" / "evil.json").exists()
+    stored = [p for p in tmp_path.rglob("*") if p.is_file() and p.parent.name not in {"sessions", "tokens"}]
+    assert stored and all(p.name == "blob" for p in stored)
+    names = [a["filename"] for a in res.json()["view"]["artifacts"]]
+    assert all("/" not in n and ".." not in n.split("/")[0][:2] for n in names)
+
+
+def test_html_svg_uploads_rejected(app):
+    c = TestClient(app)
+    for name, data in (("x.html", b"<html><script>alert(1)</script>"),
+                       ("x.svg", b"<svg onload=alert(1)>"),
+                       ("x.txt", b"<!doctype html><script>1</script>"),
+                       ("x.png", b"not a png")):
+        res = c.post("/api/diagnose-bundle", data={"unexpected_outcome": "x"},
+                     files={"files": (name, data, "text/plain")})
+        assert res.status_code == 415, name
+
+
+def test_file_served_as_attachment(app):
+    from PIL import Image
+
+    buf = io.BytesIO()
+    Image.new("RGB", (2, 2)).save(buf, format="PNG")
+    c = TestClient(app)
+    res = c.post("/api/diagnose-bundle", data={"unexpected_outcome": "crack"},
+                 files={"files": ("p.png", buf.getvalue(), "image/png")})
+    url = res.json()["view"]["artifacts"][0].get("preview_url") or ""
+    art = res.json()["experiment"]["artifacts"][0]["id"]
+    f = c.get(f"/api/files/{art}")
+    assert f.status_code == 200
+    assert f.headers["content-type"] == "application/octet-stream"
+    assert f.headers["content-disposition"].startswith("attachment")
+    assert f.headers["x-content-type-options"] == "nosniff"
+    assert url == "" or url.endswith(art)
+
+
+def test_too_many_files(app):
+    c = TestClient(app)
+    files = [("files", (f"f{i}.csv", b"a,b\n1,2\n", "text/csv")) for i in range(13)]
+    res = c.post("/api/diagnose-bundle", data={"unexpected_outcome": "x"}, files=files)
+    assert res.status_code == 413
+
+
+def test_security_headers_and_cors(app):
+    c = TestClient(app)
+    res = c.get("/api/health", headers={"Origin": "https://evil.example"})
+    assert "access-control-allow-origin" not in res.headers
+    csp = res.headers["content-security-policy"]
+    assert "frame-ancestors 'none'" in csp
+    assert res.headers["x-content-type-options"] == "nosniff"
+    assert res.headers["referrer-policy"]
+    pre = c.options("/api/chat", headers={"Origin": "https://evil.example",
+                                          "Access-Control-Request-Method": "POST"})
+    assert "access-control-allow-origin" not in pre.headers
+
+
 def test_ground_truth_not_public(app):
     c = TestClient(app)
     body = c.get("/api/cases/RF-001?include_ground_truth=true").json()
@@ -128,3 +189,12 @@ def test_token_server_side_expiry(tmp_path, monkeypatch):
     real = _t.time
     monkeypatch.setattr("web.security.time.time", lambda: real() + 120)
     assert not store.check("abcdef012345", tok)
+
+
+def test_pil_pixel_cap():
+    from PIL import Image
+
+    import epidebug.engine.ingest  # noqa: F401
+
+    assert Image.MAX_IMAGE_PIXELS == 40_000_000
+

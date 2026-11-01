@@ -10,6 +10,7 @@ and adds an additive ``view`` object for a redesigned frontend.
 
 from __future__ import annotations
 
+import concurrent.futures
 import json
 import logging
 import os
@@ -37,11 +38,12 @@ from epidebug.tools import TOOL_REGISTRY, invoke_tool, list_tools
 from web import security as sec
 
 log = logging.getLogger("epidebug.web")
+_PARSE_POOL = concurrent.futures.ThreadPoolExecutor(max_workers=4)
 
 STATIC = Path(__file__).resolve().parent / "static"
 CASES_DIR = ROOT / "test_cases"
 MOCK_DATA = ROOT / "mock_data"
-MAX_FILE_BYTES = 25 * 1024 * 1024
+MAX_FILE_BYTES = sec.MAX_FILE_BYTES
 
 DOMAIN_ALIASES = {
     "machining": "manufacturing",
@@ -219,12 +221,26 @@ def create_app(
         description="Dump the experiment. Diagnose competing causes.",
         version="0.6.0",
     )
-    app.add_middleware(
-        CORSMiddleware,
-        allow_origins=["*"],
-        allow_methods=["*"],
-        allow_headers=["*"],
-    )
+    allowed_origins = [
+        o.strip() for o in os.environ.get("EPIDEBUG_ALLOWED_ORIGINS", "").split(",") if o.strip()
+    ]
+    if allowed_origins:
+        app.add_middleware(
+            CORSMiddleware,
+            allow_origins=allowed_origins,
+            allow_methods=["GET", "POST"],
+            allow_headers=["content-type", sec.TOKEN_HEADER],
+            allow_credentials=True,
+        )
+
+    @app.middleware("http")
+    async def security_headers(request: Request, call_next):
+        response = await call_next(request)
+        for key, value in sec.SECURITY_HEADERS.items():
+            response.headers.setdefault(key, value)
+        if request.url.path.startswith("/api/"):
+            response.headers.setdefault("Cache-Control", "no-store")
+        return response
 
     tokens = sec.TokenStore(upload_dir / "tokens")
     secure_cookie = bool(os.environ.get("VERCEL"))
@@ -300,20 +316,36 @@ def create_app(
         role: str | None,
         caption: str,
     ) -> ExperimentArtifact:
+        filename = sec.safe_display_name(upload.filename)
         data = upload.file.read(MAX_FILE_BYTES + 1)
         if len(data) > MAX_FILE_BYTES:
-            raise HTTPException(413, f"{upload.filename} exceeds 25 MB")
-        filename = upload.filename or "untitled.bin"
-        artifact = ingest_bytes(
+            raise HTTPException(413, f"{filename} exceeds {MAX_FILE_BYTES // (1024 * 1024)} MB")
+        problem = sec.validate_upload(filename, data)
+        if problem:
+            raise HTTPException(415, f"{filename}: {problem}")
+        caption = (caption or "")[:500]
+        future = _PARSE_POOL.submit(
+            ingest_bytes,
             filename,
             data,
             role=role,
             caption=caption,
             content_type=getattr(upload, "content_type", None),
         )
+        try:
+            artifact = future.result(timeout=sec.PARSE_TIMEOUT_S)
+        except concurrent.futures.TimeoutError as exc:
+            future.cancel()
+            raise HTTPException(422, f"{filename}: parsing timed out") from exc
+        except Exception as exc:
+            log.exception("ingest failed")
+            raise HTTPException(422, f"{filename}: could not be parsed") from exc
+        if not sec.ARTIFACT_ID_RE.match(artifact.id or ""):
+            raise HTTPException(500, "Internal error")
         dest = upload_dir / artifact.id
         dest.mkdir(parents=True, exist_ok=True)
-        path = dest / filename
+        # Server-generated storage name; the original name is metadata only.
+        path = dest / "blob"
         path.write_bytes(data)
         file_store[artifact.id] = path
         if artifact.kind.value == "image":
@@ -322,6 +354,24 @@ def create_app(
 
     def dump_session(session):
         return session_payload(session)
+
+    def check_upload_batch(files) -> None:
+        real = [f for f in (files or []) if getattr(f, "filename", None)]
+        if len(real) > sec.MAX_FILES_PER_REQUEST:
+            raise HTTPException(413, f"Too many files (max {sec.MAX_FILES_PER_REQUEST}).")
+        total = 0
+        for f in real:
+            size = getattr(f, "size", None)
+            if size is None:
+                try:
+                    f.file.seek(0, 2)
+                    size = f.file.tell()
+                    f.file.seek(0)
+                except Exception:
+                    size = 0
+            total += size or 0
+        if total > sec.MAX_TOTAL_BYTES:
+            raise HTTPException(413, "Upload is too large in total.")
 
     def experiment_from_bundle(
         *,
@@ -347,6 +397,7 @@ def create_app(
         except json.JSONDecodeError as exc:
             raise HTTPException(400, "roles and captions must be JSON arrays") from exc
 
+        check_upload_batch(files)
         artifacts: list[ExperimentArtifact] = []
         for i, upload in enumerate(files or []):
             if not upload.filename:
@@ -383,6 +434,7 @@ def create_app(
             "contract_version": VIEW_CONTRACT,
             "evidence_slots": EVIDENCE_SLOTS,
             "max_file_bytes": MAX_FILE_BYTES,
+            "max_files": sec.MAX_FILES_PER_REQUEST,
         }
 
     @app.get("/api/fixtures")
@@ -410,12 +462,20 @@ def create_app(
 
     @app.get("/api/files/{artifact_id}")
     def get_file(artifact_id: str, request: Request):
-        if not owns_artifact(request, artifact_id):
+        if not sec.ARTIFACT_ID_RE.match(artifact_id or "") or not owns_artifact(request, artifact_id):
             raise HTTPException(404, "Unknown file")
         path = file_store.get(artifact_id)
         if path is None or not path.exists():
             raise HTTPException(404, "Unknown file")
-        return FileResponse(path, filename=path.name)
+        return FileResponse(
+            path,
+            media_type="application/octet-stream",
+            headers={
+                "Content-Disposition": f'attachment; filename="{artifact_id}.bin"',
+                "X-Content-Type-Options": "nosniff",
+                "Content-Security-Policy": "default-src 'none'; sandbox",
+            },
+        )
 
     @app.post("/api/diagnose")
     def diagnose(req: DiagnoseRequest, request: Request, response: Response):
@@ -512,6 +572,7 @@ def create_app(
             caption_list = json.loads(captions) if captions else []
         except json.JSONDecodeError as exc:
             raise HTTPException(400, "roles and captions must be JSON arrays") from exc
+        check_upload_batch(files)
         artifacts = []
         for i, upload in enumerate(files or []):
             if not upload.filename:

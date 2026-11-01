@@ -21,6 +21,14 @@ from typing import Any
 from epidebug.schema import ArtifactKind, ArtifactRole, ExperimentArtifact
 
 MAX_EXTRACT_CHARS = 12000
+MAX_IMAGE_PIXELS = 40_000_000
+
+try:  # decompression-bomb guard
+    from PIL import Image as _PILImage
+
+    _PILImage.MAX_IMAGE_PIXELS = MAX_IMAGE_PIXELS
+except Exception:  # pragma: no cover
+    pass
 MAX_READ_BYTES = 400_000
 MAX_SUMMARY_CHARS = 500
 
@@ -1028,6 +1036,7 @@ def _extract_image(filename: str, data: bytes) -> tuple[str, dict[str, Any], str
         from PIL import Image
         from PIL.ExifTags import TAGS
 
+        Image.MAX_IMAGE_PIXELS = MAX_IMAGE_PIXELS
         img = Image.open(io.BytesIO(data))
         stats["width"], stats["height"] = img.size
         stats["mode"] = img.mode
