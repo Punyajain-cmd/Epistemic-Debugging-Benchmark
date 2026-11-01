@@ -227,9 +227,28 @@ def create_app(
             CORSMiddleware,
             allow_origins=allowed_origins,
             allow_methods=["GET", "POST"],
-            allow_headers=["content-type", sec.TOKEN_HEADER],
+            allow_headers=["content-type", sec.TOKEN_HEADER, sec.CLIENT_HEADER, "x-session-id", "cf-turnstile-response"],
             allow_credentials=True,
         )
+
+    def _origin_ok(request: Request) -> bool:
+        origin = request.headers.get("origin")
+        if not origin:
+            return True
+        if origin in allowed_origins:
+            return True
+        host = request.headers.get("host", "")
+        return origin.split("://", 1)[-1].rstrip("/") == host
+
+    @app.middleware("http")
+    async def csrf_guard(request: Request, call_next):
+        # State-changing API calls must come from our own frontend: a custom
+        # header (forces a CORS preflight cross-site) and, when a browser
+        # sends Origin, a same-host or allow-listed origin.
+        if request.method in {"POST", "PUT", "PATCH", "DELETE"} and request.url.path.startswith("/api/"):
+            if request.headers.get(sec.CLIENT_HEADER) != sec.CLIENT_HEADER_VALUE or not _origin_ok(request):
+                return JSONResponse({"detail": "Cross-site request rejected"}, status_code=403)
+        return await call_next(request)
 
     @app.middleware("http")
     async def security_headers(request: Request, call_next):
@@ -241,21 +260,54 @@ def create_app(
         return response
 
     tokens = sec.TokenStore(upload_dir / "tokens")
+    rate_backend = sec.make_backend()
     llm_limiter = sec.RateLimiter(
-        per_minute=int(os.environ.get("EPIDEBUG_RATE_PER_MIN", "12")),
-        per_hour=int(os.environ.get("EPIDEBUG_RATE_PER_HOUR", "120")),
+        per_minute=sec._env_int("EPIDEBUG_RATE_PER_MIN", 12),
+        per_hour=sec._env_int("EPIDEBUG_RATE_PER_HOUR", 120),
+        backend=rate_backend, name="llm",
     )
-    secure_cookie = bool(os.environ.get("VERCEL"))
+    # Tools are deterministic (no LLM call): own, looser bucket, not counted
+    # against the daily LLM budget.
+    tool_limiter = sec.RateLimiter(
+        per_minute=sec._env_int("EPIDEBUG_TOOL_RATE_PER_MIN", 60),
+        per_hour=sec._env_int("EPIDEBUG_TOOL_RATE_PER_HOUR", 600),
+        backend=rate_backend, name="tool",
+    )
+    session_limiter = sec.RateLimiter(
+        per_minute=sec._env_int("EPIDEBUG_SESSION_CREATE_PER_MIN", 3),
+        per_hour=sec._env_int("EPIDEBUG_SESSION_CREATE_PER_HOUR", 20),
+        backend=rate_backend, name="new",
+    )
+    daily_budget = sec.DailyBudget(sec._env_int("EPIDEBUG_DAILY_LLM_CAP", 2000), backend=rate_backend)
+    app.state.rate_backend = rate_backend
+    on_vercel = bool(os.environ.get("VERCEL"))
+    secure_cookie = on_vercel
 
     def client_ip(request: Request) -> str:
-        fwd = request.headers.get("x-forwarded-for", "")
-        if fwd:
-            return fwd.split(",")[0].strip()
+        # X-Forwarded-For is client-controlled (Vercel appends, the first hop
+        # is whatever the client sent). Only trust headers Vercel's edge
+        # overwrites; elsewhere use the socket peer.
+        if on_vercel:
+            for name in ("x-vercel-forwarded-for", "x-real-ip"):
+                value = request.headers.get(name, "").split(",")[0].strip()
+                if value:
+                    return value[:64]
         return request.client.host if request.client else "unknown"
 
     def rate_limit(request: Request) -> None:
         if not llm_limiter.allow(client_ip(request)):
             raise HTTPException(429, "Too many requests. Please wait a minute and try again.")
+        if not daily_budget.allow():
+            raise HTTPException(503, "Daily usage limit reached. Please try again tomorrow.")
+
+    def limit_session_creation(request: Request) -> None:
+        ip = client_ip(request)
+        if not session_limiter.allow(ip):
+            raise HTTPException(429, "Too many new sessions. Please wait and try again.")
+        if os.environ.get("EPIDEBUG_TURNSTILE_SECRET") and not sec.verify_turnstile(
+            request.headers.get("cf-turnstile-response", ""), ip
+        ):
+            raise HTTPException(403, "Verification failed.")
 
     def valid_session_id(session_id: str) -> str:
         sid = (session_id or "").strip()
@@ -340,7 +392,7 @@ def create_app(
         problem = sec.validate_upload(filename, data)
         if problem:
             raise HTTPException(415, f"{filename}: {problem}")
-        caption = (caption or "")[:500]
+        caption = (caption or "")[: sec.MAX_CAPTION_CHARS]
         try:
             artifact = sec.run_isolated(
                 ingest_bytes,
@@ -495,6 +547,7 @@ def create_app(
 
     @app.post("/api/diagnose")
     def diagnose(req: DiagnoseRequest, request: Request, response: Response):
+        limit_session_creation(request)
         rate_limit(request)
         if req.case_id:
             case = case_index.get(req.case_id)
@@ -530,8 +583,10 @@ def create_app(
         session_id: str = Form(""),
         files: list[UploadFile] | None = File(default=None),
     ):
-        rate_limit(request)
         existing = require_session(request, session_id) if session_id.strip() else None
+        if existing is None:
+            limit_session_creation(request)
+        rate_limit(request)
         fields = {
             "title": title, "domain": domain, "objective": objective,
             "unexpected_outcome": unexpected_outcome, "setup_description": setup_description,
@@ -539,8 +594,8 @@ def create_app(
             "protocol": protocol, "telemetry": telemetry, "logs": logs, "context": context,
         }
         for key, value in fields.items():
-            if len(value or "") > 20000:
-                raise HTTPException(413, f"{key} is too long (max 20000 characters).")
+            if len(value or "") > sec.MAX_BUNDLE_FIELD_CHARS:
+                raise HTTPException(413, f"{key} is too long (max {sec.MAX_BUNDLE_FIELD_CHARS} characters).")
             fields[key] = value or ""
         experiment = experiment_from_bundle(**fields, roles=roles, captions=captions, files=files)
         if not experiment.has_content():
@@ -567,7 +622,7 @@ def create_app(
         rate_limit(request)
         try:
             session = engine.reject_hypothesis(
-                session_id, req.hypothesis_id[:64], clean_text(req.reason, 500)
+                session_id, req.hypothesis_id[:64], clean_text(req.reason, sec.MAX_REASON_CHARS)
             )
         except KeyError as exc:
             raise HTTPException(404, "Unknown session or hypothesis") from exc
@@ -636,10 +691,11 @@ def create_app(
             raise HTTPException(400, "Provide a message, or set force_diagnose.")
         if not message:
             raise HTTPException(400, "A first message is required to start a chat session.")
+        limit_session_creation(request)
         rate_limit(request)
         session = engine.open_chat_session(
             message,
-            title=clean_text(req.title or "", 200),
+            title=clean_text(req.title or "", sec.MAX_TITLE_CHARS),
             domain=_normalize_domain((req.domain or "")[:80]),
             force_diagnose=req.force_diagnose,
         )
@@ -657,7 +713,8 @@ def create_app(
     def run_tool(name: str, req: ToolRequest, request: Request):
         if name not in TOOL_REGISTRY:
             raise HTTPException(404, "Unknown tool")
-        rate_limit(request)
+        if not tool_limiter.allow(client_ip(request)):
+            raise HTTPException(429, "Too many requests. Please wait a minute and try again.")
         try:
             return invoke_tool(name, **req.arguments)
         except Exception as exc:
