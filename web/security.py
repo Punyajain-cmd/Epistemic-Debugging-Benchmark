@@ -343,14 +343,12 @@ def validate_upload(name: str, data: bytes) -> str | None:
     return None
 
 
-ROLE_PREFIX_RE = re.compile(
-    r"\[\s*(system-tool|system|assistant|tool|developer)\s*\]|<\|[^|>]{0,40}\|>|</?\s*(evidence|system)\s*>",
-    re.I,
-)
-
-
 def strip_role_prefixes(text: str) -> str:
-    return ROLE_PREFIX_RE.sub("", text or "")
+    """Request-time pass (NFKC, Cf strip, homoglyph fold, role markers).
+    Angle brackets are escaped later, when prompts are built."""
+    from epidebug.untrusted import clean_stored
+
+    return clean_stored(text or "")
 
 
 def csp_header() -> str:

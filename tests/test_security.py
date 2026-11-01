@@ -149,7 +149,7 @@ def test_llm_output_clamped():
         model = "fake"
 
         def complete_json(self, prompt, system):
-            assert "<evidence>" in prompt and "untrusted" in system
+            assert "<evidence id=" in prompt and "untrusted" in system
             return {"hypotheses": [{"statement": "x", "score": 7}, "junk"], "confidence": 3}
 
     eng = EpistemicDebuggingEngine(prefer_llm=False)

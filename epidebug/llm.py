@@ -229,15 +229,11 @@ class EngineLLM:
             return None
 
 
-_ROLE_RE = re.compile(
-    r"\[\s*(system-tool|system|assistant|tool|developer)\s*\]|<\|[^|>]{0,40}\|>|</?\s*(evidence|engine_note|system)\s*>",
-    re.I,
-)
-
-
 def _strip_roles(text: str) -> str:
-    """Remove forged role markers and our own delimiters from untrusted text."""
-    return _ROLE_RE.sub("", text or "")
+    """Untrusted text -> normalised, role markers removed, ``<``/``>`` escaped."""
+    from epidebug.untrusted import clean
+
+    return clean(text or "")
 
 
 def _to_provider_messages(messages: list[dict[str, str]]) -> list[dict[str, str]]:
