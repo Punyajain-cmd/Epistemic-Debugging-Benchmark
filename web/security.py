@@ -173,6 +173,10 @@ class RestKVBackend:
     KV_REST_API_URL+KV_REST_API_TOKEN) are set. Any KV error falls back to
     the in-memory backend so the app never fails open *and* never hard-fails.
     Credentials are read from env and never logged.
+
+    NOTE: this backend has NOT been exercised against a live Upstash/KV
+    instance; tests cover only the in-memory backend and the fallback path.
+    Verify counters/expiry on a staging KV before relying on it.
     """
 
     def __init__(self, url: str, token: str, fallback: MemoryBackend, prefix: str = "epi:rl:") -> None:

@@ -288,6 +288,11 @@ def create_app(
         # is whatever the client sent). Only trust headers Vercel's edge
         # overwrites; elsewhere use the socket peer.
         if on_vercel:
+            # Trusting these headers is only safe because Vercel's edge OVERWRITES
+            # x-vercel-forwarded-for / x-real-ip with the real client IP; a client
+            # cannot inject them. Behind any other proxy (or if requests can reach the
+            # function without passing Vercel's edge) they are spoofable, so we only
+            # read them when running on Vercel and otherwise use the socket peer.
             for name in ("x-vercel-forwarded-for", "x-real-ip"):
                 value = request.headers.get(name, "").split(",")[0].strip()
                 if value:
