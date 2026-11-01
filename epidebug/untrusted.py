@@ -16,6 +16,10 @@ Pipeline (order matters):
    open or close a delimiter, whatever its spelling (``< /field>``, unclosed
    ``<field trust="system"``, etc.).
 
+This pipeline is for PROMPTS only. Stored / displayed text goes through
+:func:`clean_stored`, which only drops ``Cf`` chars and otherwise keeps the
+user's text verbatim.
+
 There is no tag blacklist: step 5 makes delimiter forgery impossible, and the
 per-request random block id (see ``evidence_prompt``) makes guessing a real
 closing tag useless even if a future change forgot step 5.
@@ -83,6 +87,14 @@ def clean(text: object) -> str:
 
 
 def clean_stored(text: object) -> str:
-    """Request-time pass for text we store and later show: normalise and drop
-    role markers, but keep ``<``/``>`` (prompts escape them at build time)."""
-    return strip_roles(normalize(text))
+    """Request-time pass for text we STORE and SHOW back to the user.
+
+    Stored evidence must stay byte-faithful to what the user typed: NFKC would
+    turn ``10⁻³ A`` into ``10-3 A``, ``½`` into ``1⁄2``, ``µ`` (micro sign) into
+    ``μ``, and role stripping would eat the ``SYSTEM:`` in ``SYSTEM: pressure
+    2 bar``. So here we only drop invisible format characters (Unicode ``Cf``:
+    zero-width, bidi overrides, BOM). NFKC, homoglyph folding, role stripping
+    and ``<``/``>`` escaping happen in :func:`clean`, when prompts are built.
+    """
+    s = "" if text is None else str(text)
+    return "".join(ch for ch in s if unicodedata.category(ch) != "Cf")

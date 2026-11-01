@@ -344,8 +344,9 @@ def validate_upload(name: str, data: bytes) -> str | None:
 
 
 def strip_role_prefixes(text: str) -> str:
-    """Request-time pass (NFKC, Cf strip, homoglyph fold, role markers).
-    Angle brackets are escaped later, when prompts are built."""
+    """Request-time pass for stored text: drop invisible Cf chars only.
+    Name kept for call-site stability; normalisation, role stripping and
+    escaping are applied when prompts are built (epidebug.untrusted.clean)."""
     from epidebug.untrusted import clean_stored
 
     return clean_stored(text or "")
