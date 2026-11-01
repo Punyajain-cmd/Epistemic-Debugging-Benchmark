@@ -11,14 +11,15 @@ and adds an additive ``view`` object for a redesigned frontend.
 from __future__ import annotations
 
 import json
+import logging
 import os
 import sys
 from pathlib import Path
 from typing import Any, Optional
 
-from fastapi import FastAPI, File, Form, HTTPException, UploadFile
+from fastapi import FastAPI, File, Form, HTTPException, Request, Response, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
@@ -33,6 +34,9 @@ from epidebug.engine.present import EVIDENCE_SLOTS, VIEW_CONTRACT, session_paylo
 from epidebug.engine.session import SessionStore
 from epidebug.schema import ExperimentArtifact, ExperimentInput, TestCase
 from epidebug.tools import TOOL_REGISTRY, invoke_tool, list_tools
+from web import security as sec
+
+log = logging.getLogger("epidebug.web")
 
 STATIC = Path(__file__).resolve().parent / "static"
 CASES_DIR = ROOT / "test_cases"
@@ -145,7 +149,7 @@ def _restore_file_store(upload_dir: Path) -> dict[str, Path]:
     if not upload_dir.exists():
         return store
     for dest in upload_dir.iterdir():
-        if not dest.is_dir() or dest.name == "sessions":
+        if not dest.is_dir() or dest.name in {"sessions", "tokens"}:
             continue
         files = [p for p in dest.iterdir() if p.is_file()]
         if files:
@@ -221,6 +225,46 @@ def create_app(
         allow_methods=["*"],
         allow_headers=["*"],
     )
+
+    tokens = sec.TokenStore(upload_dir / "tokens")
+    secure_cookie = bool(os.environ.get("VERCEL"))
+
+    def valid_session_id(session_id: str) -> str:
+        sid = (session_id or "").strip()
+        if not sec.SESSION_ID_RE.match(sid):
+            raise HTTPException(404, "Unknown session")
+        return sid
+
+    def require_session(request: Request, session_id: str):
+        sid = valid_session_id(session_id)
+        token = request.headers.get(sec.TOKEN_HEADER) or request.cookies.get(sec.COOKIE_PREFIX + sid)
+        if not tokens.check(sid, token):
+            # Same answer for missing and foreign sessions: no existence oracle.
+            raise HTTPException(404, "Unknown session")
+        try:
+            return engine.sessions.get(sid)
+        except KeyError as exc:
+            raise HTTPException(404, "Unknown session") from exc
+
+    def issue(session, response: Response) -> dict:
+        token = tokens.issue(session.session_id)
+        response.set_cookie(
+            sec.COOKIE_PREFIX + session.session_id,
+            token,
+            max_age=7 * 24 * 3600,
+            httponly=True,
+            secure=secure_cookie,
+            samesite="strict",
+            path="/api",
+        )
+        payload = dump_session(session)
+        payload["session_token"] = token
+        return payload
+
+    def clean_text(value: str, limit: int) -> str:
+        # Length caps are enforced in the rate-limit PR (H1).
+        return (value or "").strip()
+
     app.mount("/assets", StaticFiles(directory=STATIC), name="assets")
     if MOCK_DATA.is_dir():
         app.mount("/mock_data", StaticFiles(directory=MOCK_DATA), name="mock_data")
@@ -313,64 +357,11 @@ def create_app(
         return {
             "status": "ok",
             "cases": len(loaded_cases),
-            "llm_available": engine.llm.available,
             "engine_mode": "llm" if engine.llm.available else "heuristic",
             "accepts": ACCEPTS,
             "contract_version": VIEW_CONTRACT,
             "evidence_slots": EVIDENCE_SLOTS,
-            "fixtures": _fixture_index(),
             "max_file_bytes": MAX_FILE_BYTES,
-            "platform": "vercel" if os.environ.get("VERCEL") else "local",
-            "ephemeral_storage": bool(os.environ.get("VERCEL")),
-            "session_payload": [
-                "session_id",
-                "diagnosis",
-                "experiment",
-                "history",
-                "messages",
-                "view",
-            ],
-            "view_fields": [
-                "artifacts",
-                "extracts",
-                "gallery",
-                "ingest",
-                "hypotheses",
-                "lead",
-                "messages",
-                "chat",
-            ],
-            "preprocess": {
-                "raw_payloads_in_model_context": False,
-                "modalities": [
-                    "text",
-                    "log",
-                    "csv",
-                    "json",
-                    "image",
-                    "pdf",
-                    "stl",
-                    "cad",
-                    "video",
-                    "notebook",
-                    "gcode",
-                ],
-            },
-            "hitl": [
-                "POST /api/sessions/{id}/reject",
-                "POST /api/sessions/{id}/add-info",
-                "POST /api/sessions/{id}/artifacts",
-                "POST /api/sessions/{id}/followup",
-                "POST /api/sessions/{id}/chat",
-                "POST /api/chat",
-            ],
-            "chat": {
-                "create": "POST /api/chat",
-                "turn": "POST /api/sessions/{id}/chat",
-                "roles": ["user", "assistant", "system-tool"],
-            },
-            "llm_provider": getattr(engine.llm, "provider", "none"),
-            "llm_model": getattr(engine.llm, "model", None),
         }
 
     @app.get("/api/fixtures")
@@ -381,13 +372,15 @@ def create_app(
     def list_cases():
         return [_case_summary(case) for case in loaded_cases]
 
+    allow_ground_truth = os.environ.get("EPIDEBUG_ALLOW_GROUND_TRUTH") == "1"
+
     @app.get("/api/cases/{case_id}")
     def get_case(case_id: str, include_ground_truth: bool = False):
         case = case_index.get(case_id)
         if case is None:
-            raise HTTPException(404, f"Unknown case {case_id}")
+            raise HTTPException(404, "Unknown case")
         payload = case.model_dump(mode="json")
-        if not include_ground_truth:
+        if not (include_ground_truth and allow_ground_truth):
             payload.pop("ground_truth", None)
             payload.pop("scoring", None)
         payload["prompt"] = case.to_prompt()
@@ -402,11 +395,11 @@ def create_app(
         return FileResponse(path, filename=path.name)
 
     @app.post("/api/diagnose")
-    def diagnose(req: DiagnoseRequest):
+    def diagnose(req: DiagnoseRequest, request: Request, response: Response):
         if req.case_id:
             case = case_index.get(req.case_id)
             if case is None:
-                raise HTTPException(404, f"Unknown case {req.case_id}")
+                raise HTTPException(404, "Unknown case")
             session = engine.open_session(case=case)
         elif req.experiment:
             if not req.experiment.has_content():
@@ -414,10 +407,12 @@ def create_app(
             session = engine.open_session(experiment=req.experiment)
         else:
             raise HTTPException(400, "Provide case_id or experiment")
-        return dump_session(session)
+        return issue(session, response)
 
     @app.post("/api/diagnose-bundle")
     async def diagnose_bundle(
+        request: Request,
+        response: Response,
         title: str = Form("Untitled experiment"),
         domain: str = Form(""),
         objective: str = Form(""),
@@ -435,73 +430,59 @@ def create_app(
         session_id: str = Form(""),
         files: list[UploadFile] | None = File(default=None),
     ):
-        experiment = experiment_from_bundle(
-            title=title,
-            domain=domain,
-            objective=objective,
-            unexpected_outcome=unexpected_outcome,
-            setup_description=setup_description,
-            setup=setup,
-            materials=materials,
-            processing=processing,
-            protocol=protocol,
-            telemetry=telemetry,
-            logs=logs,
-            context=context,
-            roles=roles,
-            captions=captions,
-            files=files,
-        )
+        existing = require_session(request, session_id) if session_id.strip() else None
+        fields = {
+            "title": title, "domain": domain, "objective": objective,
+            "unexpected_outcome": unexpected_outcome, "setup_description": setup_description,
+            "setup": setup, "materials": materials, "processing": processing,
+            "protocol": protocol, "telemetry": telemetry, "logs": logs, "context": context,
+        }
+        for key, value in fields.items():
+            fields[key] = value or ""
+        experiment = experiment_from_bundle(**fields, roles=roles, captions=captions, files=files)
         if not experiment.has_content():
             raise HTTPException(400, "Add a description, an unexpected outcome, or at least one file.")
-        if session_id.strip():
-            try:
-                existing = engine.sessions.get(session_id.strip())
-            except KeyError as exc:
-                raise HTTPException(404, "Unknown session") from exc
+        if existing is not None:
             session = replace_dump(engine, existing, experiment)
             return dump_session(session)
         session = engine.open_session(experiment=experiment)
-        return dump_session(session)
+        return issue(session, response)
 
     @app.get("/api/sessions")
     def list_sessions():
-        return _session_summaries(engine)
+        # Listing all sessions was a cross-tenant leak; sessions are capability-scoped.
+        raise HTTPException(404, "Not found")
 
     @app.get("/api/sessions/{session_id}")
-    def get_session(session_id: str):
-        try:
-            return dump_session(engine.sessions.get(session_id))
-        except KeyError as exc:
-            raise HTTPException(404, "Unknown session") from exc
+    def get_session(session_id: str, request: Request):
+        return dump_session(require_session(request, session_id))
 
     @app.post("/api/sessions/{session_id}/reject")
-    def reject(session_id: str, req: RejectRequest):
+    def reject(session_id: str, req: RejectRequest, request: Request):
+        require_session(request, session_id)
         try:
-            session = engine.reject_hypothesis(session_id, req.hypothesis_id, req.reason)
+            session = engine.reject_hypothesis(
+                session_id, req.hypothesis_id[:64], clean_text(req.reason, 500)
+            )
         except KeyError as exc:
             raise HTTPException(404, "Unknown session or hypothesis") from exc
         return dump_session(session)
 
     @app.post("/api/sessions/{session_id}/add-info")
-    def add_info(session_id: str, req: InfoRequest):
-        try:
-            session = engine.add_information(session_id, req.information)
-        except KeyError as exc:
-            raise HTTPException(404, "Unknown session") from exc
+    def add_info(session_id: str, req: InfoRequest, request: Request):
+        require_session(request, session_id)
+        session = engine.add_information(session_id, clean_text(req.information, sec.MAX_INFO_CHARS))
         return dump_session(session)
 
     @app.post("/api/sessions/{session_id}/artifacts")
     async def add_session_artifacts(
         session_id: str,
+        request: Request,
         roles: str = Form("[]"),
         captions: str = Form("[]"),
         files: list[UploadFile] | None = File(default=None),
     ):
-        try:
-            engine.sessions.get(session_id)
-        except KeyError as exc:
-            raise HTTPException(404, "Unknown session") from exc
+        require_session(request, session_id)
         try:
             role_list = json.loads(roles) if roles else []
             caption_list = json.loads(captions) if captions else []
@@ -518,65 +499,57 @@ def create_app(
         return dump_session(session)
 
     @app.post("/api/sessions/{session_id}/followup")
-    def followup(session_id: str, req: FollowUpRequest):
-        try:
-            session = engine.record_followup(session_id, req.intervention, req.outcome)
-        except KeyError as exc:
-            raise HTTPException(404, "Unknown session") from exc
+    def followup(session_id: str, req: FollowUpRequest, request: Request):
+        require_session(request, session_id)
+        session = engine.record_followup(
+            session_id,
+            clean_text(req.intervention, sec.MAX_INFO_CHARS),
+            clean_text(req.outcome, sec.MAX_INFO_CHARS),
+        )
+        return dump_session(session)
+
+    def _chat_turn(session_id: str, req: ChatRequest, request: Request):
+        message = clean_text(req.message, sec.MAX_MESSAGE_CHARS)
+        if not message and not req.force_diagnose:
+            raise HTTPException(400, "Provide a message, or set force_diagnose.")
+        session = require_session(request, session_id)
+        session = engine.chat(session.session_id, message, force_diagnose=req.force_diagnose)
         return dump_session(session)
 
     @app.post("/api/chat")
-    def chat_create_or_continue(req: ChatRequest):
-        message = (req.message or "").strip()
+    def chat_create_or_continue(req: ChatRequest, request: Request, response: Response):
+        if req.session_id:
+            return _chat_turn(req.session_id, req, request)
+        message = clean_text(req.message, sec.MAX_MESSAGE_CHARS)
         if not message and not req.force_diagnose:
             raise HTTPException(400, "Provide a message, or set force_diagnose.")
-        if req.session_id:
-            try:
-                session = engine.chat(
-                    req.session_id,
-                    message,
-                    force_diagnose=req.force_diagnose,
-                )
-            except KeyError as exc:
-                raise HTTPException(404, "Unknown session") from exc
-            return dump_session(session)
         if not message:
             raise HTTPException(400, "A first message is required to start a chat session.")
         session = engine.open_chat_session(
             message,
-            title=req.title or "",
-            domain=_normalize_domain(req.domain),
+            title=clean_text(req.title or "", 200),
+            domain=_normalize_domain((req.domain or "")[:80]),
             force_diagnose=req.force_diagnose,
         )
-        return dump_session(session)
+        return issue(session, response)
 
     @app.post("/api/sessions/{session_id}/chat")
-    def chat_turn(session_id: str, req: ChatRequest):
-        message = (req.message or "").strip()
-        if not message and not req.force_diagnose:
-            raise HTTPException(400, "Provide a message, or set force_diagnose.")
-        try:
-            session = engine.chat(
-                session_id,
-                message,
-                force_diagnose=req.force_diagnose,
-            )
-        except KeyError as exc:
-            raise HTTPException(404, "Unknown session") from exc
-        return dump_session(session)
+    def chat_turn(session_id: str, req: ChatRequest, request: Request):
+        return _chat_turn(session_id, req, request)
 
     @app.get("/api/tools")
     def tools():
         return list_tools()
 
     @app.post("/api/tools/{name}")
-    def run_tool(name: str, req: ToolRequest):
+    def run_tool(name: str, req: ToolRequest, request: Request):
         if name not in TOOL_REGISTRY:
-            raise HTTPException(404, f"Unknown tool {name}")
+            raise HTTPException(404, "Unknown tool")
         try:
             return invoke_tool(name, **req.arguments)
-        except TypeError as exc:
-            raise HTTPException(400, str(exc)) from exc
+        except Exception as exc:
+            log.warning("tool %s failed: %s", name, type(exc).__name__)
+            raise HTTPException(400, "Invalid tool arguments") from exc
 
     return app
 
