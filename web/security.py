@@ -41,9 +41,21 @@ class TokenStore:
             raise ValueError("bad session id")
         return self.root / f"{session_id}.tok"
 
+    def _read_ttl(self) -> int:
+        import os
+
+        try:
+            return max(60, int(os.environ.get("EPIDEBUG_SESSION_TTL_S", str(7 * 24 * 3600))))
+        except ValueError:
+            return 7 * 24 * 3600
+
+    @property
+    def ttl_s(self) -> int:
+        return self._read_ttl()
+
     def issue(self, session_id: str) -> str:
         token = new_token()
-        self._path(session_id).write_text(_digest(token), encoding="utf-8")
+        self._path(session_id).write_text(f"{_digest(token)} {int(time.time())}", encoding="utf-8")
         return token
 
     def has(self, session_id: str) -> bool:
@@ -56,8 +68,13 @@ class TokenStore:
         if not token:
             return False
         try:
-            stored = self._path(session_id).read_text(encoding="utf-8").strip()
+            path = self._path(session_id)
+            raw = path.read_text(encoding="utf-8").strip()
+            stored, _, issued = raw.partition(" ")
+            issued_at = int(issued) if issued else int(path.stat().st_mtime)
         except (OSError, ValueError):
             return False
+        if time.time() - issued_at > self.ttl_s:
+            return False  # server-side expiry, independent of cookie max-age
         return hmac.compare_digest(stored, _digest(token))
 

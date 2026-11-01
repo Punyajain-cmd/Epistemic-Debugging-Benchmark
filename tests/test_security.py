@@ -78,3 +78,53 @@ def test_tool_errors_generic(app):
     assert res.status_code == 400
     assert res.json()["detail"] == "Invalid tool arguments"
 
+
+
+def _bundle_with_png(c, extra=None):
+    import io as _io
+
+    from PIL import Image
+
+    buf = _io.BytesIO()
+    Image.new("RGB", (4, 4)).save(buf, format="PNG")
+    return c.post("/api/diagnose-bundle", data={"unexpected_outcome": "cell swelled", **(extra or {})},
+                  files=[("files", ("shot.png", buf.getvalue(), "image/png"))])
+
+
+def test_files_require_owning_session(app):
+    owner = TestClient(app)
+    body = _bundle_with_png(owner).json()
+    art = body["experiment"]["artifacts"][0]["id"]
+    assert owner.get(f"/api/files/{art}").status_code == 200
+    stranger = TestClient(app)
+    assert stranger.get(f"/api/files/{art}").status_code == 404
+    other = _new_chat(stranger)
+    assert stranger.get(f"/api/files/{art}", headers={"x-session-id": other["session_id"],
+                        "x-session-token": other["session_token"]}).status_code == 404
+    hdr = TestClient(app)
+    assert hdr.get(f"/api/files/{art}", headers={"x-session-id": body["session_id"],
+                   "x-session-token": body["session_token"]}).status_code == 200
+
+
+def test_bundle_replace_keeps_owner_token(app):
+    c = TestClient(app)
+    first = _bundle_with_png(c).json()
+    sid, tok = first["session_id"], first["session_token"]
+    tab2 = TestClient(app)
+    res = _bundle_with_png(c, {"session_id": sid})
+    assert res.status_code == 200 and "session_token" not in res.json()
+    assert tab2.get(f"/api/sessions/{sid}", headers={"x-session-token": tok}).status_code == 200
+
+
+def test_token_server_side_expiry(tmp_path, monkeypatch):
+    import time as _t
+
+    from web.security import TokenStore
+
+    store = TokenStore(tmp_path)
+    tok = store.issue("abcdef012345")
+    assert store.check("abcdef012345", tok)
+    monkeypatch.setenv("EPIDEBUG_SESSION_TTL_S", "60")
+    real = _t.time
+    monkeypatch.setattr("web.security.time.time", lambda: real() + 120)
+    assert not store.check("abcdef012345", tok)

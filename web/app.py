@@ -246,12 +246,33 @@ def create_app(
         except KeyError as exc:
             raise HTTPException(404, "Unknown session") from exc
 
+    def owns_artifact(request: Request, artifact_id: str) -> bool:
+        """True when a caller-held session token covers a session with this file."""
+        candidates: list[tuple[str, str | None]] = []
+        hdr_sid = request.headers.get("x-session-id", "")
+        if hdr_sid:
+            candidates.append((hdr_sid, request.headers.get(sec.TOKEN_HEADER)))
+        for name, value in request.cookies.items():
+            if name.startswith(sec.COOKIE_PREFIX):
+                candidates.append((name[len(sec.COOKIE_PREFIX):], value))
+        for sid, token in candidates[:20]:
+            if not sec.SESSION_ID_RE.match(sid or "") or not tokens.check(sid, token):
+                continue
+            try:
+                session = engine.sessions.get(sid)
+            except KeyError:
+                continue
+            exp = session.experiment
+            if exp is not None and any(a.id == artifact_id for a in exp.artifacts):
+                return True
+        return False
+
     def issue(session, response: Response) -> dict:
         token = tokens.issue(session.session_id)
         response.set_cookie(
             sec.COOKIE_PREFIX + session.session_id,
             token,
-            max_age=7 * 24 * 3600,
+            max_age=tokens.ttl_s,
             httponly=True,
             secure=secure_cookie,
             samesite="strict",
@@ -388,7 +409,9 @@ def create_app(
         return payload
 
     @app.get("/api/files/{artifact_id}")
-    def get_file(artifact_id: str):
+    def get_file(artifact_id: str, request: Request):
+        if not owns_artifact(request, artifact_id):
+            raise HTTPException(404, "Unknown file")
         path = file_store.get(artifact_id)
         if path is None or not path.exists():
             raise HTTPException(404, "Unknown file")
@@ -444,6 +467,7 @@ def create_app(
             raise HTTPException(400, "Add a description, an unexpected outcome, or at least one file.")
         if existing is not None:
             session = replace_dump(engine, existing, experiment)
+            # Keep the caller's existing token: re-issuing would log out the owner's other tabs.
             return dump_session(session)
         session = engine.open_session(experiment=experiment)
         return issue(session, response)
