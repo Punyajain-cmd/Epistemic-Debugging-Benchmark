@@ -135,8 +135,12 @@ function formatApiError(text) {
   }
 }
 
+// Required on every state-changing API call (server CSRF guard).
+const CLIENT_HEADERS = { "X-EpiDebug-Client": "web" };
+
 async function api(path, options = {}) {
-  const res = await fetch(path, options);
+  const headers = { ...CLIENT_HEADERS, ...(options.headers || {}) };
+  const res = await fetch(path, { ...options, headers });
   if (!res.ok) {
     const text = await res.text();
     throw new Error(formatApiError(text) || res.statusText);

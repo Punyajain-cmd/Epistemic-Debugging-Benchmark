@@ -11,22 +11,32 @@ import re
 import secrets
 import threading
 import time
-from collections import defaultdict, deque
+from collections import OrderedDict, deque
 from pathlib import Path
 
 SESSION_ID_RE = re.compile(r"^[0-9a-f]{12}$")
 ARTIFACT_ID_RE = re.compile(r"^[0-9a-f]{16}$")
 TOKEN_HEADER = "x-session-token"
 COOKIE_PREFIX = "epi_s_"
+CLIENT_HEADER = "x-epidebug-client"
+CLIENT_HEADER_VALUE = "web"
 
-MAX_FILE_BYTES = 10 * 1024 * 1024
-MAX_TOTAL_BYTES = 20 * 1024 * 1024
-MAX_FILES_PER_REQUEST = 12
-MAX_MESSAGE_CHARS = 4000
-MAX_INFO_CHARS = 4000
-MAX_SESSION_MESSAGES = 60
+from epidebug.limits import (  # noqa: E402,F401  (re-exported)
+    MAX_BUNDLE_FIELD_CHARS,
+    MAX_CAPTION_CHARS,
+    MAX_DOMAIN_CHARS,
+    MAX_FILE_BYTES,
+    MAX_FILES_PER_REQUEST,
+    MAX_INFO_CHARS,
+    MAX_MESSAGE_CHARS,
+    MAX_PDF_PAGES,
+    MAX_REASON_CHARS,
+    MAX_SESSION_MESSAGES,
+    MAX_TITLE_CHARS,
+    MAX_TOTAL_BYTES,
+)
+
 PARSE_TIMEOUT_S = 15.0
-MAX_PDF_PAGES = 200
 
 ALLOWED_EXT = {
     # images
@@ -116,6 +126,155 @@ class TokenStore:
             return False  # server-side expiry, independent of cookie max-age
         return hmac.compare_digest(stored, _digest(token))
 
+
+def _env_int(name: str, default: int) -> int:
+    try:
+        return int(os.environ.get(name, "") or default)
+    except ValueError:
+        return default
+
+
+class MemoryBackend:
+    """Sliding-window counters in a bounded LRU (oldest key evicted first)."""
+
+    def __init__(self, max_keys: int | None = None) -> None:
+        self.max_keys = max_keys or _env_int("EPIDEBUG_RATE_MAX_KEYS", 50000)
+        self._hits: OrderedDict[str, deque] = OrderedDict()
+        self._lock = threading.Lock()
+
+    def hit(self, key: str, limits: list[tuple[int, int]]) -> bool:
+        """limits = [(window_s, max_hits)]. Records the hit only if allowed."""
+        now = time.monotonic()
+        horizon = max(w for w, _ in limits)
+        with self._lock:
+            q = self._hits.get(key)
+            if q is None:
+                q = self._hits[key] = deque()
+                while len(self._hits) > self.max_keys:
+                    self._hits.popitem(last=False)
+            else:
+                self._hits.move_to_end(key)
+            while q and now - q[0] > horizon:
+                q.popleft()
+            for window, cap in limits:
+                if sum(1 for t in q if now - t <= window) >= cap:
+                    return False
+            q.append(now)
+            return True
+
+    def __len__(self) -> int:
+        return len(self._hits)
+
+
+class RestKVBackend:
+    """Fixed-window counters on Upstash Redis / Vercel KV via the REST API.
+
+    Enabled when UPSTASH_REDIS_REST_URL+UPSTASH_REDIS_REST_TOKEN (or
+    KV_REST_API_URL+KV_REST_API_TOKEN) are set. Any KV error falls back to
+    the in-memory backend so the app never fails open *and* never hard-fails.
+    Credentials are read from env and never logged.
+
+    NOTE: this backend has NOT been exercised against a live Upstash/KV
+    instance; tests cover only the in-memory backend and the fallback path.
+    Verify counters/expiry on a staging KV before relying on it.
+    """
+
+    def __init__(self, url: str, token: str, fallback: MemoryBackend, prefix: str = "epi:rl:") -> None:
+        self._url = url.rstrip("/")
+        self._token = token
+        self._fallback = fallback
+        self._prefix = prefix
+
+    @classmethod
+    def from_env(cls, fallback: MemoryBackend):
+        url = os.environ.get("UPSTASH_REDIS_REST_URL") or os.environ.get("KV_REST_API_URL")
+        token = os.environ.get("UPSTASH_REDIS_REST_TOKEN") or os.environ.get("KV_REST_API_TOKEN")
+        if url and token and os.environ.get("EPIDEBUG_RATE_BACKEND", "auto") != "memory":
+            return cls(url, token, fallback)
+        return None
+
+    def _pipeline(self, cmds: list[list]) -> list:
+        import json as _json
+        import urllib.request
+
+        req = urllib.request.Request(
+            self._url + "/pipeline",
+            data=_json.dumps(cmds).encode(),
+            headers={"Authorization": f"Bearer {self._token}", "Content-Type": "application/json"},
+            method="POST",
+        )
+        with urllib.request.urlopen(req, timeout=1.5) as res:  # noqa: S310 (configured https URL)
+            return [item.get("result") for item in _json.loads(res.read())]
+
+    def hit(self, key: str, limits: list[tuple[int, int]]) -> bool:
+        now = int(time.time())
+        cmds, keys = [], []
+        for window, _ in limits:
+            k = f"{self._prefix}{key}:{window}:{now // window}"
+            keys.append(k)
+            cmds += [["INCR", k], ["EXPIRE", k, str(window + 5)]]
+        try:
+            results = self._pipeline(cmds)
+            counts = [int(results[i * 2]) for i in range(len(limits))]
+        except Exception:
+            logging.getLogger(__name__).warning("rate-limit KV unavailable; using in-memory fallback")
+            return self._fallback.hit(key, limits)
+        return all(c <= cap for c, (_, cap) in zip(counts, limits))
+
+
+def make_backend() -> MemoryBackend | RestKVBackend:
+    mem = MemoryBackend()
+    return RestKVBackend.from_env(mem) or mem
+
+
+class RateLimiter:
+    """Per-key limiter over a pluggable backend (memory LRU or REST KV)."""
+
+    def __init__(self, per_minute: int, per_hour: int, backend=None, name: str = "llm") -> None:
+        self.per_minute = per_minute
+        self.per_hour = per_hour
+        self.name = name
+        self.backend = backend or MemoryBackend()
+
+    def allow(self, key: str) -> bool:
+        return self.backend.hit(f"{self.name}:{key}", [(60, self.per_minute), (3600, self.per_hour)])
+
+
+class DailyBudget:
+    """Global circuit breaker: at most ``cap`` LLM-backed calls per UTC day
+    across all clients (EPIDEBUG_DAILY_LLM_CAP; 0 disables). Shares the rate
+    backend, so with KV configured the cap is global across instances."""
+
+    def __init__(self, cap: int, backend=None) -> None:
+        self.cap = cap
+        self.backend = backend or MemoryBackend()
+
+    def allow(self) -> bool:
+        if self.cap <= 0:
+            return True
+        day = int(time.time()) // 86400
+        return self.backend.hit(f"budget:{day}", [(86400, self.cap)])
+
+
+def verify_turnstile(token: str, remote_ip: str) -> bool:
+    """Cloudflare Turnstile check; only called when EPIDEBUG_TURNSTILE_SECRET is set."""
+    import json as _json
+    import urllib.parse
+    import urllib.request
+
+    secret = os.environ.get("EPIDEBUG_TURNSTILE_SECRET", "")
+    if not secret:
+        return True
+    if not token:
+        return False
+    body = urllib.parse.urlencode({"secret": secret, "response": token, "remoteip": remote_ip}).encode()
+    try:
+        with urllib.request.urlopen(  # noqa: S310
+            "https://challenges.cloudflare.com/turnstile/v0/siteverify", data=body, timeout=3
+        ) as res:
+            return bool(_json.loads(res.read()).get("success"))
+    except Exception:
+        return False
 
 
 def safe_display_name(name: str | None) -> str:

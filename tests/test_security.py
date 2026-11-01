@@ -124,6 +124,19 @@ def test_security_headers_and_cors(app):
     assert "access-control-allow-origin" not in pre.headers
 
 
+def test_rate_limit(tmp_path, cases, monkeypatch):
+    monkeypatch.setenv("EPIDEBUG_RATE_PER_MIN", "2")
+    app = create_app(upload_dir=tmp_path, prefer_llm=False, cases=cases)
+    c = TestClient(app)
+    codes = [c.post("/api/chat", json={"message": "pump cavitation noise"}).status_code for _ in range(3)]
+    assert codes == [200, 200, 429]
+
+
+def test_message_length_capped(app):
+    c = TestClient(app)
+    assert c.post("/api/chat", json={"message": "a" * 5000}).status_code == 413
+
+
 def test_ground_truth_not_public(app):
     c = TestClient(app)
     body = c.get("/api/cases/RF-001?include_ground_truth=true").json()
@@ -270,3 +283,126 @@ def test_run_isolated_falls_back_inline_without_main_file(monkeypatch):
     monkeypatch.delitem(sys.modules, "__main__")
     assert security._isolation_possible(in_main) is False
     assert security.run_isolated(in_main, 1) == 2
+
+
+# --- H1 review -------------------------------------------------------------
+
+def _limited_app(tmp_path, cases, monkeypatch, **env):
+    for k, v in env.items():
+        monkeypatch.setenv(k, str(v))
+    return create_app(upload_dir=tmp_path, prefer_llm=False, cases=cases)
+
+
+def test_spoofed_xff_does_not_bypass_limit(tmp_path, cases, monkeypatch):
+    app = _limited_app(tmp_path, cases, monkeypatch, EPIDEBUG_RATE_PER_MIN=2)
+    c = TestClient(app)
+    codes = [c.post("/api/chat", json={"message": "pump cavitation noise"},
+                    headers={"x-forwarded-for": f"10.0.0.{i}"}).status_code for i in range(3)]
+    assert codes == [200, 200, 429]
+
+
+def test_vercel_uses_edge_ip_not_xff(tmp_path, cases, monkeypatch):
+    app = _limited_app(tmp_path, cases, monkeypatch, EPIDEBUG_RATE_PER_MIN=1, VERCEL="1")
+    c = TestClient(app)
+    msg = {"message": "pump cavitation noise"}
+    h = {"x-vercel-forwarded-for": "1.2.3.4"}
+    assert c.post("/api/chat", json=msg, headers={**h, "x-forwarded-for": "9.9.9.1"}).status_code == 200
+    assert c.post("/api/chat", json=msg, headers={**h, "x-forwarded-for": "9.9.9.2"}).status_code == 429
+    assert c.post("/api/chat", json=msg, headers={"x-vercel-forwarded-for": "5.6.7.8"}).status_code == 200
+
+
+def test_lru_evicts_oldest_not_all():
+    from web.security import MemoryBackend
+
+    b = MemoryBackend(max_keys=3)
+    lim = [(60, 1)]
+    assert b.hit("a", lim) and b.hit("b", lim) and b.hit("c", lim)
+    assert not b.hit("a", lim)          # a touched -> most recent
+    assert b.hit("d", lim)              # evicts b (oldest)
+    assert len(b) == 3
+    assert not b.hit("a", lim) and not b.hit("c", lim)
+    assert b.hit("b", lim)              # b was evicted, fresh window
+
+
+def test_kv_backend_falls_back_to_memory(monkeypatch):
+    from web import security as s
+
+    monkeypatch.setenv("UPSTASH_REDIS_REST_URL", "https://127.0.0.1:9")
+    monkeypatch.setenv("UPSTASH_REDIS_REST_TOKEN", "dummy")
+    backend = s.make_backend()
+    assert isinstance(backend, s.RestKVBackend)
+    monkeypatch.setattr(backend, "_pipeline", lambda cmds: (_ for _ in ()).throw(OSError("down")))
+    assert backend.hit("k", [(60, 1)]) and not backend.hit("k", [(60, 1)])
+    calls = []
+    monkeypatch.setattr(backend, "_pipeline", lambda cmds: calls.append(cmds) or [1, 1])
+    assert backend.hit("k2", [(60, 1)]) and calls[0][0][0] == "INCR"
+
+
+def test_daily_llm_budget_breaker(tmp_path, cases, monkeypatch):
+    app = _limited_app(tmp_path, cases, monkeypatch, EPIDEBUG_RATE_PER_MIN=100,
+                       EPIDEBUG_RATE_PER_HOUR=100, EPIDEBUG_DAILY_LLM_CAP=2)
+    c = TestClient(app)
+    codes = [c.post("/api/chat", json={"message": "pump cavitation noise"}).status_code for _ in range(3)]
+    assert codes == [200, 200, 503]
+
+
+def test_session_creation_strict_limit(tmp_path, cases, monkeypatch):
+    app = _limited_app(tmp_path, cases, monkeypatch, EPIDEBUG_RATE_PER_MIN=100,
+                       EPIDEBUG_RATE_PER_HOUR=100, EPIDEBUG_SESSION_CREATE_PER_MIN=2)
+    c = TestClient(app)
+    first = _new_chat(c)
+    _new_chat(c)
+    assert c.post("/api/chat", json={"message": "another new session"}).status_code == 429
+    # continuing an existing session is not a creation
+    res = c.post(f"/api/sessions/{first['session_id']}/chat", json={"message": "more detail"},
+                 headers={"x-session-token": first["session_token"]})
+    assert res.status_code == 200
+
+
+def test_turnstile_hook_off_by_default_and_enforced_when_set(tmp_path, cases, monkeypatch):
+    from web import security as s
+
+    app = create_app(upload_dir=tmp_path, prefer_llm=False, cases=cases)
+    assert TestClient(app).post("/api/chat", json={"message": "pump noise"}).status_code == 200
+    monkeypatch.setenv("EPIDEBUG_TURNSTILE_SECRET", "x")
+    seen = []
+    monkeypatch.setattr(s, "verify_turnstile", lambda tok, ip: seen.append(tok) or tok == "good")
+    c = TestClient(app)
+    assert c.post("/api/chat", json={"message": "pump noise"}).status_code == 403
+    assert c.post("/api/chat", json={"message": "pump noise"},
+                  headers={"cf-turnstile-response": "good"}).status_code == 200
+
+
+def test_tools_have_own_bucket(tmp_path, cases, monkeypatch):
+    app = _limited_app(tmp_path, cases, monkeypatch, EPIDEBUG_RATE_PER_MIN=1, EPIDEBUG_TOOL_RATE_PER_MIN=1)
+    c = TestClient(app)
+    tools = c.get("/api/tools").json()
+    name = tools[0]["name"] if isinstance(tools, list) else next(iter(tools))
+    c.post(f"/api/tools/{name}", json={"arguments": {}})
+    assert c.post(f"/api/tools/{name}", json={"arguments": {}}).status_code == 429
+    assert c.post("/api/chat", json={"message": "pump noise"}).status_code == 200
+
+
+def test_csrf_requires_client_header_and_same_origin(app):
+    c = TestClient(app)
+    del c.headers["x-epidebug-client"]
+    assert c.post("/api/chat", json={"message": "pump noise"}).status_code == 403
+    c2 = TestClient(app)
+    assert c2.post("/api/chat", json={"message": "pump noise"},
+                   headers={"origin": "https://evil.example"}).status_code == 403
+    assert c2.post("/api/chat", json={"message": "pump noise"},
+                   headers={"origin": "http://testserver"}).status_code == 200
+    assert c.get("/api/health").status_code in (200, 404)
+
+
+def test_frontend_sends_client_header():
+    js = (ROOT / "web" / "static" / "app.js").read_text()
+    assert '"X-EpiDebug-Client": "web"' in js
+
+
+def test_limits_single_source():
+    from epidebug import limits
+    from web import security as s
+
+    assert s.MAX_MESSAGE_CHARS is limits.MAX_MESSAGE_CHARS
+    assert limits.PROMPT_CHAT_TURN_CHARS <= limits.MAX_MESSAGE_CHARS
