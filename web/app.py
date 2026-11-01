@@ -241,7 +241,21 @@ def create_app(
         return response
 
     tokens = sec.TokenStore(upload_dir / "tokens")
+    llm_limiter = sec.RateLimiter(
+        per_minute=int(os.environ.get("EPIDEBUG_RATE_PER_MIN", "12")),
+        per_hour=int(os.environ.get("EPIDEBUG_RATE_PER_HOUR", "120")),
+    )
     secure_cookie = bool(os.environ.get("VERCEL"))
+
+    def client_ip(request: Request) -> str:
+        fwd = request.headers.get("x-forwarded-for", "")
+        if fwd:
+            return fwd.split(",")[0].strip()
+        return request.client.host if request.client else "unknown"
+
+    def rate_limit(request: Request) -> None:
+        if not llm_limiter.allow(client_ip(request)):
+            raise HTTPException(429, "Too many requests. Please wait a minute and try again.")
 
     def valid_session_id(session_id: str) -> str:
         sid = (session_id or "").strip()
@@ -297,9 +311,14 @@ def create_app(
         return payload
 
     def clean_text(value: str, limit: int) -> str:
-        # Length caps are enforced in the rate-limit PR (H1).
-        return (value or "").strip()
+        text = (value or "").strip()
+        if len(text) > limit:
+            raise HTTPException(413, f"Message too long (max {limit} characters).")
+        return text
 
+    def check_turns(session) -> None:
+        if len(session.messages) >= sec.MAX_SESSION_MESSAGES:
+            raise HTTPException(429, "This session reached its turn limit. Start a new session.")
     app.mount("/assets", StaticFiles(directory=STATIC), name="assets")
     if MOCK_DATA.is_dir():
         app.mount("/mock_data", StaticFiles(directory=MOCK_DATA), name="mock_data")
@@ -476,6 +495,7 @@ def create_app(
 
     @app.post("/api/diagnose")
     def diagnose(req: DiagnoseRequest, request: Request, response: Response):
+        rate_limit(request)
         if req.case_id:
             case = case_index.get(req.case_id)
             if case is None:
@@ -510,6 +530,7 @@ def create_app(
         session_id: str = Form(""),
         files: list[UploadFile] | None = File(default=None),
     ):
+        rate_limit(request)
         existing = require_session(request, session_id) if session_id.strip() else None
         fields = {
             "title": title, "domain": domain, "objective": objective,
@@ -518,6 +539,8 @@ def create_app(
             "protocol": protocol, "telemetry": telemetry, "logs": logs, "context": context,
         }
         for key, value in fields.items():
+            if len(value or "") > 20000:
+                raise HTTPException(413, f"{key} is too long (max 20000 characters).")
             fields[key] = value or ""
         experiment = experiment_from_bundle(**fields, roles=roles, captions=captions, files=files)
         if not experiment.has_content():
@@ -541,6 +564,7 @@ def create_app(
     @app.post("/api/sessions/{session_id}/reject")
     def reject(session_id: str, req: RejectRequest, request: Request):
         require_session(request, session_id)
+        rate_limit(request)
         try:
             session = engine.reject_hypothesis(
                 session_id, req.hypothesis_id[:64], clean_text(req.reason, 500)
@@ -552,6 +576,7 @@ def create_app(
     @app.post("/api/sessions/{session_id}/add-info")
     def add_info(session_id: str, req: InfoRequest, request: Request):
         require_session(request, session_id)
+        rate_limit(request)
         session = engine.add_information(session_id, clean_text(req.information, sec.MAX_INFO_CHARS))
         return dump_session(session)
 
@@ -564,6 +589,7 @@ def create_app(
         files: list[UploadFile] | None = File(default=None),
     ):
         require_session(request, session_id)
+        rate_limit(request)
         try:
             role_list = json.loads(roles) if roles else []
             caption_list = json.loads(captions) if captions else []
@@ -583,6 +609,7 @@ def create_app(
     @app.post("/api/sessions/{session_id}/followup")
     def followup(session_id: str, req: FollowUpRequest, request: Request):
         require_session(request, session_id)
+        rate_limit(request)
         session = engine.record_followup(
             session_id,
             clean_text(req.intervention, sec.MAX_INFO_CHARS),
@@ -595,6 +622,8 @@ def create_app(
         if not message and not req.force_diagnose:
             raise HTTPException(400, "Provide a message, or set force_diagnose.")
         session = require_session(request, session_id)
+        check_turns(session)
+        rate_limit(request)
         session = engine.chat(session.session_id, message, force_diagnose=req.force_diagnose)
         return dump_session(session)
 
@@ -607,6 +636,7 @@ def create_app(
             raise HTTPException(400, "Provide a message, or set force_diagnose.")
         if not message:
             raise HTTPException(400, "A first message is required to start a chat session.")
+        rate_limit(request)
         session = engine.open_chat_session(
             message,
             title=clean_text(req.title or "", 200),
@@ -627,6 +657,7 @@ def create_app(
     def run_tool(name: str, req: ToolRequest, request: Request):
         if name not in TOOL_REGISTRY:
             raise HTTPException(404, "Unknown tool")
+        rate_limit(request)
         try:
             return invoke_tool(name, **req.arguments)
         except Exception as exc:

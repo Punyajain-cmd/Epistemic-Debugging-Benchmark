@@ -117,6 +117,29 @@ class TokenStore:
         return hmac.compare_digest(stored, _digest(token))
 
 
+class RateLimiter:
+    """Per-key sliding window limiter (in-memory, per warm instance)."""
+
+    def __init__(self, per_minute: int, per_hour: int) -> None:
+        self.per_minute = per_minute
+        self.per_hour = per_hour
+        self._hits: dict[str, deque] = defaultdict(deque)
+        self._lock = threading.Lock()
+
+    def allow(self, key: str) -> bool:
+        now = time.monotonic()
+        with self._lock:
+            q = self._hits[key]
+            while q and now - q[0] > 3600:
+                q.popleft()
+            last_min = sum(1 for t in q if now - t <= 60)
+            if last_min >= self.per_minute or len(q) >= self.per_hour:
+                return False
+            q.append(now)
+            if len(self._hits) > 50000:
+                self._hits.clear()
+            return True
+
 
 def safe_display_name(name: str | None) -> str:
     """Original filename kept only as metadata: basename, no control chars,

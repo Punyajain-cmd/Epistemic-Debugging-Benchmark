@@ -142,7 +142,7 @@ class EngineLLM:
         *,
         system: str,
         messages: list[dict[str, str]],
-        max_tokens: int = 2500,
+        max_tokens: int = 1200,
         temperature: float = 0.2,
     ) -> str | None:
         if not self.available:

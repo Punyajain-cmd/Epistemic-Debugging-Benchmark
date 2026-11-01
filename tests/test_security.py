@@ -124,6 +124,19 @@ def test_security_headers_and_cors(app):
     assert "access-control-allow-origin" not in pre.headers
 
 
+def test_rate_limit(tmp_path, cases, monkeypatch):
+    monkeypatch.setenv("EPIDEBUG_RATE_PER_MIN", "2")
+    app = create_app(upload_dir=tmp_path, prefer_llm=False, cases=cases)
+    c = TestClient(app)
+    codes = [c.post("/api/chat", json={"message": "pump cavitation noise"}).status_code for _ in range(3)]
+    assert codes == [200, 200, 429]
+
+
+def test_message_length_capped(app):
+    c = TestClient(app)
+    assert c.post("/api/chat", json={"message": "a" * 5000}).status_code == 413
+
+
 def test_ground_truth_not_public(app):
     c = TestClient(app)
     body = c.get("/api/cases/RF-001?include_ground_truth=true").json()
