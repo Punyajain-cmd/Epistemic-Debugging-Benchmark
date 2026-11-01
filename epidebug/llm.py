@@ -229,6 +229,17 @@ class EngineLLM:
             return None
 
 
+_ROLE_RE = re.compile(
+    r"\[\s*(system-tool|system|assistant|tool|developer)\s*\]|<\|[^|>]{0,40}\|>|</?\s*(evidence|engine_note|system)\s*>",
+    re.I,
+)
+
+
+def _strip_roles(text: str) -> str:
+    """Remove forged role markers and our own delimiters from untrusted text."""
+    return _ROLE_RE.sub("", text or "")
+
+
 def _to_provider_messages(messages: list[dict[str, str]]) -> list[dict[str, str]]:
     """Keep user/assistant turns; fold system-tool notes into user content."""
     out: list[dict[str, str]] = []
@@ -239,7 +250,9 @@ def _to_provider_messages(messages: list[dict[str, str]]) -> list[dict[str, str]
             continue
         if role in {"system-tool", "tool", "system"}:
             role = "user"
-            content = f"[system-tool] {content}"
+            content = "<engine_note>\n" + _strip_roles(content) + "\n</engine_note>"
+        elif role == "user":
+            content = _strip_roles(content)
         if role not in {"user", "assistant"}:
             role = "user"
         if out and out[-1]["role"] == role:
