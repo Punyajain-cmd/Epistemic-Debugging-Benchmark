@@ -15,6 +15,7 @@ EPIDEBUG_LLM_PROVIDER  optional ``openai`` or ``anthropic``
 from __future__ import annotations
 
 import json
+import logging
 import os
 import re
 from typing import Any
@@ -22,6 +23,9 @@ from typing import Any
 
 DEFAULT_OPENAI_MODEL = "gpt-4o-mini"
 DEFAULT_ANTHROPIC_MODEL = "claude-3-5-haiku-latest"
+
+
+_log = logging.getLogger("epidebug.llm")
 
 
 def _env(name: str) -> str:
@@ -187,7 +191,8 @@ class EngineLLM:
                 messages=payload,
             )
             return response.choices[0].message.content or ""
-        except Exception:
+        except Exception as exc:
+            _log.warning("LLM completion failed: %s", type(exc).__name__)
             return None
 
     def _complete_anthropic(
@@ -219,7 +224,8 @@ class EngineLLM:
                 if text:
                     chunks.append(text)
             return "".join(chunks)
-        except Exception:
+        except Exception as exc:
+            _log.warning("LLM completion failed: %s", type(exc).__name__)
             return None
 
 
