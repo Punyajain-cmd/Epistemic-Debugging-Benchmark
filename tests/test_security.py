@@ -63,6 +63,67 @@ def test_session_id_format_validated(app):
     assert c.get("/api/sessions/ZZZ").status_code == 404
 
 
+def test_traversal_filename_neutralized(app, tmp_path):
+    c = TestClient(app)
+    files = {"files": ("../../sessions/evil.json", b"time,temp\n0,1\n", "text/csv")}
+    res = c.post("/api/diagnose-bundle", data={"unexpected_outcome": "overheat"}, files=files)
+    assert res.status_code == 200, res.text
+    assert not (tmp_path / "sessions" / "evil.json").exists()
+    stored = [p for p in tmp_path.rglob("*") if p.is_file() and p.parent.name not in {"sessions", "tokens"}]
+    assert stored and all(p.name == "blob" for p in stored)
+    names = [a["filename"] for a in res.json()["view"]["artifacts"]]
+    assert all("/" not in n and ".." not in n.split("/")[0][:2] for n in names)
+
+
+def test_html_svg_uploads_rejected(app):
+    c = TestClient(app)
+    for name, data in (("x.html", b"<html><script>alert(1)</script>"),
+                       ("x.svg", b"<svg onload=alert(1)>"),
+                       ("x.txt", b"<!doctype html><script>1</script>"),
+                       ("x.png", b"not a png")):
+        res = c.post("/api/diagnose-bundle", data={"unexpected_outcome": "x"},
+                     files={"files": (name, data, "text/plain")})
+        assert res.status_code == 415, name
+
+
+def test_file_served_as_attachment(app):
+    from PIL import Image
+
+    buf = io.BytesIO()
+    Image.new("RGB", (2, 2)).save(buf, format="PNG")
+    c = TestClient(app)
+    res = c.post("/api/diagnose-bundle", data={"unexpected_outcome": "crack"},
+                 files={"files": ("p.png", buf.getvalue(), "image/png")})
+    url = res.json()["view"]["artifacts"][0].get("preview_url") or ""
+    art = res.json()["experiment"]["artifacts"][0]["id"]
+    f = c.get(f"/api/files/{art}")
+    assert f.status_code == 200
+    assert f.headers["content-type"] == "application/octet-stream"
+    assert f.headers["content-disposition"].startswith("attachment")
+    assert f.headers["x-content-type-options"] == "nosniff"
+    assert url == "" or url.endswith(art)
+
+
+def test_too_many_files(app):
+    c = TestClient(app)
+    files = [("files", (f"f{i}.csv", b"a,b\n1,2\n", "text/csv")) for i in range(13)]
+    res = c.post("/api/diagnose-bundle", data={"unexpected_outcome": "x"}, files=files)
+    assert res.status_code == 413
+
+
+def test_security_headers_and_cors(app):
+    c = TestClient(app)
+    res = c.get("/api/health", headers={"Origin": "https://evil.example"})
+    assert "access-control-allow-origin" not in res.headers
+    csp = res.headers["content-security-policy"]
+    assert "frame-ancestors 'none'" in csp
+    assert res.headers["x-content-type-options"] == "nosniff"
+    assert res.headers["referrer-policy"]
+    pre = c.options("/api/chat", headers={"Origin": "https://evil.example",
+                                          "Access-Control-Request-Method": "POST"})
+    assert "access-control-allow-origin" not in pre.headers
+
+
 def test_ground_truth_not_public(app):
     c = TestClient(app)
     body = c.get("/api/cases/RF-001?include_ground_truth=true").json()
@@ -128,3 +189,84 @@ def test_token_server_side_expiry(tmp_path, monkeypatch):
     real = _t.time
     monkeypatch.setattr("web.security.time.time", lambda: real() + 120)
     assert not store.check("abcdef012345", tok)
+
+
+def test_pil_pixel_cap():
+    from PIL import Image
+
+    import epidebug.engine.ingest  # noqa: F401
+
+    assert Image.MAX_IMAGE_PIXELS == 40_000_000
+
+
+
+def _slow(x):
+    import time as _t
+
+    _t.sleep(x)
+    return x
+
+
+def test_parse_timeout_kills_child():
+    import time as _t
+
+    from web.security import ParseTimeout, run_isolated
+
+    assert run_isolated(_slow, 0, timeout=5) == 0
+    t0 = _t.time()
+    with pytest.raises(ParseTimeout):
+        run_isolated(_slow, 30, timeout=0.5)
+    assert _t.time() - t0 < 5
+
+
+@pytest.mark.parametrize("name,data", [
+    ("a.txt", b"\xef\xbb\xbf<html><body>x"),
+    ("a.txt", b"<!-- c -->\n  <SvG onload=x>"),
+    ("a.txt", b"log line\n" * 50 + b"<script>alert(1)</script>"),
+    ("data.xml", b"<?xml version='1.0'?><root><svg/></root>"),
+    ("data.xml", b"<root xmlns:h='http://www.w3.org/1999/xhtml'><h:HTML/></root>"),
+    ("evil.html.", b"hello"),
+    ("noext", b"   <!DOCTYPE HTML><p>"),
+    ("u16.txt", "\ufeff<html>".encode("utf-16")),
+])
+def test_sniff_rejects_markup(name, data):
+    from web.security import safe_display_name, validate_upload
+
+    assert validate_upload(safe_display_name(name), data) is not None
+
+
+def test_sniff_allows_plain_data():
+    from web.security import validate_upload
+
+    assert validate_upload("run.csv", b"t,od\n0,0.1\n") is None
+    assert validate_upload("data.xml", b"<?xml version='1.0'?><plate><well id='A1'/></plate>") is None
+
+
+def test_pdf_page_cap():
+    from epidebug.engine import ingest
+
+    data = b"%PDF-1.4\n" + b"<< /Type /Page >>\n" * (ingest.MAX_PDF_PAGES + 1)
+    _, stats, summary = ingest._extract_pdf(data)
+    assert stats.get("rejected") == "page_cap" and "not parsed" in summary
+
+
+def test_run_isolated_falls_back_inline_without_main_file(monkeypatch):
+    """forkserver cannot start a child when __main__ points at a missing file
+    (or fn lives in __main__); run_isolated must fall back to inline, not crash."""
+    import sys
+    import types
+
+    from web import security
+
+    fake_main = types.ModuleType("__main__")
+    fake_main.__file__ = "/nonexistent/launcher.py"
+    monkeypatch.setitem(sys.modules, "__main__", fake_main)
+    assert security._isolation_possible(_slow) is False
+    assert security.run_isolated(_slow, 0, timeout=5) == 0  # ran inline
+
+    def in_main(x):
+        return x + 1
+    in_main.__module__ = "__main__"
+    monkeypatch.delitem(sys.modules, "__main__")
+    assert security._isolation_possible(in_main) is False
+    assert security.run_isolated(in_main, 1) == 2

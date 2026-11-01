@@ -21,6 +21,14 @@ from typing import Any
 from epidebug.schema import ArtifactKind, ArtifactRole, ExperimentArtifact
 
 MAX_EXTRACT_CHARS = 12000
+MAX_IMAGE_PIXELS = 40_000_000
+
+try:  # decompression-bomb guard
+    from PIL import Image as _PILImage
+
+    _PILImage.MAX_IMAGE_PIXELS = MAX_IMAGE_PIXELS
+except Exception:  # pragma: no cover
+    pass
 MAX_READ_BYTES = 400_000
 MAX_SUMMARY_CHARS = 500
 
@@ -1028,6 +1036,7 @@ def _extract_image(filename: str, data: bytes) -> tuple[str, dict[str, Any], str
         from PIL import Image
         from PIL.ExifTags import TAGS
 
+        Image.MAX_IMAGE_PIXELS = MAX_IMAGE_PIXELS
         img = Image.open(io.BytesIO(data))
         stats["width"], stats["height"] = img.size
         stats["mode"] = img.mode
@@ -1094,29 +1103,51 @@ def _extract_notebook(data: bytes) -> tuple[str, dict[str, Any], str]:
     }, summary
 
 
+class _PdfTooLarge(Exception):
+    def __init__(self, pages: int):
+        super().__init__(pages)
+        self.pages = pages
+
+
+MAX_PDF_PAGES = 200  # mirrors web.security.MAX_PDF_PAGES
+PDF_EXTRACT_PAGES = 8
+_PDF_PAGE_RE = re.compile(rb"/Type\s*/Page(?!s)")
+
+
 def _extract_pdf(data: bytes) -> tuple[str, dict[str, Any], str]:
+    approx_pages = len(_PDF_PAGE_RE.findall(data))
+    if approx_pages > MAX_PDF_PAGES:
+        return "", {"pages": approx_pages, "rejected": "page_cap"}, (
+            f"PDF has ~{approx_pages} pages (> {MAX_PDF_PAGES}); not parsed. Filename still used as a cue."
+        )
     try:
         import pdfplumber
 
         buf = io.BytesIO(data)
         with pdfplumber.open(buf) as pdf:
             pages = []
-            for page in pdf.pages[:8]:
+            for page in pdf.pages[:PDF_EXTRACT_PAGES]:
                 pages.append(page.extract_text() or "")
             text = "\n".join(pages)
+            if len(pdf.pages) > MAX_PDF_PAGES:
+                raise _PdfTooLarge(len(pdf.pages))
             summary = f"PDF with {len(pdf.pages)} pages; extracted {len(pages)}."
             summary = _pdf_summary_bits(text, summary)
             return text[:MAX_EXTRACT_CHARS], {
                 "pages": len(pdf.pages),
                 "extracted_pages": len(pages),
             }, summary
+    except _PdfTooLarge as exc:
+        return "", {"pages": exc.pages, "rejected": "page_cap"}, (
+            f"PDF has {exc.pages} pages (> {MAX_PDF_PAGES}); not parsed. Filename still used as a cue."
+        )
     except Exception:
         pass
     try:
         from pypdf import PdfReader
 
         reader = PdfReader(io.BytesIO(data))
-        text = "\n".join((page.extract_text() or "") for page in reader.pages[:8])
+        text = "\n".join((page.extract_text() or "") for page in reader.pages[:PDF_EXTRACT_PAGES])
         info = getattr(reader, "metadata", None)
         title = ""
         if info is not None:

@@ -49,7 +49,7 @@ def test_health_contract(client):
     assert body["cases"] >= 30
     assert body["contract_version"] == "0.6"
     assert body["evidence_slots"]
-    assert body["max_file_bytes"] == 25 * 1024 * 1024
+    assert body["max_file_bytes"] == 10 * 1024 * 1024
     assert body["engine_mode"] in {"heuristic", "llm"}
     for leaked in ("llm_provider", "llm_model", "platform", "fixtures", "llm_available"):
         assert leaked not in body
@@ -304,9 +304,9 @@ def test_full_dump_mix_svg_stl_stub_markdown(client):
         (
             "files",
             (
-                "setup_layout.svg",
-                b'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10"><title>Vise</title></svg>',
-                "image/svg+xml",
+                "setup_layout.png",
+                _tiny_png(),
+                "image/png",
             ),
         ),
         ("files", ("housing_stub.stl", b"solid stub\nendsolid stub\n", "model/stl")),
@@ -328,8 +328,8 @@ def test_full_dump_mix_svg_stl_stub_markdown(client):
     assert cards["charger.log"]["kind"] == "log"
     assert cards["NOTES.md"]["kind"] == "document"
     assert "Traveler SOP" in (cards["NOTES.md"]["summary"] or "")
-    assert cards["setup_layout.svg"]["kind"] == "image"
-    assert cards["setup_layout.svg"]["mime_type"] == "image/svg+xml"
+    assert cards["setup_layout.png"]["kind"] == "image"
+    assert cards["setup_layout.png"]["mime_type"] == "image/png"
     assert cards["housing_stub.stl"]["kind"] == "cad"
     assert cards["housing_stub.stl"]["stats"].get("stub") is True
     assert view["gallery"]["images"]
