@@ -368,7 +368,7 @@ def create_app(
         return payload
 
     def clean_text(value: str, limit: int) -> str:
-        text = (value or "").strip()
+        text = sec.strip_role_prefixes(value or "").strip()
         if len(text) > limit:
             raise HTTPException(413, f"Message too long (max {limit} characters).")
         return text
@@ -397,7 +397,7 @@ def create_app(
         problem = sec.validate_upload(filename, data)
         if problem:
             raise HTTPException(415, f"{filename}: {problem}")
-        caption = (caption or "")[: sec.MAX_CAPTION_CHARS]
+        caption = sec.strip_role_prefixes(caption or "")[: sec.MAX_CAPTION_CHARS]
         try:
             artifact = sec.run_isolated(
                 ingest_bytes,
@@ -601,7 +601,7 @@ def create_app(
         for key, value in fields.items():
             if len(value or "") > sec.MAX_BUNDLE_FIELD_CHARS:
                 raise HTTPException(413, f"{key} is too long (max {sec.MAX_BUNDLE_FIELD_CHARS} characters).")
-            fields[key] = value or ""
+            fields[key] = sec.strip_role_prefixes(value or "")
         experiment = experiment_from_bundle(**fields, roles=roles, captions=captions, files=files)
         if not experiment.has_content():
             raise HTTPException(400, "Add a description, an unexpected outcome, or at least one file.")

@@ -343,6 +343,15 @@ def validate_upload(name: str, data: bytes) -> str | None:
     return None
 
 
+def strip_role_prefixes(text: str) -> str:
+    """Request-time pass for stored text: drop invisible Cf chars only.
+    Name kept for call-site stability; normalisation, role stripping and
+    escaping are applied when prompts are built (epidebug.untrusted.clean)."""
+    from epidebug.untrusted import clean_stored
+
+    return clean_stored(text or "")
+
+
 def csp_header() -> str:
     return (
         "default-src 'self'; "

@@ -73,6 +73,22 @@ EVIDENCE_SLOTS: list[dict[str, str]] = [
 ]
 
 
+DISCLAIMER = (
+    "EpiDebug scores are uncalibrated relative rankings, not probabilities. "
+    "Do not rely on them for safety-critical decisions (batteries, pressure, "
+    "medical, structural, robotics); verify with a qualified engineer and a "
+    "discriminating test."
+)
+
+
+def confidence_band(confidence: float) -> str:
+    if confidence >= 0.7:
+        return "higher"
+    if confidence >= 0.45:
+        return "moderate"
+    return "low"
+
+
 def session_payload(session: DiagnosisSession) -> dict[str, Any]:
     """Serialize a session plus an additive ``view`` block for the web UI."""
     payload = session.model_dump(mode="json")
@@ -103,6 +119,9 @@ def build_view(session: DiagnosisSession) -> dict[str, Any]:
         "file_count": len(artifacts),
         "confidence": round(confidence, 3),
         "confidence_pct": int(round(confidence * 100)),
+        "confidence_band": confidence_band(confidence),
+        "confidence_calibrated": False,
+        "disclaimer": DISCLAIMER,
         "entropy": round(float(uncertainty.entropy or 0.0), 3),
         "competing_count": uncertainty.competing_count or len(active),
         "uncertainty_note": uncertainty.note,

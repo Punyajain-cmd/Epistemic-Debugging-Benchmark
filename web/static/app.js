@@ -476,6 +476,8 @@ function pickView(data) {
     fileCount: v && v.file_count != null ? v.file_count : artifacts.length,
     confidence,
     confidencePct,
+    confidenceBand: v && v.confidence_band,
+    disclaimer: v && v.disclaimer,
     entropy: v && v.entropy != null ? v.entropy : u.entropy,
     competingCount: v && v.competing_count != null ? v.competing_count : activeCount,
     uncertaintyNote: (v && v.uncertainty_note) || u.note || "",
@@ -618,7 +620,9 @@ function renderSession(data) {
   $("caseMeta").textContent = `${view.caseId} · ${view.engineMode} · ${view.fileCount} file(s) · session ${view.sessionId}`;
   $("leadTitle").textContent = view.title;
   $("leadCause").textContent = view.leadCause;
-  $("confidenceValue").textContent = view.confidencePct == null ? "—" : `${view.confidencePct}%`;
+  $("confidenceValue").textContent = view.confidencePct == null ? "—" : `${view.confidencePct}% · ${view.confidenceBand || "uncalibrated"}`;
+  const disc = document.getElementById("safetyBanner");
+  if (disc && view.disclaimer) disc.textContent = view.disclaimer;
   $("uncertaintyNote").textContent = view.uncertaintyNote;
   $("entropyValue").textContent = view.entropy == null ? "—" : Number(view.entropy).toFixed(2);
   $("competingCount").textContent = String(view.competingCount);

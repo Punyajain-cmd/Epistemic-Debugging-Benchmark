@@ -1911,3 +1911,5 @@ ul, ol { margin: 0.3rem 0 0; padding-left: 1.1rem; }
     transition: none !important;
   }
 }
+
+.safety-banner{margin:0 auto;max-width:1400px;padding:6px 16px;font-size:12px;line-height:1.4;color:#7a4b00;background:#fff6e0;border-bottom:1px solid #f0d9a0;}
