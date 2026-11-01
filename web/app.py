@@ -10,7 +10,6 @@ and adds an additive ``view`` object for a redesigned frontend.
 
 from __future__ import annotations
 
-import concurrent.futures
 import json
 import logging
 import os
@@ -38,7 +37,6 @@ from epidebug.tools import TOOL_REGISTRY, invoke_tool, list_tools
 from web import security as sec
 
 log = logging.getLogger("epidebug.web")
-_PARSE_POOL = concurrent.futures.ThreadPoolExecutor(max_workers=4)
 
 STATIC = Path(__file__).resolve().parent / "static"
 CASES_DIR = ROOT / "test_cases"
@@ -324,18 +322,17 @@ def create_app(
         if problem:
             raise HTTPException(415, f"{filename}: {problem}")
         caption = (caption or "")[:500]
-        future = _PARSE_POOL.submit(
-            ingest_bytes,
-            filename,
-            data,
-            role=role,
-            caption=caption,
-            content_type=getattr(upload, "content_type", None),
-        )
         try:
-            artifact = future.result(timeout=sec.PARSE_TIMEOUT_S)
-        except concurrent.futures.TimeoutError as exc:
-            future.cancel()
+            artifact = sec.run_isolated(
+                ingest_bytes,
+                filename,
+                data,
+                role=role,
+                caption=caption,
+                content_type=getattr(upload, "content_type", None),
+                timeout=sec.PARSE_TIMEOUT_S,
+            )
+        except sec.ParseTimeout as exc:
             raise HTTPException(422, f"{filename}: parsing timed out") from exc
         except Exception as exc:
             log.exception("ingest failed")

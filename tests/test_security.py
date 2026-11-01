@@ -198,3 +198,53 @@ def test_pil_pixel_cap():
 
     assert Image.MAX_IMAGE_PIXELS == 40_000_000
 
+
+
+def _slow(x):
+    import time as _t
+
+    _t.sleep(x)
+    return x
+
+
+def test_parse_timeout_kills_child():
+    import time as _t
+
+    from web.security import ParseTimeout, run_isolated
+
+    assert run_isolated(_slow, 0, timeout=5) == 0
+    t0 = _t.time()
+    with pytest.raises(ParseTimeout):
+        run_isolated(_slow, 30, timeout=0.5)
+    assert _t.time() - t0 < 5
+
+
+@pytest.mark.parametrize("name,data", [
+    ("a.txt", b"\xef\xbb\xbf<html><body>x"),
+    ("a.txt", b"<!-- c -->\n  <SvG onload=x>"),
+    ("a.txt", b"log line\n" * 50 + b"<script>alert(1)</script>"),
+    ("data.xml", b"<?xml version='1.0'?><root><svg/></root>"),
+    ("data.xml", b"<root xmlns:h='http://www.w3.org/1999/xhtml'><h:HTML/></root>"),
+    ("evil.html.", b"hello"),
+    ("noext", b"   <!DOCTYPE HTML><p>"),
+    ("u16.txt", "\ufeff<html>".encode("utf-16")),
+])
+def test_sniff_rejects_markup(name, data):
+    from web.security import safe_display_name, validate_upload
+
+    assert validate_upload(safe_display_name(name), data) is not None
+
+
+def test_sniff_allows_plain_data():
+    from web.security import validate_upload
+
+    assert validate_upload("run.csv", b"t,od\n0,0.1\n") is None
+    assert validate_upload("data.xml", b"<?xml version='1.0'?><plate><well id='A1'/></plate>") is None
+
+
+def test_pdf_page_cap():
+    from epidebug.engine import ingest
+
+    data = b"%PDF-1.4\n" + b"<< /Type /Page >>\n" * (ingest.MAX_PDF_PAGES + 1)
+    _, stats, summary = ingest._extract_pdf(data)
+    assert stats.get("rejected") == "page_cap" and "not parsed" in summary
