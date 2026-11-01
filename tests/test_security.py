@@ -248,3 +248,25 @@ def test_pdf_page_cap():
     data = b"%PDF-1.4\n" + b"<< /Type /Page >>\n" * (ingest.MAX_PDF_PAGES + 1)
     _, stats, summary = ingest._extract_pdf(data)
     assert stats.get("rejected") == "page_cap" and "not parsed" in summary
+
+
+def test_run_isolated_falls_back_inline_without_main_file(monkeypatch):
+    """forkserver cannot start a child when __main__ points at a missing file
+    (or fn lives in __main__); run_isolated must fall back to inline, not crash."""
+    import sys
+    import types
+
+    from web import security
+
+    fake_main = types.ModuleType("__main__")
+    fake_main.__file__ = "/nonexistent/launcher.py"
+    monkeypatch.setitem(sys.modules, "__main__", fake_main)
+    assert security._isolation_possible(_slow) is False
+    assert security.run_isolated(_slow, 0, timeout=5) == 0  # ran inline
+
+    def in_main(x):
+        return x + 1
+    in_main.__module__ = "__main__"
+    monkeypatch.delitem(sys.modules, "__main__")
+    assert security._isolation_possible(in_main) is False
+    assert security.run_isolated(in_main, 1) == 2

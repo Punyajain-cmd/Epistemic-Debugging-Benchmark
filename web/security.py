@@ -4,6 +4,7 @@ upload validation, response headers)."""
 from __future__ import annotations
 
 import hashlib
+import logging
 import os
 import hmac
 import re
@@ -233,6 +234,16 @@ class ParseTimeout(Exception):
     pass
 
 
+def _isolation_possible(fn) -> bool:
+    import sys
+
+    if getattr(fn, "__module__", None) == "__main__":
+        return False
+    main_file = getattr(sys.modules.get("__main__"), "__file__", None)
+    # No __file__ is fine for forkserver (main is skipped); a bogus path is not.
+    return main_file is None or os.path.exists(main_file)
+
+
 def run_isolated(fn, *args, timeout: float = PARSE_TIMEOUT_S, **kwargs):
     """Run ``fn`` in a child process (forkserver) and kill it on timeout.
 
@@ -244,6 +255,16 @@ def run_isolated(fn, *args, timeout: float = PARSE_TIMEOUT_S, **kwargs):
 
     methods = mp.get_all_start_methods()
     if os.environ.get("EPIDEBUG_PARSE_ISOLATION", "process") == "thread" or not methods:
+        return fn(*args, **kwargs)
+    # Known limitation: forkserver/spawn children re-import ``__main__`` from its
+    # file and unpickle ``fn`` by module path. If the main module has no real
+    # file (``python -c``, stdin, a REPL, some embedded launchers) or ``fn``
+    # lives in ``__main__``, the child dies before running and we would only
+    # see "parser exited". In that case we fall back to running inline (timeout
+    # advisory only, same as EPIDEBUG_PARSE_ISOLATION=thread) and log a warning.
+    if not _isolation_possible(fn):
+        logging.getLogger(__name__).warning(
+            "parse isolation unavailable (no importable __main__ file); running inline")
         return fn(*args, **kwargs)
     # forkserver avoids fork()-in-a-threaded-server deadlocks; fn must be importable.
     ctx = mp.get_context("forkserver" if "forkserver" in methods else methods[0])
